@@ -1,0 +1,21 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Login',
+  description: 'Sign in to your noname account.',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
+export default function LoginPage() {
+  return (
+    <main className="flex flex-1 flex-col items-center justify-center px-4">
+      <h1 className="text-4xl font-bold tracking-tight">Login</h1>
+      <p className="mt-4 text-lg text-foreground/70">
+        Sign in to your account.
+      </p>
+    </main>
+  );
+}

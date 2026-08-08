@@ -1,0 +1,26 @@
+{
+  "// AI AGENT NOTICE": "Do NOT modify this file to suppress errors. You must fix the actual underlying code error. Read AGENTS.md before making any architectural or configuration changes.",
+  "name": "noname",
+  "private": true,
+  "packageManager": "pnpm@11.20.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "clean": "turbo clean"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.66.0",
+    "@typescript-eslint/parser": "^8.66.0",
+    "eslint": "^10.8.0",
+    "prettier": "^3.5.0",
+    "turbo": "^2.5.0",
+    "typescript": "~5.8.0"
+  }
+}

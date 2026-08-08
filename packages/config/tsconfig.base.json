@@ -1,0 +1,22 @@
+{
+  "// AI AGENT NOTICE": "Do NOT modify this file to suppress errors. You must fix the actual underlying code error. Read AGENTS.md before making any architectural or configuration changes.",
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022"],
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "noUncheckedIndexedAccess": true,
+    "noEmit": true
+  },
+  "exclude": ["node_modules", "dist", ".next", ".expo"]
+}
