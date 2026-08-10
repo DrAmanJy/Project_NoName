@@ -243,7 +243,7 @@ export class VideoUploadManager {
       if (this.onProgress) {
         this.onProgress(this.bytesUploaded, this.source.size);
       }
-    } catch (err) {
+    } catch {
       part.retryCount++;
       if (part.retryCount > 3) {
         part.status = 'failed';
