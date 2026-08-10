@@ -8,6 +8,8 @@ import { logger } from './infrastructure/logger.js';
 import { healthRouter } from './routes/health.js';
 import { notFoundHandler } from './middleware/not-found.js';
 import { errorHandler } from './middleware/error-handler.js';
+import { authRoutes } from './modules/auth/auth.routes.js';
+import { videoRoutes } from './modules/video/video.routes.js';
 
 export function createApp() {
   const app = express();
@@ -38,7 +40,9 @@ export function createApp() {
   app.use(pinoHttp({ logger }));
 
   // Routes
-  app.use(healthRouter);
+  app.use('/api/v1/health', healthRouter);
+  app.use('/api/v1/auth', authRoutes);
+  app.use('/api/v1/videos', videoRoutes);
 
   // Error handling
   app.use(notFoundHandler);
