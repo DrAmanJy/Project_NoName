@@ -1,5 +1,4 @@
 {
-  "// AI AGENT NOTICE": "Do NOT modify this file to suppress errors. You must fix the actual underlying code error. Read AGENTS.md before making any architectural or configuration changes.",
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
     "dev": {
