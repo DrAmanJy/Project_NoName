@@ -9,17 +9,50 @@ const envSchema = z.object({
 
   MONGODB_URI: z.string().url(),
 
-  JWT_SECRET: z.string().min(32),
-  JWT_ISSUER: z.string().default('noname-api'),
-  JWT_AUDIENCE: z.string().default('noname-clients'),
-
+  FRONTEND_URL: z.string().url().default('http://localhost:3000'),
   CORS_ORIGIN: z.string().url().default('http://localhost:3000'),
+
+  AUTH_COOKIE_NAME: z.string().default('__Host-session'),
+  AUTH_SESSION_TTL_DAYS: z.coerce.number().default(30),
+  AUTH_ENCRYPTION_KEY: z.string().min(32),
+
+  GOOGLE_CLIENT_ID: z.string().min(1),
+  GOOGLE_CLIENT_SECRET: z.string().min(1),
+  GOOGLE_REDIRECT_URI: z.string().url(),
+
+  FACEBOOK_APP_ID: z.string().min(1),
+  FACEBOOK_APP_SECRET: z.string().min(1),
+  FACEBOOK_REDIRECT_URI: z.string().url(),
+
+  APPLE_CLIENT_ID: z.string().min(1),
+  APPLE_TEAM_ID: z.string().min(1),
+  APPLE_KEY_ID: z.string().min(1),
+  APPLE_PRIVATE_KEY: z.string().min(1),
+  APPLE_REDIRECT_URI: z.string().url(),
 
   R2_ACCOUNT_ID: z.string().min(1),
   R2_ACCESS_KEY_ID: z.string().min(1),
   R2_SECRET_ACCESS_KEY: z.string().min(1),
   R2_BUCKET_NAME: z.string().min(1),
   R2_PUBLIC_URL: z.string().url(),
+
+  VIDEO_MAX_SIZE_BYTES: z.coerce.number().default(100 * 1024 * 1024),
+  VIDEO_MAX_DURATION_SECONDS: z.coerce.number().default(120),
+  VIDEO_MIN_DURATION_SECONDS: z.coerce.number().default(2),
+  VIDEO_MAX_WIDTH: z.coerce.number().default(1920),
+  VIDEO_MAX_HEIGHT: z.coerce.number().default(1920),
+  VIDEO_WORKER_CONCURRENCY: z.coerce.number().default(2),
+  VIDEO_PROCESSING_TIMEOUT_SECONDS: z.coerce.number().default(600),
+  VIDEO_RETENTION_DAYS: z.coerce.number().default(30),
+  AI_ARTIFACT_RETENTION_DAYS: z.coerce.number().default(7),
+  VIDEO_UPLOAD_TTL_MINUTES: z.coerce.number().default(60),
+
+  AI_ENABLED: z.enum(['true', 'false', '1', '0']).transform(v => v === 'true' || v === '1').default('false'),
+  OPENAI_API_KEY: z.string().optional(),
+  OPENAI_TRANSCRIPTION_MODEL: z.string().default('whisper-1'),
+  OPENAI_VISION_MODEL: z.string().default('gpt-4.1-nano'),
+
+  VIDEO_AUTHENTICITY_ENABLED: z.enum(['true', 'false', '1', '0']).transform(v => v === 'true' || v === '1').default('false'),
 });
 
 function validateEnv() {
