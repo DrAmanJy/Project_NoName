@@ -23,21 +23,6 @@ export const AuthResponseSchema = z.object({
 
 export type AuthResponse = z.infer<typeof AuthResponseSchema>;
 
-export const LoginRequestSchema = z.object({
-  email: z.string().email(),
-  password: z.string(),
-});
-
-export type LoginRequest = z.infer<typeof LoginRequestSchema>;
-
-export const RegisterRequestSchema = z.object({
-  name: z.string().min(1),
-  email: z.string().email(),
-  password: z.string().min(8),
-});
-
-export type RegisterRequest = z.infer<typeof RegisterRequestSchema>;
-
 export const MobileHandoffExchangeRequestSchema = z.object({
   code: z.string().min(1),
 });

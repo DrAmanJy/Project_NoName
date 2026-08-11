@@ -1,11 +1,9 @@
 export {
   UserSchema,
   AuthResponseSchema,
-  LoginRequestSchema,
-  RegisterRequestSchema,
   MobileHandoffExchangeRequestSchema,
 } from './auth.js';
-export type { User, AuthResponse, LoginRequest, RegisterRequest, MobileHandoffExchangeRequest } from './auth.js';
+export type { User, AuthResponse, MobileHandoffExchangeRequest } from './auth.js';
 
 export { VideoStatusSchema, VideoSchema, CreateVideoRequestSchema, UploadUrlResponseSchema, VideoListResponseSchema } from './videos.js';
 export type {

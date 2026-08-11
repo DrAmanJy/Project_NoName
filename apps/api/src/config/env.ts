@@ -14,7 +14,7 @@ const envSchema = z.object({
 
   AUTH_COOKIE_NAME: z.string().default(process.env.NODE_ENV === 'production' ? '__Host-session' : 'session'),
   AUTH_SESSION_TTL_DAYS: z.coerce.number().default(30),
-  AUTH_ENCRYPTION_KEY: z.string().min(32),
+  AUTH_ENCRYPTION_KEY: z.string().refine((val) => Buffer.byteLength(val, 'utf-8') === 32, { message: 'Must be exactly 32 UTF-8 bytes' }),
 
   AUTH_PUBLIC_URL: z.string().url(),
   AUTH_MOBILE_REDIRECT_URI: z.string().url(),
@@ -83,4 +83,4 @@ function validateEnv() {
 }
 
 export const env = validateEnv();
-console.log('KEY LENGTH IN SERVER:', Buffer.byteLength(env.AUTH_ENCRYPTION_KEY, 'utf-8'), env.AUTH_ENCRYPTION_KEY);
+console.log('KEY LENGTH IN SERVER:', Buffer.byteLength(env.AUTH_ENCRYPTION_KEY, 'utf-8'));

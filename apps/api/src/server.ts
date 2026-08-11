@@ -28,8 +28,14 @@ startServer();
 // Graceful shutdown
 function shutdown(signal: string) {
   logger.info({ signal }, 'Shutting down...');
-  server.close(() => {
+  server.close(async () => {
     logger.info('Server closed');
+    try {
+      await mongoose.disconnect();
+    } catch (err) {
+      logger.error(err, 'Failed to disconnect from MongoDB');
+      process.exit(1);
+    }
     process.exit(0);
   });
 
@@ -37,12 +43,6 @@ function shutdown(signal: string) {
     logger.error('Forced shutdown after timeout');
     process.exit(1);
   }, 10_000);
-
-  try {
-    mongoose.disconnect();
-  } catch (err) {
-    logger.error(err, 'Failed to disconnect from MongoDB');
-  }
 }
 
 process.on('SIGTERM', () => shutdown('SIGTERM'));

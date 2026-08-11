@@ -1,19 +1,8 @@
+import type { ScriptVerificationResultInput, DocumentVerificationResultInput } from '@repo/contracts';
 
-export interface ScriptVerificationResult {
-  status: 'pass' | 'fail' | 'uncertain';
-  confidence: number;
-  transcript: string;
-  missingSegments: string[];
-  extraContent: string[];
-}
+export type ScriptVerificationResult = ScriptVerificationResultInput & { transcript: string };
 
-export interface DocumentVerificationResult {
-  status: 'pass' | 'fail' | 'uncertain';
-  documentType: 'passport' | 'other' | 'uncertain';
-  heldByPerson: boolean;
-  confidence: number;
-  evidence: string[];
-}
+export type DocumentVerificationResult = DocumentVerificationResultInput;
 
 export interface VideoAuthenticityResult {
   status: 'likely_real' | 'likely_ai_generated' | 'uncertain';

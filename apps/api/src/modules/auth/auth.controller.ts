@@ -141,7 +141,9 @@ export class AuthController {
         });
         
         logger.info({ userId: user._id.toString(), provider: 'google' }, 'auth.mobile_handoff.created');
-        res.redirect(`${env.AUTH_MOBILE_REDIRECT_URI}?code=${code}`);
+        const redirectUrl = new URL(env.AUTH_MOBILE_REDIRECT_URI);
+        redirectUrl.searchParams.set('code', code);
+        res.redirect(redirectUrl.toString());
       } else {
         await this.finishWebOAuthLogin(req, res, user, 'google');
       }
