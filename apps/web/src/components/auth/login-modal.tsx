@@ -102,21 +102,13 @@ export function LoginModal({ isOpen = true, onClose }: LoginModalProps) {
     }
   };
 
-  const handleSocialLogin = async (provider: 'google' | 'facebook' | 'apple') => {
+  const handleSocialLogin = (provider: 'google' | 'facebook' | 'apple') => {
     setLoadingProvider(provider);
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    const endpoint = `${apiUrl}/api/v1/auth/${provider}`;
-
-    try {
-      const response = await fetch(endpoint);
-      console.log(response);
-      if (response.redirected) {
-        window.location.href = response.url;
-        return;
-      }
-    } catch {
-      // window.location.href = endpoint;
-    }
+    const endpoint = `${apiUrl}/api/v1/auth/${provider}?client=web`;
+    
+    // Initiate OAuth through browser navigation, NOT fetch, to avoid CORS failure
+    window.location.assign(endpoint);
   };
 
   if (!isOpen) return null;
