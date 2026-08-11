@@ -260,6 +260,50 @@ export class VideoController {
       next(error);
     }
   }
+
+  public async cancelUpload(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const auth = req.auth;
+      if (!auth) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+      }
+
+      const { uploadId } = req.params;
+      const upload = await VideoUpload.findOne({ uploadId });
+      
+      if (!upload) {
+        res.status(404).json({ error: 'UPLOAD_NOT_FOUND' });
+        return;
+      }
+
+      if (upload.userId.toString() !== auth.userId) {
+        res.status(403).json({ error: 'UPLOAD_NOT_OWNED' });
+        return;
+      }
+
+      if (upload.status === 'cancelled') {
+        res.json({ status: 'cancelled' });
+        return;
+      }
+
+      if (upload.status === 'uploaded' || upload.status === 'processing') {
+        res.status(400).json({ error: 'UPLOAD_ALREADY_COMPLETED' });
+        return;
+      }
+
+      await s3Service.abortMultipartUpload(upload.objectKey, upload.uploadId);
+
+      await VideoUpload.updateOne(
+        { _id: upload._id },
+        { $set: { status: 'cancelled', cancelledAt: new Date() } }
+      );
+
+      res.json({ status: 'cancelled' });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const videoController = new VideoController();

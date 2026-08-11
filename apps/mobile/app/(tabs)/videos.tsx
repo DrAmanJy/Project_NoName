@@ -1,9 +1,12 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Modal, FlatList, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Modal, FlatList, Dimensions, ScrollView } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { useVideoPlayer, VideoView } from 'expo-video';
 import { useFocusEffect } from 'expo-router';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import { VideoUploadManager } from '@repo/api-client';
+import { MobileUploadSource } from '../../features/video/mobile-upload-source';
+import { apiClient } from '../../lib/api';
 
 export default function VideosScreen() {
   const [selectedVideoUri, setSelectedVideoUri] = useState<string | null>(null);
@@ -11,6 +14,12 @@ export default function VideosScreen() {
   const [isMuted, setIsMuted] = useState(true);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [showCountryModal, setShowCountryModal] = useState(false);
+  const [videoAsset, setVideoAsset] = useState<any>(null);
+  
+  const [uploadManager, setUploadManager] = useState<VideoUploadManager | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStatus, setUploadStatus] = useState<string>('idle');
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const COUNTRIES = [
     'United States', 'United Kingdom', 'Canada', 'Australia', 
@@ -66,23 +75,67 @@ export default function VideosScreen() {
       quality: 1,
     });
 
-    if (!result.canceled) {
+    if (!result.canceled && result.assets.length > 0) {
       setSelectedVideoUri(result.assets[0].uri);
+      setVideoAsset(result.assets[0]);
     }
   };
 
-  const handleSubmitVideo = () => {
+  const handleSubmitVideo = async () => {
     if (!selectedCountry) {
       Alert.alert('Country Required', 'Please select your recording country before submitting.');
       return;
     }
-    if (!selectedVideoUri) {
+    if (!selectedVideoUri || !videoAsset) {
       Alert.alert('No Video', 'Please upload a video first.');
       return;
     }
-    Alert.alert('Success', 'Video submitted successfully for review!');
-    setSelectedVideoUri(null); 
-    setSelectedCountry(null);
+
+    try {
+      const source = new MobileUploadSource(
+        videoAsset.uri,
+        videoAsset.fileSize || 0,
+        videoAsset.mimeType || 'video/mp4'
+      );
+      
+      const manager = new VideoUploadManager({
+        apiClient: apiClient,
+        source,
+        fileName: videoAsset.fileName || 'video.mp4',
+        onProgress: (uploaded, total) => {
+          setUploadProgress(Math.round((uploaded / total) * 100));
+        },
+        onStateChange: (state) => {
+          setUploadStatus(state);
+        },
+        onError: (err) => {
+          setUploadError(err.message);
+          Alert.alert('Upload Failed', err.message);
+        },
+        onComplete: (videoId) => {
+          setUploadStatus('completed');
+          Alert.alert('Success', 'Video submitted successfully for review!');
+          setSelectedVideoUri(null); 
+          setSelectedCountry(null);
+          setVideoAsset(null);
+          setUploadManager(null);
+        }
+      });
+
+      setUploadManager(manager);
+      await manager.start();
+    } catch (err) {
+      Alert.alert('Error', err instanceof Error ? err.message : String(err));
+    }
+  };
+
+  const handleCancelUpload = async () => {
+    if (uploadManager) {
+      await uploadManager.cancel();
+      setUploadManager(null);
+      setUploadProgress(0);
+      setUploadStatus('idle');
+    }
   };
 
   return (
@@ -131,7 +184,7 @@ export default function VideosScreen() {
               </View>
             </View>
           ) : (
-            <View style={styles.instructionContent}>
+            <ScrollView style={{ width: '100%' }} contentContainerStyle={styles.instructionContent} showsVerticalScrollIndicator={false}>
               <View style={styles.iconCircle}>
                 <FontAwesome5 name="file-video" size={28} color="#5a2e17" />
               </View>
@@ -162,7 +215,7 @@ export default function VideosScreen() {
                 <FontAwesome5 name="file-upload" size={16} color="#ffffff" style={styles.uploadIcon} />
                 <Text style={styles.uploadButtonText}>Upload Video</Text>
               </TouchableOpacity>
-            </View>
+            </ScrollView>
           )}
         </View>
 
@@ -179,16 +232,34 @@ export default function VideosScreen() {
             <FontAwesome5 name="chevron-down" size={14} color="#888" />
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.submitBtn, (!selectedCountry || !selectedVideoUri) && styles.submitBtnDisabled]} 
-            activeOpacity={0.9} 
-            onPress={handleSubmitVideo}
-          >
-            <Text style={[styles.submitBtnText, (!selectedCountry || !selectedVideoUri) && styles.submitBtnTextDisabled]}>
-              Submit Verification
-            </Text>
-            <FontAwesome5 name="arrow-right" size={14} color={(!selectedCountry || !selectedVideoUri) ? "#999" : "#fff"} />
-          </TouchableOpacity>
+          {uploadManager && (
+            <View style={{ marginTop: 10 }}>
+              <Text style={{ fontSize: 14, color: '#333', marginBottom: 5 }}>
+                Uploading: {uploadProgress}% - {uploadStatus}
+              </Text>
+              <View style={{ height: 6, backgroundColor: '#e0e0e0', borderRadius: 3 }}>
+                <View style={{ height: '100%', backgroundColor: '#2eb85c', width: `${uploadProgress}%`, borderRadius: 3 }} />
+              </View>
+              {uploadStatus !== 'completed' && uploadStatus !== 'error' && (
+                <TouchableOpacity onPress={handleCancelUpload} style={{ marginTop: 10, alignSelf: 'center' }}>
+                  <Text style={{ color: 'red', fontWeight: 'bold' }}>Cancel Upload</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+
+          {!uploadManager && (
+            <TouchableOpacity 
+              style={[styles.submitBtn, (!selectedCountry || !selectedVideoUri) && styles.submitBtnDisabled]} 
+              activeOpacity={0.9} 
+              onPress={handleSubmitVideo}
+            >
+              <Text style={[styles.submitBtnText, (!selectedCountry || !selectedVideoUri) && styles.submitBtnTextDisabled]}>
+                Submit Verification
+              </Text>
+              <FontAwesome5 name="arrow-right" size={14} color={(!selectedCountry || !selectedVideoUri) ? "#999" : "#fff"} />
+            </TouchableOpacity>
+          )}
         </View>
 
       </View>
@@ -250,10 +321,10 @@ const styles = StyleSheet.create({
     flex: 1, 
   },
   instructionContent: {
-    flex: 1,
     width: '100%',
     alignItems: 'center',
     paddingHorizontal: 24, // Added back to instruction content specifically
+    paddingBottom: 24,
   },
   videoPreviewContainer: {
     position: 'absolute',
@@ -355,7 +426,6 @@ const styles = StyleSheet.create({
   stepsContainer: {
     width: '100%',
     marginBottom: 40,
-    flex: 1,
   },
   stepText: {
     fontSize: 15,

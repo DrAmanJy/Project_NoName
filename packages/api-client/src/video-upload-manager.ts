@@ -8,7 +8,7 @@ import type {
 import type { ApiClient } from './client.js';
 
 export interface UploadChunk {
-  data: Uint8Array | Blob | string; // Type depends on the platform
+  data: Blob;
 }
 
 export interface UploadSource {
