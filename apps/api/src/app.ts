@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import type { RequestHandler } from 'express';
 import cookieParser from 'cookie-parser';
 import { rateLimit } from 'express-rate-limit';
 import { pinoHttp } from 'pino-http';
@@ -18,8 +19,8 @@ export function createApp() {
   app.set('trust proxy', 1);
 
   // Security
-  // Cast helmet to any to bypass TS2349 when moduleResolution is nodenext on Vercel
-  app.use((helmet as unknown as () => any)());
+  // Cast helmet to RequestHandler to bypass TS2349 when moduleResolution is nodenext on Vercel
+  app.use((helmet as unknown as () => RequestHandler)());
   app.use(
     cors({
       origin: process.env['CORS_ORIGIN'] ?? 'http://localhost:3000',
