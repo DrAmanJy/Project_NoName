@@ -11,9 +11,28 @@ import { notFoundHandler } from './middleware/not-found.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
 import { videoRoutes } from './modules/video/video.routes.js';
+import mongoose from 'mongoose';
+import { env } from './config/env.js';
+
+let isDbConnected = false;
+
+async function connectToDatabase() {
+  if (isDbConnected || mongoose.connection.readyState >= 1) {
+    isDbConnected = true;
+    return;
+  }
+  await mongoose.connect(env.MONGODB_URI);
+  isDbConnected = true;
+  logger.info('Connected to MongoDB (Serverless)');
+}
 
 export function createApp() {
   const app = express();
+
+  // Ensure DB connection for serverless environments (Vercel)
+  app.use((req, res, next) => {
+    connectToDatabase().then(() => next()).catch(next);
+  });
 
   // Trust the reverse proxy (e.g., Nginx, Cloudflare) for secure cookies and rate limiting
   app.set('trust proxy', 1);
