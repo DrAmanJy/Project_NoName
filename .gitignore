@@ -8,6 +8,7 @@ dist/
 .expo/
 out/
 build/
+apps/web/next-env.d.ts
 
 # Turbo
 .turbo/

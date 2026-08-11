@@ -76,3 +76,20 @@ export const VideoVerificationStatusSchema = z.object({
   }),
 });
 export type VideoVerificationStatus = z.infer<typeof VideoVerificationStatusSchema>;
+
+export const ScriptVerificationResultSchema = z.object({
+  status: z.enum(['pass', 'fail', 'uncertain']),
+  confidence: z.number().min(0).max(1),
+  missingSegments: z.array(z.string()),
+  extraContent: z.array(z.string()),
+});
+export type ScriptVerificationResultInput = z.infer<typeof ScriptVerificationResultSchema>;
+
+export const DocumentVerificationResultSchema = z.object({
+  status: z.enum(['pass', 'fail', 'uncertain']),
+  documentType: z.enum(['passport', 'other', 'uncertain']),
+  heldByPerson: z.boolean(),
+  confidence: z.number().min(0).max(1),
+  evidence: z.array(z.string()),
+});
+export type DocumentVerificationResultInput = z.infer<typeof DocumentVerificationResultSchema>;

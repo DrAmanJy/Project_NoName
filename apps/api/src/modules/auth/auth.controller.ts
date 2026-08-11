@@ -1,14 +1,17 @@
 import type { Request, Response, NextFunction } from 'express';
+import crypto from 'crypto';
 import { env } from '../../config/env.js';
 import { logger } from '../../infrastructure/logger.js';
 import { oauthService } from './oauth/oauth.service.js';
 import { googleProvider } from './oauth/google/google.provider.js';
 import { facebookProvider } from './oauth/facebook/facebook.provider.js';
 import { appleProvider } from './oauth/apple/apple.provider.js';
-import { User } from './models/user.model.js';
+import { User, type IUser } from './models/user.model.js';
 import { OAuthAccount } from './models/oauth-account.model.js';
+import { MobileAuthHandoff } from './models/mobile-handoff.model.js';
 import { sessionService } from './session/session.service.js';
 import type { User as ContractUser } from '@repo/contracts';
+import { MobileHandoffExchangeRequestSchema } from '@repo/contracts';
 
 export class AuthController {
   private setSessionCookie(res: Response, token: string) {
@@ -21,8 +24,7 @@ export class AuthController {
     });
   }
 
-  private async handleOAuthLogin(
-    req: Request,
+  private async getOrCreateOAuthUser(
     res: Response,
     providerName: 'google' | 'facebook' | 'apple',
     providerAccountId: string,
@@ -64,6 +66,10 @@ export class AuthController {
       });
     }
 
+    return user;
+  }
+
+  private async finishWebOAuthLogin(req: Request, res: Response, user: IUser, providerName: string) {
     const sessionToken = await sessionService.createSession(
       user._id.toString(),
       req.get('user-agent'),
@@ -81,10 +87,12 @@ export class AuthController {
 
   public initiateGoogle = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
+      const client = req.query.client === 'mobile' ? 'mobile' : 'web';
       const { state, nonce, codeChallenge } = await oauthService.createTransaction({
         provider: 'google',
+        clientType: client,
       });
-      logger.info({ provider: 'google' }, 'auth.oauth.started');
+      logger.info({ provider: 'google', clientType: client }, 'auth.oauth.started');
 
       const url = googleProvider.getAuthorizationUrl(state, nonce, codeChallenge!);
       res.redirect(url);
@@ -118,9 +126,27 @@ export class AuthController {
         return;
       }
 
-      await this.handleOAuthLogin(
-        req, res, 'google', payload.sub, payload.email, payload.email_verified, payload.name, payload.picture
-      );
+      const user = await this.getOrCreateOAuthUser(res, 'google', payload.sub, payload.email, payload.email_verified, payload.name, payload.picture);
+      if (!user) return; // User is inactive, response already sent
+
+      if (transaction.clientType === 'mobile') {
+        const code = crypto.randomBytes(32).toString('hex');
+        const codeHash = crypto.createHash('sha256').update(code).digest('hex');
+        
+        await MobileAuthHandoff.create({
+          codeHash,
+          userId: user._id,
+          transactionId: transaction._id,
+          expiresAt: new Date(Date.now() + 60 * 1000)
+        });
+        
+        logger.info({ userId: user._id.toString(), provider: 'google' }, 'auth.mobile_handoff.created');
+        const redirectUrl = new URL(env.AUTH_MOBILE_REDIRECT_URI);
+        redirectUrl.searchParams.set('code', code);
+        res.redirect(redirectUrl.toString());
+      } else {
+        await this.finishWebOAuthLogin(req, res, user, 'google');
+      }
     } catch (error) {
       next(error);
     }
@@ -157,9 +183,8 @@ export class AuthController {
 
       const payload = await facebookProvider.exchangeCodeAndVerify(code);
 
-      await this.handleOAuthLogin(
-        req, res, 'facebook', payload.sub, payload.email, true, payload.name, payload.picture
-      );
+      const user = await this.getOrCreateOAuthUser(res, 'facebook', payload.sub, payload.email, true, payload.name, payload.picture);
+      if (user) await this.finishWebOAuthLogin(req, res, user, 'facebook');
     } catch (error) {
       next(error);
     }
@@ -219,15 +244,56 @@ export class AuthController {
         }
       }
 
-      await this.handleOAuthLogin(
-        req, res, 'apple', payload.sub, payload.email, payload.email_verified, name
-      );
+      const user = await this.getOrCreateOAuthUser(res, 'apple', payload.sub, payload.email, payload.email_verified, name);
+      if (user) await this.finishWebOAuthLogin(req, res, user, 'apple');
     } catch (error) {
       next(error);
     }
   };
 
   // ================= User and Session =================
+
+  public exchangeMobileHandoff = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const parsed = MobileHandoffExchangeRequestSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({ success: false, error: 'Invalid handoff code' });
+        return;
+      }
+
+      const codeHash = crypto.createHash('sha256').update(parsed.data.code).digest('hex');
+      const now = new Date();
+
+      const handoff = await MobileAuthHandoff.findOneAndUpdate(
+        {
+          codeHash,
+          consumedAt: { $exists: false },
+          expiresAt: { $gt: now },
+        },
+        {
+          $set: { consumedAt: now }
+        },
+        { new: true }
+      );
+
+      if (!handoff) {
+        logger.warn({ codeHash }, 'auth.mobile_handoff.failed');
+        res.status(401).json({ success: false, error: 'Invalid or expired handoff code' });
+        return;
+      }
+
+      const sessionToken = await sessionService.createSession(
+        handoff.userId.toString(),
+        req.get('user-agent'),
+        req.ip,
+      );
+
+      logger.info({ userId: handoff.userId.toString() }, 'auth.mobile_handoff.exchanged');
+      res.status(200).json({ success: true, data: { sessionToken } });
+    } catch (error) {
+      next(error);
+    }
+  };
 
   public me = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {

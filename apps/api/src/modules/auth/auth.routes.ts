@@ -25,6 +25,8 @@ authRoutes.get('/facebook/callback', oauthRateLimiter, authController.facebookCa
 authRoutes.get('/apple', oauthRateLimiter, authController.initiateApple);
 authRoutes.post('/apple/callback', oauthRateLimiter, authController.appleCallback);
 
+authRoutes.post('/mobile/exchange', oauthRateLimiter, authController.exchangeMobileHandoff);
+
 // Session endpoints
 authRoutes.get('/me', requireAuth, authController.me);
 authRoutes.post('/logout', requireAuth, authController.logout);
