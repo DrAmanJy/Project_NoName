@@ -41,8 +41,8 @@ export function Navbar() {
     { name: 'How It Works', href: '#how-it-works' },
     { name: 'Upload Video', href: '#upload' },
     { name: 'Testimonials', href: '#testimonials' },
-    { name: 'Download App', href: '#download' },
     { name: 'Contact', href: '#contact' },
+    { name: 'Download App', href: '#download' },
   ];
 
   return (
