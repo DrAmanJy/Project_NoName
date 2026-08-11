@@ -69,7 +69,12 @@ export class AuthController {
     return user;
   }
 
-  private async finishWebOAuthLogin(req: Request, res: Response, user: IUser, providerName: string) {
+  private async finishWebOAuthLogin(
+    req: Request,
+    res: Response,
+    user: IUser,
+    providerName: string,
+  ) {
     const sessionToken = await sessionService.createSession(
       user._id.toString(),
       req.get('user-agent'),
@@ -85,7 +90,11 @@ export class AuthController {
 
   // ================= Google =================
 
-  public initiateGoogle = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public initiateGoogle = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const client = req.query.client === 'mobile' ? 'mobile' : 'web';
       const { state, nonce, codeChallenge } = await oauthService.createTransaction({
@@ -101,7 +110,11 @@ export class AuthController {
     }
   };
 
-  public googleCallback = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public googleCallback = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const { state, code } = req.query;
       if (typeof state !== 'string' || typeof code !== 'string') {
@@ -120,27 +133,38 @@ export class AuthController {
       const idToken = await googleProvider.exchangeCode(code, codeVerifier);
 
       const payload = await googleProvider.verifyIdToken(idToken, '');
-      
+
       if (oauthService.hashValue(payload.nonce) !== transaction.nonceHash) {
         res.status(400).json({ error: 'Nonce mismatch' });
         return;
       }
 
-      const user = await this.getOrCreateOAuthUser(res, 'google', payload.sub, payload.email, payload.email_verified, payload.name, payload.picture);
+      const user = await this.getOrCreateOAuthUser(
+        res,
+        'google',
+        payload.sub,
+        payload.email,
+        payload.email_verified,
+        payload.name,
+        payload.picture,
+      );
       if (!user) return; // User is inactive, response already sent
 
       if (transaction.clientType === 'mobile') {
         const code = crypto.randomBytes(32).toString('hex');
         const codeHash = crypto.createHash('sha256').update(code).digest('hex');
-        
+
         await MobileAuthHandoff.create({
           codeHash,
           userId: user._id,
           transactionId: transaction._id,
-          expiresAt: new Date(Date.now() + 60 * 1000)
+          expiresAt: new Date(Date.now() + 60 * 1000),
         });
-        
-        logger.info({ userId: user._id.toString(), provider: 'google' }, 'auth.mobile_handoff.created');
+
+        logger.info(
+          { userId: user._id.toString(), provider: 'google' },
+          'auth.mobile_handoff.created',
+        );
         const redirectUrl = new URL(env.AUTH_MOBILE_REDIRECT_URI);
         redirectUrl.searchParams.set('code', code);
         res.redirect(redirectUrl.toString());
@@ -154,7 +178,11 @@ export class AuthController {
 
   // ================= Facebook =================
 
-  public initiateFacebook = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public initiateFacebook = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const { state } = await oauthService.createTransaction({
         provider: 'facebook',
@@ -167,7 +195,11 @@ export class AuthController {
     }
   };
 
-  public facebookCallback = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public facebookCallback = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const { state, code } = req.query;
       if (typeof state !== 'string' || typeof code !== 'string') {
@@ -183,7 +215,15 @@ export class AuthController {
 
       const payload = await facebookProvider.exchangeCodeAndVerify(code);
 
-      const user = await this.getOrCreateOAuthUser(res, 'facebook', payload.sub, payload.email, true, payload.name, payload.picture);
+      const user = await this.getOrCreateOAuthUser(
+        res,
+        'facebook',
+        payload.sub,
+        payload.email,
+        true,
+        payload.name,
+        payload.picture,
+      );
       if (user) await this.finishWebOAuthLogin(req, res, user, 'facebook');
     } catch (error) {
       next(error);
@@ -212,7 +252,7 @@ export class AuthController {
       const code = req.body?.code || req.query?.code;
       // Apple sometimes sends `user` object in the first request containing name/email
       const userStr = req.body?.user;
-      
+
       if (typeof state !== 'string' || typeof code !== 'string') {
         res.status(400).json({ error: 'Missing state or code' });
         return;
@@ -226,7 +266,7 @@ export class AuthController {
 
       const idToken = await appleProvider.exchangeCode(code);
       const payload = await appleProvider.verifyIdToken(idToken);
-      
+
       if (oauthService.hashValue(payload.nonce) !== transaction.nonceHash) {
         res.status(400).json({ error: 'Nonce mismatch' });
         return;
@@ -244,7 +284,14 @@ export class AuthController {
         }
       }
 
-      const user = await this.getOrCreateOAuthUser(res, 'apple', payload.sub, payload.email, payload.email_verified, name);
+      const user = await this.getOrCreateOAuthUser(
+        res,
+        'apple',
+        payload.sub,
+        payload.email,
+        payload.email_verified,
+        name,
+      );
       if (user) await this.finishWebOAuthLogin(req, res, user, 'apple');
     } catch (error) {
       next(error);
@@ -253,7 +300,11 @@ export class AuthController {
 
   // ================= User and Session =================
 
-  public exchangeMobileHandoff = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public exchangeMobileHandoff = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const parsed = MobileHandoffExchangeRequestSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -271,9 +322,9 @@ export class AuthController {
           expiresAt: { $gt: now },
         },
         {
-          $set: { consumedAt: now }
+          $set: { consumedAt: now },
         },
-        { new: true }
+        { new: true },
       );
 
       if (!handoff) {
@@ -362,4 +413,3 @@ export class AuthController {
 }
 
 export const authController = new AuthController();
-

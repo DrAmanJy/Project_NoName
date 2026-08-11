@@ -50,6 +50,7 @@ export class VideoController {
         contentType,
         fileSize,
         uploadId,
+        multipartUploadId,
         status: 'created',
         totalParts,
       });
@@ -102,7 +103,7 @@ export class VideoController {
 
       const presignedUrls = await Promise.all(
         parsed.data.partNumbers.map(async (partNumber) => {
-          const url = await s3Service.signPart(upload.objectKey, upload.uploadId, partNumber);
+          const url = await s3Service.signPart(upload.objectKey, upload.multipartUploadId, partNumber);
           return { partNumber, url };
         })
       );
@@ -151,7 +152,7 @@ export class VideoController {
       }
 
       // Complete in R2
-      await s3Service.completeMultipartUpload(upload.objectKey, upload.uploadId, parsed.data.parts);
+      await s3Service.completeMultipartUpload(upload.objectKey, upload.multipartUploadId, parsed.data.parts);
 
       // Atomic update
       const updated = await VideoUpload.findOneAndUpdate(
@@ -292,7 +293,7 @@ export class VideoController {
         return;
       }
 
-      await s3Service.abortMultipartUpload(upload.objectKey, upload.uploadId);
+      await s3Service.abortMultipartUpload(upload.objectKey, upload.multipartUploadId);
 
       await VideoUpload.updateOne(
         { _id: upload._id },
