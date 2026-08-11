@@ -78,6 +78,10 @@ export default function VideosScreen() {
     if (!result.canceled && result.assets.length > 0) {
       setSelectedVideoUri(result.assets[0].uri);
       setVideoAsset(result.assets[0]);
+      setUploadManager(null);
+      setUploadError(null);
+      setUploadStatus('idle');
+      setUploadProgress(0);
     }
   };
 
@@ -110,6 +114,8 @@ export default function VideosScreen() {
         },
         onError: (err) => {
           setUploadError(err.message);
+          setUploadManager(null);
+          setUploadStatus('error');
           Alert.alert('Upload Failed', err.message);
         },
         onComplete: (videoId) => {
