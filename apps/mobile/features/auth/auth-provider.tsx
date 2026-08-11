@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import type { User } from '@repo/contracts';
 import type { AuthService, AuthProviderType } from './auth-types';
 import { MockAuthService } from './mock-auth-service';
+import { BackendAuthService } from './backend-auth-service';
 
 type AuthState =
   | { status: 'loading'; user: null }
@@ -18,19 +19,7 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-// Factory function to get the correct auth service based on env
-function getAuthService(): AuthService {
-  const authMode = process.env.EXPO_PUBLIC_AUTH_MODE || 'mock';
-  
-  if (authMode === 'mock') {
-    return new MockAuthService();
-  }
-  
-  // Future: return new BackendAuthService();
-  return new MockAuthService();
-}
-
-const authService = getAuthService();
+const authService = new BackendAuthService();
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [authState, setAuthState] = useState<AuthState>({ status: 'loading', user: null });

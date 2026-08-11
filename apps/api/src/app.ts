@@ -42,7 +42,7 @@ export function createApp() {
   app.use((helmet as unknown as () => RequestHandler)());
   app.use(
     cors({
-      origin: process.env['CORS_ORIGIN'] ?? 'http://localhost:3000',
+      origin: true,
       credentials: true,
     }),
   );

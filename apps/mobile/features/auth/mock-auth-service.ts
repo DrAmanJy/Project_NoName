@@ -1,8 +1,10 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 import type { User } from '@repo/contracts';
 import type { AuthService, AuthProviderType } from './auth-types';
 
-const MOCK_SESSION_KEY = '@mock_session_active';
+const MOCK_SESSION_KEY = 'mock_session_active';
+let webMockSessionActive = false;
 
 const MOCK_USER: User = {
   id: 'mock-user-1',
@@ -17,7 +19,10 @@ const MOCK_USER: User = {
 export class MockAuthService implements AuthService {
   async getCurrentUser(): Promise<User | null> {
     try {
-      const isSessionActive = await AsyncStorage.getItem(MOCK_SESSION_KEY);
+      if (Platform.OS === 'web') {
+        return webMockSessionActive ? MOCK_USER : null;
+      }
+      const isSessionActive = await SecureStore.getItemAsync(MOCK_SESSION_KEY);
       if (isSessionActive === 'true') {
         return MOCK_USER;
       }
@@ -30,7 +35,11 @@ export class MockAuthService implements AuthService {
 
   async signIn(_provider: AuthProviderType): Promise<User> {
     try {
-      await AsyncStorage.setItem(MOCK_SESSION_KEY, 'true');
+      if (Platform.OS === 'web') {
+        webMockSessionActive = true;
+        return MOCK_USER;
+      }
+      await SecureStore.setItemAsync(MOCK_SESSION_KEY, 'true');
       return MOCK_USER;
     } catch (e) {
       console.error('Failed to save mock session', e);
@@ -40,7 +49,11 @@ export class MockAuthService implements AuthService {
 
   async signOut(): Promise<void> {
     try {
-      await AsyncStorage.removeItem(MOCK_SESSION_KEY);
+      if (Platform.OS === 'web') {
+        webMockSessionActive = false;
+        return;
+      }
+      await SecureStore.deleteItemAsync(MOCK_SESSION_KEY);
     } catch (e) {
       console.error('Failed to remove mock session', e);
       throw new Error('Failed to sign out');
