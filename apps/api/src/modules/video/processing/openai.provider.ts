@@ -1,6 +1,5 @@
 import fs from 'fs';
 import OpenAI from 'openai';
-import { z } from 'zod';
 import { env } from '../../../config/env.js';
 import type { 
   SpeechToTextProvider, 
@@ -26,20 +25,7 @@ function getOpenAI(): OpenAI {
   return openaiClient;
 }
 
-const ScriptVerificationResultSchema = z.object({
-  status: z.enum(['pass', 'fail', 'uncertain']),
-  confidence: z.number().min(0).max(1),
-  missingSegments: z.array(z.string()),
-  extraContent: z.array(z.string()),
-});
-
-const DocumentVerificationResultSchema = z.object({
-  status: z.enum(['pass', 'fail', 'uncertain']),
-  documentType: z.enum(['passport', 'other', 'uncertain']),
-  heldByPerson: z.boolean(),
-  confidence: z.number().min(0).max(1),
-  evidence: z.array(z.string()),
-});
+import { ScriptVerificationResultSchema, DocumentVerificationResultSchema } from '@repo/contracts';
 
 export class OpenAIVideoProcessor implements SpeechToTextProvider, ScriptVerificationProvider, DocumentVerificationProvider, VideoAuthenticityProvider {
   async transcribe(audioFilePath: string): Promise<string> {

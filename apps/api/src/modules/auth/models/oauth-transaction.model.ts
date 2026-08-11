@@ -3,6 +3,7 @@ import mongoose, { Schema } from 'mongoose';
 
 export interface IOAuthTransaction extends Document {
   provider: 'google' | 'facebook' | 'apple';
+  clientType: 'web' | 'mobile';
   stateHash: string;
   encryptedCodeVerifier?: string;
   nonceHash?: string;
@@ -18,6 +19,12 @@ const oauthTransactionSchema = new Schema<IOAuthTransaction>(
       type: String,
       enum: ['google', 'facebook', 'apple'],
       required: true,
+    },
+    clientType: {
+      type: String,
+      enum: ['web', 'mobile'],
+      required: true,
+      default: 'web',
     },
     stateHash: {
       type: String,

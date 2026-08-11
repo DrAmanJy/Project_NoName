@@ -12,13 +12,15 @@ const envSchema = z.object({
   FRONTEND_URL: z.string().url().default('http://localhost:3000'),
   CORS_ORIGIN: z.string().url().default('http://localhost:3000'),
 
-  AUTH_COOKIE_NAME: z.string().default('__Host-session'),
+  AUTH_COOKIE_NAME: z.string().default(process.env.NODE_ENV === 'production' ? '__Host-session' : 'session'),
   AUTH_SESSION_TTL_DAYS: z.coerce.number().default(30),
   AUTH_ENCRYPTION_KEY: z.string().min(32),
 
+  AUTH_PUBLIC_URL: z.string().url(),
+  AUTH_MOBILE_REDIRECT_URI: z.string().url(),
   GOOGLE_CLIENT_ID: z.string().min(1),
   GOOGLE_CLIENT_SECRET: z.string().min(1),
-  GOOGLE_REDIRECT_URI: z.string().url(),
+  GOOGLE_REDIRECT_URI: z.string().url().optional(),
 
   FACEBOOK_APP_ID: z.string().min(1),
   FACEBOOK_APP_SECRET: z.string().min(1),
@@ -71,7 +73,14 @@ function validateEnv() {
     throw new Error(`❌ Environment validation failed:\n${message}`);
   }
 
-  return parsed.data;
+  const data = parsed.data;
+  
+  if (!data.GOOGLE_REDIRECT_URI) {
+    data.GOOGLE_REDIRECT_URI = `${data.AUTH_PUBLIC_URL}/api/v1/auth/google/callback`;
+  }
+  
+  return data as typeof data & { GOOGLE_REDIRECT_URI: string };
 }
 
 export const env = validateEnv();
+console.log('KEY LENGTH IN SERVER:', Buffer.byteLength(env.AUTH_ENCRYPTION_KEY, 'utf-8'), env.AUTH_ENCRYPTION_KEY);

@@ -14,6 +14,9 @@ import { videoRoutes } from './modules/video/video.routes.js';
 export function createApp() {
   const app = express();
 
+  // Trust the reverse proxy (e.g., Nginx, Cloudflare) for secure cookies and rate limiting
+  app.set('trust proxy', 1);
+
   // Security
   app.use(helmet());
   app.use(

@@ -22,8 +22,7 @@ export class OAuthService {
   public encrypt(value: string): string {
     const iv = crypto.randomBytes(IV_LENGTH);
     const key = Buffer.from(env.AUTH_ENCRYPTION_KEY, 'utf-8'); // Must be 32 bytes
-
-    const cipher = crypto.createCipheriv(ENCRYPTION_ALGORITHM, iv, key);
+    const cipher = crypto.createCipheriv(ENCRYPTION_ALGORITHM, key, iv);
     let encrypted = cipher.update(value, 'utf8').toString('hex');
     encrypted += cipher.final('hex');
     
@@ -46,7 +45,7 @@ export class OAuthService {
     const authTag = Buffer.from(authTagHex as string, 'hex');
     const key = Buffer.from(env.AUTH_ENCRYPTION_KEY, 'utf-8');
 
-    const decipher = crypto.createDecipheriv(ENCRYPTION_ALGORITHM, iv, key);
+    const decipher = crypto.createDecipheriv(ENCRYPTION_ALGORITHM, key, iv);
     decipher.setAuthTag(authTag);
 
     let decrypted = decipher.update(encryptedHex as string, 'hex').toString('utf8');
@@ -81,6 +80,7 @@ export class OAuthService {
    */
   public async createTransaction(params: {
     provider: 'google' | 'facebook' | 'apple';
+    clientType?: 'web' | 'mobile';
     redirectUri?: string;
   }): Promise<{ state: string; nonce: string; codeVerifier?: string; codeChallenge?: string }> {
     const { state, nonce } = this.generateStateAndNonce();
@@ -101,6 +101,7 @@ export class OAuthService {
 
     await OAuthTransaction.create({
       provider: params.provider,
+      clientType: params.clientType || 'web',
       stateHash: this.hashValue(state),
       nonceHash: this.hashValue(nonce),
       encryptedCodeVerifier,
