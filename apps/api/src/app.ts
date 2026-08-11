@@ -18,7 +18,8 @@ export function createApp() {
   app.set('trust proxy', 1);
 
   // Security
-  app.use(helmet());
+  // Cast helmet to any to bypass TS2349 when moduleResolution is nodenext on Vercel
+  app.use((helmet as unknown as () => any)());
   app.use(
     cors({
       origin: process.env['CORS_ORIGIN'] ?? 'http://localhost:3000',
