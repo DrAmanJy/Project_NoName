@@ -18,6 +18,10 @@ export function createAuthApi(client: ApiClient) {
     me(): Promise<AuthResponse> {
       return client.get<AuthResponse>('/auth/me');
     },
+
+    exchangeMobileHandoff(code: string): Promise<{ success: boolean; data: { sessionToken: string } }> {
+      return client.post('/auth/mobile/exchange', { code });
+    },
   };
 }
 
