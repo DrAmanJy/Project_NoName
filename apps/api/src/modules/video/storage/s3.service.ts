@@ -8,6 +8,7 @@ import {
   DeleteObjectCommand
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { NodeHttpHandler } from '@smithy/node-http-handler';
 import { env } from '../../../config/env.js';
 
 export class S3Service {
@@ -19,6 +20,7 @@ export class S3Service {
       region: 'auto',
       endpoint,
       forcePathStyle: true,
+      requestHandler: new NodeHttpHandler(),
       credentials: {
         accessKeyId: env.R2_ACCESS_KEY_ID.trim(),
         secretAccessKey: env.R2_SECRET_ACCESS_KEY.trim(),
