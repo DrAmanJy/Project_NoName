@@ -80,7 +80,7 @@ export class AuthController {
 
     this.setSessionCookie(res, sessionToken);
 
-    res.redirect(`${env.FRONTEND_URL}/auth/success`);
+    res.redirect(`${env.FRONTEND_URL}/`);
   }
 
   // ================= Google =================
