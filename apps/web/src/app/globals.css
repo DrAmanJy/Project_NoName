@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #09090b;
 }
 
 @theme inline {
@@ -14,8 +16,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #000000;
+    --foreground: #f4f4f5;
   }
 }
 
@@ -23,4 +25,29 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Dot Grid Background Animation Effects */
+.dot-grid-base {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  background-image: radial-gradient(circle at 1px 1px, rgba(120, 120, 120, 0.15) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+.dot-grid-hover {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  pointer-events: none;
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.6) 1.5px, transparent 0);
+  background-size: 24px 24px;
+  mask-image: radial-gradient(circle 240px at var(--mx, 50%) var(--my, 50%), black 0%, transparent 100%);
+  -webkit-mask-image: radial-gradient(circle 240px at var(--mx, 50%) var(--my, 50%), black 0%, transparent 100%);
 }

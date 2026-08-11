@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
+import { LoginModal } from '@/components/auth/login-modal';
+import MarketingHomePage from '@/app/(marketing)/page';
 
 export const metadata: Metadata = {
   title: 'Login',
-  description: 'Sign in to your noname account.',
+  description: 'Sign in to your Synax account.',
   robots: {
     index: false,
     follow: false,
@@ -11,11 +13,14 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <main className="flex flex-1 flex-col items-center justify-center px-4">
-      <h1 className="text-4xl font-bold tracking-tight">Login</h1>
-      <p className="mt-4 text-lg text-foreground/70">
-        Sign in to your account.
-      </p>
-    </main>
+    <div className="relative min-h-screen">
+      {/* Background Page Render */}
+      <div className="pointer-events-none select-none filter blur-[2px] opacity-80 aria-hidden">
+        <MarketingHomePage />
+      </div>
+
+      {/* Login Popup Modal */}
+      <LoginModal />
+    </div>
   );
 }

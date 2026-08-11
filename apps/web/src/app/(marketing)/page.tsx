@@ -1,10 +1,27 @@
-export default function MarketingHomePage() {
+import { Navbar } from '@/components/layout/navbar';
+import { HeroSection } from '@/components/marketing/hero-section';
+import { AboutSection } from '@/components/marketing/about-section';
+import { HowItWorksSection } from '@/components/marketing/how-it-works-section';
+import { VideoUploadSection } from '@/components/marketing/video-upload-section';
+import { TestimonialsSection } from '@/components/marketing/testimonials-section';
+import { ContactSection } from '@/components/marketing/contact-section';
+import { Footer } from '@/components/layout/footer';
+import { AppDownloadSection } from '@/components/marketing/app-download-section';
+
+export default function MarketingPage() {
   return (
-    <main className="flex flex-1 flex-col items-center justify-center px-4">
-      <h1 className="text-4xl font-bold tracking-tight">Welcome to noname</h1>
-      <p className="mt-4 text-lg text-foreground/70">
-        Upload videos, get selected, earn money.
-      </p>
-    </main>
+    <div className="flex min-h-screen flex-col bg-white dark:bg-black text-zinc-900 dark:text-zinc-50 selection:bg-zinc-900 selection:text-white dark:selection:bg-white dark:selection:text-zinc-900 transition-colors duration-300">
+      <Navbar />
+      <main className="flex-1">
+        <HeroSection />
+        <AboutSection />
+        <HowItWorksSection />
+        <VideoUploadSection />
+        <TestimonialsSection />
+        <ContactSection />
+        <AppDownloadSection />
+      </main>
+      <Footer />
+    </div>
   );
 }
