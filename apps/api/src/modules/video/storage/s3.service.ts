@@ -20,8 +20,8 @@ export class S3Service {
       endpoint,
       forcePathStyle: true,
       credentials: {
-        accessKeyId: env.R2_ACCESS_KEY_ID,
-        secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+        accessKeyId: env.R2_ACCESS_KEY_ID.trim(),
+        secretAccessKey: env.R2_SECRET_ACCESS_KEY.trim(),
       },
     });
   }

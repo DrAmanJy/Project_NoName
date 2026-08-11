@@ -131,6 +131,8 @@ export default function VideosScreen() {
       setUploadManager(manager);
       await manager.start();
     } catch (err) {
+      setUploadManager(null);
+      setUploadStatus('idle');
       Alert.alert('Error', err instanceof Error ? err.message : String(err));
     }
   };
