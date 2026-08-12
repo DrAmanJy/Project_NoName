@@ -22,10 +22,13 @@ export function useAuth() {
       } else {
         setUser(null);
       }
-    } catch (err) {
+    } catch (err: any) {
       if (currentRequestId !== requestIdRef.current) return;
       setUser(null);
-      setError(err instanceof Error ? err.message : 'Failed to fetch user login data');
+      // Ignore 401 errors for authApi.me() as it's the expected state when not logged in
+      if (err?.status !== 401) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch user login data');
+      }
     } finally {
       if (currentRequestId === requestIdRef.current) {
         setIsLoading(false);
