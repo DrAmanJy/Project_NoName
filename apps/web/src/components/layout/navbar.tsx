@@ -12,8 +12,6 @@ export function Navbar() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const { user, isAuthenticated, logout } = useAuth();
-  console.log(user);
-  console.log(isAuthenticated);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -56,7 +54,7 @@ export function Navbar() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
           {/* Brand Logo */}
           <Link href="/" className="group flex items-center gap-2.5 transition-transform hover:scale-102">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-md">
+            <div className="flex h-10 w-10 items-centeruser justify-center rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-md">
               <Video className="h-5 w-5 transition-transform group-hover:rotate-6" />
             </div>
             <span className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">

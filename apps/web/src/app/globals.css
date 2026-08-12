@@ -37,8 +37,12 @@ html {
   inset: 0;
   z-index: 10;
   pointer-events: none;
-  background-image: radial-gradient(circle at 1px 1px, rgba(120, 120, 120, 0.15) 1px, transparent 0);
+  background-image: radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.12) 1px, transparent 0);
   background-size: 24px 24px;
+}
+
+.dark .dot-grid-base {
+  background-image: radial-gradient(circle at 1px 1px, rgba(120, 120, 120, 0.15) 1px, transparent 0);
 }
 
 .dot-grid-hover {
@@ -46,8 +50,12 @@ html {
   inset: 0;
   z-index: 15;
   pointer-events: none;
-  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.6) 1.5px, transparent 0);
+  background-image: radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.75) 1.5px, transparent 0);
   background-size: 24px 24px;
   mask-image: radial-gradient(circle 240px at var(--mx, 50%) var(--my, 50%), black 0%, transparent 100%);
   -webkit-mask-image: radial-gradient(circle 240px at var(--mx, 50%) var(--my, 50%), black 0%, transparent 100%);
+}
+
+.dark .dot-grid-hover {
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.75) 1.5px, transparent 0);
 }

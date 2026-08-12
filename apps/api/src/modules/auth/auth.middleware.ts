@@ -16,7 +16,7 @@ declare global {
 export const optionalAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     let sessionToken = req.cookies[env.AUTH_COOKIE_NAME];
-    
+
     if (!sessionToken && req.headers.authorization?.startsWith('Bearer ')) {
       sessionToken = req.headers.authorization.substring(7);
     }
