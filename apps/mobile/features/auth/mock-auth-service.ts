@@ -12,6 +12,7 @@ const MOCK_USER: User = {
   email: 'test@example.com',
   avatarUrl: undefined,
   isActive: true,
+  role: 'user',
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 };

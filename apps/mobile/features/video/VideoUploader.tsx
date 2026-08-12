@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, Button, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, Button, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { router } from 'expo-router';
 import { VideoUploadManager } from '@repo/api-client';
 import { MobileUploadSource } from './mobile-upload-source';
-import { apiClient } from '../../lib/api';
+import { apiClient, submissionsApi } from '../../lib/api';
 
 export function VideoUploader() {
   const [fileUri, setFileUri] = useState<string | null>(null);
@@ -37,23 +38,41 @@ export function VideoUploader() {
     if (!fileUri || !fileSize || !fileName || !mimeType) return;
 
     try {
+      // 1. Create submission
+      // React Native doesn't have crypto.randomUUID() by default, use a fallback or Math.random
+      const idempotencyKey = Date.now().toString() + Math.random().toString(36).substring(7);
+      const totalParts = Math.ceil(fileSize / (8 * 1024 * 1024));
+
+      const response = await submissionsApi.create({
+        fileName: fileName,
+        contentType: mimeType,
+        fileSize: fileSize,
+        totalParts,
+        country: 'United States',
+      }, idempotencyKey);
+
+      const { submissionId, uploadId } = response;
+
+      // 2. Start upload
       const source = new MobileUploadSource(fileUri, fileSize, mimeType);
       const manager = new VideoUploadManager({
         apiClient: apiClient,
+        uploadId: uploadId,
         source,
         fileName: fileName,
         onProgress: (uploaded: number, total: number) => {
           setProgress(Math.round((uploaded / total) * 100));
         },
-        onStateChange: (state: any) => {
-          setStatus(state);
+        onStateChange: (state: unknown) => {
+          setStatus(state as string);
         },
         onError: (err: Error) => {
           setError(err.message);
         },
         onComplete: (videoId: string) => {
           setStatus('completed');
-          console.log('Upload complete, ID:', videoId);
+          console.warn('Upload complete, ID:', videoId);
+          router.push(`/submissions/${submissionId}`);
         }
       });
 

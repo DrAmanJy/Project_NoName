@@ -10,7 +10,10 @@ import { healthRouter } from './routes/health.js';
 import { notFoundHandler } from './middleware/not-found.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
+import { adminRoutes } from './modules/auth/admin.routes.js';
 import { videoRoutes } from './modules/video/video.routes.js';
+import { submissionsRoutes } from './modules/submissions/submissions.routes.js';
+import { staffSubmissionsRoutes } from './modules/submissions/staff.routes.js';
 import mongoose from 'mongoose';
 import { env } from './config/env.js';
 
@@ -66,7 +69,10 @@ export function createApp() {
   // Routes
   app.use('/api/v1/health', healthRouter);
   app.use('/api/v1/auth', authRoutes);
+  app.use('/api/v1/admin', adminRoutes);
   app.use('/api/v1/videos', videoRoutes);
+  app.use('/api/v1/submissions', submissionsRoutes);
+  app.use('/api/v1/staff/submissions', staffSubmissionsRoutes);
 
   // Error handling
   app.use(notFoundHandler);

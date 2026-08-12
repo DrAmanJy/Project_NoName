@@ -2,10 +2,9 @@ import mongoose, { Schema, type Document, type Types } from 'mongoose';
 
 export interface IVideoUpload extends Document {
   userId: Types.ObjectId;
+  submissionId: Types.ObjectId;
   objectKey: string;
   originalFileName: string;
-  title?: string;
-  description?: string;
   contentType: string;
   fileSize: number;
   uploadId: string; // The multipart upload ID or unique session ID
@@ -36,6 +35,12 @@ const VideoUploadSchema = new Schema<IVideoUpload>(
       ref: 'User',
       index: true,
     },
+    submissionId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: 'Submission',
+      index: true,
+    },
     objectKey: {
       type: String,
       required: true,
@@ -43,14 +48,6 @@ const VideoUploadSchema = new Schema<IVideoUpload>(
     originalFileName: {
       type: String,
       required: true,
-    },
-    title: {
-      type: String,
-      required: false,
-    },
-    description: {
-      type: String,
-      required: false,
     },
     contentType: {
       type: String,

@@ -9,63 +9,23 @@ import {
 import { VideoUpload } from './models/video-upload.model.js';
 import { VideoVerificationJob } from './models/video-job.model.js';
 import { VideoVerification } from './models/video-verification.model.js';
+import { Submission } from '../submissions/models/submission.model.js';
 import { s3Service } from './storage/s3.service.js';
 import { env } from '../../config/env.js';
+import { User } from '../auth/models/user.model.js';
+import { ROLE_PERMISSIONS } from '../auth/authorization/roles.js';
+import type { Role } from '@repo/contracts';
 
 export class VideoController {
   
+  /**
+   * @deprecated Video creation is now handled natively within submissions.
+   * Use `POST /submissions` instead.
+   */
   public async createUpload(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const auth = req.auth;
-      if (!auth) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
-      }
-
-      const parsed = CreateVideoUploadSchema.safeParse(req.body);
-      if (!parsed.success) {
-        res.status(400).json({ error: 'Invalid payload', details: parsed.error });
-        return;
-      }
-
-      const { fileName, contentType, fileSize, totalParts, title, description } = parsed.data;
-
-      if (fileSize > env.VIDEO_MAX_SIZE_BYTES) {
-        res.status(400).json({ error: 'UPLOAD_TOO_LARGE' });
-        return;
-      }
-
-      // Generate a secure object key
-      const uploadId = crypto.randomBytes(16).toString('hex');
-      const objectKey = `videos/${auth.userId}/${uploadId}/original`;
-
-      // Create R2 multipart upload
-      const multipartUploadId = await s3Service.createMultipartUpload(objectKey, contentType);
-
-      // Create database record
-      await VideoUpload.create({
-        userId: new Types.ObjectId(auth.userId),
-        objectKey,
-        originalFileName: fileName,
-        title,
-        description,
-        contentType,
-        fileSize,
-        uploadId,
-        multipartUploadId,
-        status: 'created',
-        totalParts,
-      });
-
-      res.status(201).json({
-        uploadId,
-        objectKey,
-        multipartUploadId,
-      });
-    } catch (error) {
-      next(error);
-    }
+    res.status(410).json({ error: 'Endpoint deprecated. Use POST /submissions instead.' });
   }
+
 
   public async signParts(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -188,6 +148,12 @@ export class VideoController {
         { upsert: true }
       );
 
+      // Update parent submission status
+      await Submission.updateOne(
+        { _id: upload.submissionId, status: 'draft' },
+        { $set: { status: 'in_review' } }
+      );
+
       res.json({ status: 'uploaded' });
     } catch (error) {
       next(error);
@@ -242,8 +208,14 @@ export class VideoController {
         return;
       }
 
-      if (upload.userId.toString() !== auth.userId) {
-        res.status(403).json({ error: 'UPLOAD_NOT_OWNED' });
+      const user = await User.findById(auth.userId).lean();
+      const role = (user?.role as Role) || 'user';
+      const allowedPermissions = ROLE_PERMISSIONS[role] || [];
+      const isOwner = upload.userId.toString() === auth.userId;
+      const canVerify = allowedPermissions.includes('video:verify');
+
+      if (!isOwner && !canVerify) {
+        res.status(403).json({ error: 'UPLOAD_NOT_OWNED_OR_AUTHORIZED' });
         return;
       }
 

@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { VideoUploadManager } from '@repo/api-client';
 import { WebUploadSource } from '@/features/video/web-upload-source';
-import { apiClient } from '@/lib/api-client';
+import { apiClient, submissionsApi } from '@/lib/api-client';
 
 export function VideoUploader() {
   const [file, setFile] = useState<File | null>(null);
@@ -30,7 +30,7 @@ export function VideoUploader() {
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const MAX_FILE_SIZE_BYTES = 500 * 1024 * 1024; // 500 MB limit
+  const MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024; // 100 MB limit
   const ALLOWED_MIME_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'];
 
   const handleFileSelection = (selectedFile: File) => {
@@ -39,7 +39,7 @@ export function VideoUploader() {
       return;
     }
     if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
-      setError('File size exceeds the 500 MB limit.');
+      setError('File size exceeds the 100 MB limit.');
       return;
     }
     setFile(selectedFile);
@@ -81,13 +81,27 @@ export function VideoUploader() {
 
     try {
       setError(null);
+      
+      const idempotencyKey = crypto.randomUUID();
+      const totalParts = Math.ceil(file.size / (8 * 1024 * 1024));
+
+      const response = await submissionsApi.create(
+        {
+          fileName: file.name,
+          contentType: file.type || 'video/mp4',
+          fileSize: file.size,
+          totalParts,
+          country: 'United States',
+        },
+        idempotencyKey,
+      );
+
       const source = new WebUploadSource(file);
       const manager = new VideoUploadManager({
         apiClient,
+        uploadId: response.uploadId,
         source,
         fileName: file.name,
-        title: videoTitle || undefined,
-        description: videoDescription || undefined,
         onProgress: (uploaded: number, total: number) => {
           setProgress(Math.round((uploaded / total) * 100));
         },
@@ -126,7 +140,7 @@ export function VideoUploader() {
 
   const handleRetry = async () => {
     if (uploadManager) {
-      await uploadManager.retry();
+      await uploadManager.start();
     }
   };
 
@@ -318,7 +332,7 @@ export function VideoUploader() {
                   Drag & drop your video here, or <span className="text-amber-600 dark:text-amber-400 underline">browse</span>
                 </p>
                 <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                  Supports MP4, MOV, or WEBM (Max 500 MB)
+                  Supports MP4, MOV, or WEBM (Max 100 MB)
                 </p>
               </>
             )}

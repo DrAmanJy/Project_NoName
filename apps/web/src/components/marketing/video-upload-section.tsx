@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Upload, Film, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
 import { VideoUploadManager } from '@repo/api-client';
 import { WebUploadSource } from '@/features/video/web-upload-source';
-import { apiClient } from '@/lib/api-client';
+import { apiClient, submissionsApi } from '@/lib/api-client';
 
 export function VideoUploadSection() {
   const [file, setFile] = useState<File | null>(null);
@@ -14,7 +14,7 @@ export function VideoUploadSection() {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const MAX_FILE_SIZE_BYTES = 500 * 1024 * 1024;
+  const MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024;
   const ALLOWED_MIME_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'];
 
   const validateFile = (selectedFile: File): boolean => {
@@ -25,7 +25,7 @@ export function VideoUploadSection() {
     }
     if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
       setFile(null);
-      setErrorMessage('File size exceeds the 500 MB limit.');
+      setErrorMessage('File size exceeds the 100 MB limit.');
       return false;
     }
     return true;
@@ -62,9 +62,24 @@ export function VideoUploadSection() {
     setProgress(0);
 
     try {
+      const idempotencyKey = crypto.randomUUID();
+      const totalParts = Math.ceil(file.size / (8 * 1024 * 1024));
+
+      const response = await submissionsApi.create(
+        {
+          fileName: file.name,
+          contentType: file.type || 'video/mp4',
+          fileSize: file.size,
+          totalParts,
+          country: country,
+        },
+        idempotencyKey,
+      );
+
       const source = new WebUploadSource(file);
       const manager = new VideoUploadManager({
         apiClient,
+        uploadId: response.uploadId,
         source,
         fileName: file.name,
         onProgress: (uploaded: number, total: number) => {
@@ -159,7 +174,7 @@ export function VideoUploadSection() {
                       Click to upload or drag and drop
                     </p>
                     <p className="text-xs text-zinc-500 mt-1">
-                      MP4, MOV, or WEBM (Max 500MB)
+                      MP4, MOV, or WEBM (Max 100MB)
                     </p>
                   </div>
                 )}

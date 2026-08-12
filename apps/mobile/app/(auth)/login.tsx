@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SocialLoginButton } from '../../components/auth/SocialLoginButton';
 import { ErrorDialog } from '../../components/ErrorDialog';

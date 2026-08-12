@@ -6,6 +6,7 @@ export interface IUser extends Document {
   email?: string;
   avatarUrl?: string;
   isActive: boolean;
+  role: 'user' | 'employee' | 'admin';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -32,10 +33,19 @@ const userSchema = new Schema<IUser>(
       default: true,
       required: true,
     },
+    role: {
+      type: String,
+      enum: ['user', 'employee', 'admin'],
+      default: 'user',
+      required: true,
+    },
   },
   {
     timestamps: true,
   },
 );
+
+// Compound index for admin employee search
+userSchema.index({ role: 1, isActive: 1, createdAt: -1 });
 
 export const User = mongoose.model<IUser>('User', userSchema);
