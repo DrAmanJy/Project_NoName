@@ -30,9 +30,16 @@ export function VideoUploader() {
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const MAX_FILE_SIZE_BYTES = 500 * 1024 * 1024; // 500 MB limit
+  const ALLOWED_MIME_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'];
+
   const handleFileSelection = (selectedFile: File) => {
-    if (!selectedFile.type.startsWith('video/')) {
-      setError('Please select a valid video file (.mp4, .mov, .webm)');
+    if (!ALLOWED_MIME_TYPES.includes(selectedFile.type)) {
+      setError('Please select a supported video file (.mp4, .mov, or .webm).');
+      return;
+    }
+    if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
+      setError('File size exceeds the 500 MB limit.');
       return;
     }
     setFile(selectedFile);
@@ -79,6 +86,8 @@ export function VideoUploader() {
         apiClient,
         source,
         fileName: file.name,
+        title: videoTitle || undefined,
+        description: videoDescription || undefined,
         onProgress: (uploaded: number, total: number) => {
           setProgress(Math.round((uploaded / total) * 100));
         },
@@ -117,7 +126,7 @@ export function VideoUploader() {
 
   const handleRetry = async () => {
     if (uploadManager) {
-      await uploadManager.start();
+      await uploadManager.retry();
     }
   };
 
