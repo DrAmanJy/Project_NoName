@@ -141,7 +141,7 @@ export function VideoReviewConsole() {
             timeline: (sub.timeline as unknown[]) || [],
             user: sub.user || null,
             video: sub.video || null,
-            title: sub.video?.originalFilename || `Submission #${subId.slice(-6)}`,
+            title: `Submission #${subId.slice(-6)}`,
             description: `Video submission uploaded by ${sub.user?.name || 'Creator'}.`,
             userId: sub.user?.id || 'usr_unknown',
             userName: sub.user?.name || 'Creator User',
