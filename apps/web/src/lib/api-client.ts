@@ -16,6 +16,7 @@ export const API_URL = (() => {
 
 export const apiClient = new ApiClient({
   baseUrl: API_URL,
+  credentials: 'include',
 });
 
 export const authApi = createAuthApi(apiClient);

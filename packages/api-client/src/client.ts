@@ -11,15 +11,18 @@ export class ApiError extends Error {
 
 export interface ApiClientConfig {
   baseUrl: string;
+  credentials?: RequestCredentials;
   getAccessToken?: () => Promise<string | null>;
 }
 
 export class ApiClient {
   private readonly baseUrl: string;
+  private readonly credentials?: RequestCredentials;
   private readonly getAccessToken?: () => Promise<string | null>;
 
   constructor(config: ApiClientConfig) {
     this.baseUrl = config.baseUrl.replace(/\/$/, '');
+    this.credentials = config.credentials;
     this.getAccessToken = config.getAccessToken;
   }
 
@@ -45,6 +48,7 @@ export class ApiClient {
     const headers = await this.buildHeaders(options.headers);
 
     const response = await fetch(url, {
+      credentials: this.credentials,
       ...options,
       headers,
     });
