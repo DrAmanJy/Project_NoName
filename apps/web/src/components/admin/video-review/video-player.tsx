@@ -94,7 +94,6 @@ export function VideoPlayer({
   const handleFullscreen = () => {
     if (!videoRef.current) return;
     if (videoRef.current.requestFullscreen) {
-      console.warn('Video ended');
       videoRef.current.requestFullscreen();
     }
   };
@@ -116,7 +115,7 @@ export function VideoPlayer({
       <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
         <div className="inline-flex items-center gap-1.5 rounded-full bg-black/60 backdrop-blur-md px-3 py-1 text-xs font-semibold text-zinc-200 border border-white/10">
           <Film className="h-3.5 w-3.5 text-zinc-400" />
-          <span className="truncate max-w-[200px] sm:max-w-[300px]">{title}</span>
+          <span className="truncate max-w-50 sm:max-w-75">{title}</span>
         </div>
         <div className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 backdrop-blur-md px-2.5 py-1 text-[11px] font-bold text-emerald-400 border border-emerald-500/30">
           <Zap className="h-3 w-3" />
@@ -139,7 +138,7 @@ export function VideoPlayer({
             playsInline
           />
         ) : (
-          <div className="relative flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br from-zinc-900 via-zinc-950 to-black w-full h-full">
+          <div className="relative flex flex-col items-center justify-center p-8 text-center bg-linear-to-br from-zinc-900 via-zinc-950 to-black w-full h-full">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-800/80 border border-zinc-700 text-zinc-300 mb-4 shadow-inner">
               <Film className="h-8 w-8" />
             </div>
@@ -173,7 +172,7 @@ export function VideoPlayer({
 
       {/* Video Control Bar */}
       <div
-        className={`absolute bottom-0 inset-x-0 z-20 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-4 transition-opacity duration-200 ${
+        className={`absolute bottom-0 inset-x-0 z-20 bg-linear-to-t from-black/90 via-black/60 to-transparent p-4 transition-opacity duration-200 ${
           showControls || !isPlaying ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
       >

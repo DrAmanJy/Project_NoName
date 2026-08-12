@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
+import { DashboardView } from '@/components/dashboard/dashboard-view';
 
 export const metadata: Metadata = {
-  title: 'Dashboard',
+  title: 'Creator Dashboard | Synax',
+  description: 'View your uploaded videos, track verification and progress status, and monitor video earnings.',
   robots: {
     index: false,
     follow: false,
@@ -9,12 +11,5 @@ export const metadata: Metadata = {
 };
 
 export default function DashboardPage() {
-  return (
-    <main className="flex flex-1 flex-col items-center justify-center px-4">
-      <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
-      <p className="mt-4 text-lg text-foreground/70">
-        Your dashboard overview.
-      </p>
-    </main>
-  );
+  return <DashboardView />;
 }
