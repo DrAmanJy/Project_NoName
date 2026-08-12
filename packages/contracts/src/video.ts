@@ -1,8 +1,16 @@
 import { z } from 'zod';
 
+export const AllowedVideoContentTypes = [
+  'video/mp4',
+  'video/quicktime', // MOV
+  'video/webm',
+] as const;
+
 export const CreateVideoUploadSchema = z.object({
   fileName: z.string().min(1).max(255),
-  contentType: z.string().refine(val => val.startsWith('video/'), { message: 'Must be a video content type' }),
+  contentType: z.string().refine(val => AllowedVideoContentTypes.includes(val as any), { 
+    message: `Must be a supported video format: ${AllowedVideoContentTypes.join(', ')}` 
+  }),
   fileSize: z.number().int().positive(),
   totalParts: z.number().int().positive().max(10000), // S3 max is 10k
 });

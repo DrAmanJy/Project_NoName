@@ -9,12 +9,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function SubmissionDetailPage({ params }: { params: { id: string } }) {
+export default async function SubmissionDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
   return (
     <main className="flex flex-1 flex-col items-center justify-center px-4">
       <h1 className="text-4xl font-bold tracking-tight">Submission Detail</h1>
       <p className="mt-4 text-lg text-foreground/70">
-        ID: {params.id}
+        ID: {resolvedParams.id}
       </p>
       <div className="mt-8">
         <Link 

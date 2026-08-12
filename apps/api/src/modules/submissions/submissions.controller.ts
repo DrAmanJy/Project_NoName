@@ -57,30 +57,51 @@ export class SubmissionsController {
       // Create R2 multipart upload
       const multipartUploadId = await s3Service.createMultipartUpload(objectKey, contentType);
 
-      // Create submission and video upload logically together
-      const submission = await Submission.create({
-        userId,
-        status: 'draft',
-        idempotencyKey,
-      });
+      try {
+        // Create submission and video upload logically together
+        const submission = await Submission.create({
+          userId,
+          status: 'draft',
+          idempotencyKey,
+        });
 
-      await VideoUpload.create({
-        userId,
-        submissionId: submission._id,
-        objectKey,
-        originalFileName: fileName,
-        contentType,
-        fileSize,
-        uploadId,
-        multipartUploadId,
-        status: 'created',
-        totalParts,
-      });
+        await VideoUpload.create({
+          userId,
+          submissionId: submission._id,
+          objectKey,
+          originalFileName: fileName,
+          contentType,
+          fileSize,
+          uploadId,
+          multipartUploadId,
+          status: 'created',
+          totalParts,
+        });
 
-      res.status(201).json({
-        submissionId: submission._id.toString(),
-        uploadId,
-      });
+        res.status(201).json({
+          submissionId: submission._id.toString(),
+          uploadId,
+        });
+      } catch (dbError: any) {
+        if (dbError.code === 11000) {
+          // Idempotency race condition occurred
+          const existingSubmission = await Submission.findOne({ userId, idempotencyKey });
+          if (existingSubmission) {
+            const existingUpload = await VideoUpload.findOne({ submissionId: existingSubmission._id }).sort({ createdAt: -1 });
+            if (existingUpload) {
+              res.json({
+                submissionId: existingSubmission._id.toString(),
+                uploadId: existingUpload.uploadId,
+              });
+              return;
+            }
+          }
+        }
+        
+        // If it's a real failure, abort the multipart upload to prevent dangling resources
+        await s3Service.abortMultipartUpload(objectKey, multipartUploadId).catch(console.error);
+        throw dbError;
+      }
     } catch (error) {
       next(error);
     }
@@ -156,93 +177,45 @@ export class SubmissionsController {
         .sort({ createdAt: -1 })
         .lean();
 
-      const timeline: SubmissionTimelineStep[] = [];
+      const baseUploadedStep: SubmissionTimelineStep = {
+        key: 'video_uploaded',
+        status: upload?.status === 'uploaded' ? 'completed' : 'current',
+        completedAt: upload?.completedAt?.toISOString(),
+      };
 
-      // Timeline mapping logic based on submission status
-      if (submission.status === 'draft') {
-        timeline.push({
-          key: 'video_uploaded',
-          status: upload?.status === 'uploaded' ? 'completed' : 'current',
-          completedAt: upload?.completedAt?.toISOString(),
-        });
-        timeline.push({
-          key: 'under_review',
-          status: 'pending',
-        });
-        timeline.push({
-          key: 'payment',
-          status: 'pending',
-        });
-      } else if (submission.status === 'in_review') {
-        timeline.push({
-          key: 'video_uploaded',
-          status: 'completed',
-          completedAt: upload?.completedAt?.toISOString(),
-        });
-        timeline.push({
-          key: 'under_review',
-          status: 'current',
-          message: 'Usually takes 24-48 hours',
-        });
-        timeline.push({
-          key: 'payment',
-          status: 'pending',
-        });
-      } else if (submission.status === 'approved') {
-        timeline.push({
-          key: 'video_uploaded',
-          status: 'completed',
-          completedAt: upload?.completedAt?.toISOString(),
-        });
-        timeline.push({
-          key: 'under_review',
-          status: 'completed',
-        });
-        timeline.push({
-          key: 'payment',
-          status: 'pending',
-          message: 'Pending payment',
-        });
-      } else if (submission.status === 'rejected') {
-        timeline.push({
-          key: 'video_uploaded',
-          status: 'completed',
-          completedAt: upload?.completedAt?.toISOString(),
-        });
-        timeline.push({
-          key: 'under_review',
-          status: 'rejected',
-        });
-      } else if (submission.status === 'payment_pending') {
-        timeline.push({
-          key: 'video_uploaded',
-          status: 'completed',
-          completedAt: upload?.completedAt?.toISOString(),
-        });
-        timeline.push({
-          key: 'under_review',
-          status: 'completed',
-        });
-        timeline.push({
-          key: 'payment',
-          status: 'current',
-          message: 'Payment is being processed',
-        });
-      } else if (submission.status === 'paid') {
-        timeline.push({
-          key: 'video_uploaded',
-          status: 'completed',
-          completedAt: upload?.completedAt?.toISOString(),
-        });
-        timeline.push({
-          key: 'under_review',
-          status: 'completed',
-        });
-        timeline.push({
-          key: 'payment',
-          status: 'completed',
-        });
-      }
+      const timelineMap: Record<string, SubmissionTimelineStep[]> = {
+        draft: [
+          baseUploadedStep,
+          { key: 'under_review', status: 'pending' },
+          { key: 'payment', status: 'pending' },
+        ],
+        in_review: [
+          { ...baseUploadedStep, status: 'completed' },
+          { key: 'under_review', status: 'current', message: 'Usually takes 24-48 hours' },
+          { key: 'payment', status: 'pending' },
+        ],
+        approved: [
+          { ...baseUploadedStep, status: 'completed' },
+          { key: 'under_review', status: 'completed' },
+          { key: 'payment', status: 'pending', message: 'Pending payment' },
+        ],
+        rejected: [
+          { ...baseUploadedStep, status: 'completed' },
+          { key: 'under_review', status: 'rejected' },
+        ],
+        payment_pending: [
+          { ...baseUploadedStep, status: 'completed' },
+          { key: 'under_review', status: 'completed' },
+          { key: 'payment', status: 'current', message: 'Payment is being processed' },
+        ],
+        paid: [
+          { ...baseUploadedStep, status: 'completed' },
+          { key: 'under_review', status: 'completed' },
+          { key: 'payment', status: 'completed' },
+        ],
+      };
+
+      const timeline = timelineMap[submission.status] || timelineMap.draft;
 
       res.json({
         id: submission._id.toString(),

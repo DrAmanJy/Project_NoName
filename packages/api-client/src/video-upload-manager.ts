@@ -77,7 +77,11 @@ export class VideoUploadManager {
       this.isPaused = false;
       this.isCancelled = false;
 
-      this.initializeParts(completedParts || []);
+      if (completedParts) {
+        this.initializeParts(completedParts);
+      } else if (this.parts.length === 0) {
+        this.initializeParts([]);
+      }
 
       this.setState('uploading');
       this.uploadNextParts();

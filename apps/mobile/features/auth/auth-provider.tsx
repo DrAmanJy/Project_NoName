@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import type { User } from '@repo/contracts';
-import type { AuthService, AuthProviderType } from './auth-types';
-import { MockAuthService } from './mock-auth-service';
+import type { AuthProviderType } from './auth-types';
 import { BackendAuthService } from './backend-auth-service';
 
 type AuthState =

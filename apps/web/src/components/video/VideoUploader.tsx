@@ -30,7 +30,7 @@ export function VideoUploader() {
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const MAX_FILE_SIZE_BYTES = 500 * 1024 * 1024; // 500 MB limit
+  const MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024; // 100 MB limit
   const ALLOWED_MIME_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'];
 
   const handleFileSelection = (selectedFile: File) => {
@@ -39,7 +39,7 @@ export function VideoUploader() {
       return;
     }
     if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
-      setError('File size exceeds the 500 MB limit.');
+      setError('File size exceeds the 100 MB limit.');
       return;
     }
     setFile(selectedFile);
@@ -91,6 +91,7 @@ export function VideoUploader() {
           contentType: file.type || 'video/mp4',
           fileSize: file.size,
           totalParts,
+          country: 'United States',
         },
         idempotencyKey,
       );
@@ -331,7 +332,7 @@ export function VideoUploader() {
                   Drag & drop your video here, or <span className="text-amber-600 dark:text-amber-400 underline">browse</span>
                 </p>
                 <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                  Supports MP4, MOV, or WEBM (Max 500 MB)
+                  Supports MP4, MOV, or WEBM (Max 100 MB)
                 </p>
               </>
             )}

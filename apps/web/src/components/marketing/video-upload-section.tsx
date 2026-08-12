@@ -14,7 +14,7 @@ export function VideoUploadSection() {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const MAX_FILE_SIZE_BYTES = 500 * 1024 * 1024;
+  const MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024;
   const ALLOWED_MIME_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'];
 
   const validateFile = (selectedFile: File): boolean => {
@@ -25,7 +25,7 @@ export function VideoUploadSection() {
     }
     if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
       setFile(null);
-      setErrorMessage('File size exceeds the 500 MB limit.');
+      setErrorMessage('File size exceeds the 100 MB limit.');
       return false;
     }
     return true;
@@ -71,6 +71,7 @@ export function VideoUploadSection() {
           contentType: file.type || 'video/mp4',
           fileSize: file.size,
           totalParts,
+          country: country,
         },
         idempotencyKey,
       );
@@ -173,7 +174,7 @@ export function VideoUploadSection() {
                       Click to upload or drag and drop
                     </p>
                     <p className="text-xs text-zinc-500 mt-1">
-                      MP4, MOV, or WEBM (Max 500MB)
+                      MP4, MOV, or WEBM (Max 100MB)
                     </p>
                   </div>
                 )}

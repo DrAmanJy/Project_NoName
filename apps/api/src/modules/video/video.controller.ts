@@ -18,56 +18,14 @@ import type { Role } from '@repo/contracts';
 
 export class VideoController {
   
+  /**
+   * @deprecated Video creation is now handled natively within submissions.
+   * Use `POST /submissions` instead.
+   */
   public async createUpload(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const auth = req.auth;
-      if (!auth) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
-      }
-
-      const parsed = CreateVideoUploadSchema.safeParse(req.body);
-      if (!parsed.success) {
-        res.status(400).json({ error: 'Invalid payload', details: parsed.error });
-        return;
-      }
-
-      const { fileName, contentType, fileSize, totalParts } = parsed.data;
-
-      if (fileSize > env.VIDEO_MAX_SIZE_BYTES) {
-        res.status(400).json({ error: 'UPLOAD_TOO_LARGE' });
-        return;
-      }
-
-      // Generate a secure object key
-      const uploadId = crypto.randomBytes(16).toString('hex');
-      const objectKey = `videos/${auth.userId}/${uploadId}/original`;
-
-      // Create R2 multipart upload
-      const multipartUploadId = await s3Service.createMultipartUpload(objectKey, contentType);
-
-      // Create database record
-      await VideoUpload.create({
-        userId: new Types.ObjectId(auth.userId),
-        objectKey,
-        originalFileName: fileName,
-        contentType,
-        fileSize,
-        uploadId,
-        multipartUploadId,
-        status: 'created',
-        totalParts,
-      });
-
-      res.status(201).json({
-        uploadId,
-        objectKey,
-        multipartUploadId,
-      });
-    } catch (error) {
-      next(error);
-    }
+    res.status(410).json({ error: 'Endpoint deprecated. Use POST /submissions instead.' });
   }
+
 
   public async signParts(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {

@@ -3,13 +3,11 @@ import { View, Text, TouchableOpacity, StyleSheet, Animated, Platform } from 're
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { FontAwesome5 } from '@expo/vector-icons';
 
-export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+export function CustomTabBar({ state, descriptors: _descriptors, navigation }: BottomTabBarProps) {
   return (
     <View style={styles.tabBarContainer}>
       <View style={styles.tabBar}>
         {state.routes.map((route, index) => {
-          const descriptor = descriptors[route.key];
-          const options = descriptor?.options || {};
           const isFocused = state.index === index;
 
           const onPress = () => {

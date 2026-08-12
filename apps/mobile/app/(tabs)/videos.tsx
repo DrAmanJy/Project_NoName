@@ -1,25 +1,26 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Modal, FlatList, Dimensions, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Modal, FlatList, ScrollView } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { VideoUploadManager } from '@repo/api-client';
 import { MobileUploadSource } from '../../features/video/mobile-upload-source';
 import { apiClient, submissionsApi } from '../../lib/api';
 
 export default function VideosScreen() {
+  const router = useRouter();
   const [selectedVideoUri, setSelectedVideoUri] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [showCountryModal, setShowCountryModal] = useState(false);
-  const [videoAsset, setVideoAsset] = useState<any>(null);
+  const [videoAsset, setVideoAsset] = useState<ImagePicker.ImagePickerAsset | null>(null);
   
   const [uploadManager, setUploadManager] = useState<VideoUploadManager | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState<string>('idle');
-  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [idempotencyKey, setIdempotencyKey] = useState<string>('');
 
   const COUNTRIES = [
     'United States', 'United Kingdom', 'Canada', 'Australia', 
@@ -40,7 +41,7 @@ export default function VideosScreen() {
       return () => {
         try {
           player.pause();
-        } catch (e) {
+        } catch {
           // Ignore errors if player is already released
         }
       };
@@ -80,9 +81,10 @@ export default function VideosScreen() {
       setSelectedVideoUri(asset.uri);
       setVideoAsset(asset);
       setUploadManager(null);
-      setUploadError(null);
+      setUploadManager(null);
       setUploadStatus('idle');
       setUploadProgress(0);
+      setIdempotencyKey(Date.now().toString() + Math.random().toString(36).substring(7));
     }
   };
 
@@ -97,8 +99,11 @@ export default function VideosScreen() {
     }
 
     try {
-      const idempotencyKey = Date.now().toString() + Math.random().toString(36).substring(7);
-      const fileSize = videoAsset.fileSize || 0;
+      const fileSize = videoAsset.fileSize;
+      if (!fileSize || fileSize <= 0) {
+        Alert.alert('Invalid Video', 'Unable to determine file size.');
+        return;
+      }
       const totalParts = Math.ceil(fileSize / (8 * 1024 * 1024));
 
       const response = await submissionsApi.create({
@@ -106,9 +111,10 @@ export default function VideosScreen() {
         contentType: videoAsset.mimeType || 'video/mp4',
         fileSize: fileSize,
         totalParts,
+        country: selectedCountry,
       }, idempotencyKey);
 
-      const { submissionId, uploadId } = response;
+      const { uploadId } = response;
 
       const source = new MobileUploadSource(
         videoAsset.uri,
@@ -128,7 +134,6 @@ export default function VideosScreen() {
           setUploadStatus(state);
         },
         onError: (err) => {
-          setUploadError(err.message);
           setUploadManager(null);
           if (player && player.status === 'error') {
             console.error('Video player error');
@@ -136,19 +141,15 @@ export default function VideosScreen() {
           setUploadStatus('error');
           Alert.alert('Upload Failed', err.message);
         },
-        onComplete: (videoId) => {
+        onComplete: () => {
           setUploadStatus('completed');
           Alert.alert('Success', 'Video submitted successfully for review!');
           setSelectedVideoUri(null); 
           setSelectedCountry(null);
           setVideoAsset(null);
           setUploadManager(null);
-          
-          // Navigate to submission detail
-          // @ts-ignore - expo-router handles this path if valid
-          import('expo-router').then(({ router }) => {
-            router.push(`/submissions`);
-          });
+          setIdempotencyKey('');
+          router.push(`/submissions`);
         }
       });
 

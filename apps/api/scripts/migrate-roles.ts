@@ -9,7 +9,7 @@ async function run() {
   console.warn('Migrating users missing roles to "user"...');
   
   const result = await mongoose.connection.collection('users').updateMany(
-    { role: { $exists: false } },
+    { $or: [{ role: { $exists: false } }, { role: null }, { role: '' }] },
     { $set: { role: 'user' } }
   );
 
@@ -17,4 +17,8 @@ async function run() {
   await mongoose.disconnect();
 }
 
-run().catch(console.error);
+run().catch(async (error) => {
+  console.error(error);
+  await mongoose.disconnect();
+  process.exit(1);
+});

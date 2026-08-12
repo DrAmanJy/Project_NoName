@@ -24,6 +24,8 @@ async function run() {
 
   if (!result) {
     console.error(`User with email ${targetEmail} not found!`);
+    await mongoose.disconnect();
+    process.exit(1);
   } else {
     console.warn(`Success! User ${targetEmail} is now an admin.`);
   }
@@ -31,4 +33,8 @@ async function run() {
   await mongoose.disconnect();
 }
 
-run().catch(console.error);
+run().catch(async (error) => {
+  console.error(error);
+  await mongoose.disconnect();
+  process.exit(1);
+});

@@ -18,7 +18,7 @@ export class AuthController {
     res.cookie(env.AUTH_COOKIE_NAME, token, {
       httpOnly: true,
       secure: env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'none',
       path: '/',
       maxAge: env.AUTH_SESSION_TTL_DAYS * 24 * 60 * 60 * 1000,
     });

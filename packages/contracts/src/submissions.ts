@@ -56,6 +56,7 @@ export const CreateSubmissionRequestSchema = z.object({
   contentType: z.string().refine(val => val.startsWith('video/'), { message: 'Must be a video content type' }),
   fileSize: z.number().int().positive(),
   totalParts: z.number().int().positive().max(10000), // S3 max is 10k
+  country: z.string().min(2),
 });
 
 export type CreateSubmissionRequest = z.infer<typeof CreateSubmissionRequestSchema>;

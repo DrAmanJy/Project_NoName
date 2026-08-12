@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Button, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, Button, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { VideoUploadManager } from '@repo/api-client';
@@ -48,6 +48,7 @@ export function VideoUploader() {
         contentType: mimeType,
         fileSize: fileSize,
         totalParts,
+        country: 'United States',
       }, idempotencyKey);
 
       const { submissionId, uploadId } = response;
@@ -70,7 +71,7 @@ export function VideoUploader() {
         },
         onComplete: (videoId: string) => {
           setStatus('completed');
-          console.log('Upload complete, ID:', videoId);
+          console.warn('Upload complete, ID:', videoId);
           router.push(`/submissions/${submissionId}`);
         }
       });

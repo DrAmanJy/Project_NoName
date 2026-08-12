@@ -67,9 +67,9 @@ export class ApiClient {
 
   async post<T>(path: string, body?: unknown, options: RequestInit = {}): Promise<T> {
     return this.request<T>(path, {
+      ...options,
       method: 'POST',
       body: body ? JSON.stringify(body) : undefined,
-      ...options,
     });
   }
 

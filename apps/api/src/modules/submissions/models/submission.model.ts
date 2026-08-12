@@ -17,7 +17,6 @@ const SubmissionSchema = new Schema<ISubmission>(
       type: Schema.Types.ObjectId,
       required: true,
       ref: 'User',
-      index: true,
     },
     status: {
       type: String,
@@ -28,8 +27,6 @@ const SubmissionSchema = new Schema<ISubmission>(
     },
     idempotencyKey: {
       type: String,
-      index: true,
-      sparse: true,
     },
     reviewedBy: {
       type: Schema.Types.ObjectId,
@@ -50,7 +47,10 @@ const SubmissionSchema = new Schema<ISubmission>(
 // Index to find user's submissions sorted by newest first
 SubmissionSchema.index({ userId: 1, createdAt: -1 });
 // Unique constraint for idempotency key scoped to user
-SubmissionSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true, sparse: true });
+SubmissionSchema.index(
+  { userId: 1, idempotencyKey: 1 }, 
+  { unique: true, partialFilterExpression: { idempotencyKey: { $exists: true } } }
+);
 // Staff list query optimization
 SubmissionSchema.index({ createdAt: -1 });
 

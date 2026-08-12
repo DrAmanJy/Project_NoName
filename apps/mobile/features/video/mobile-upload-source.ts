@@ -3,6 +3,7 @@ import type { UploadSource, UploadChunk } from '@repo/api-client';
 export class MobileUploadSource implements UploadSource {
   private uri: string;
   private blob: Blob | null = null;
+  private loadPromise: Promise<Blob> | null = null;
   public readonly size: number;
   public readonly contentType: string;
 
@@ -14,10 +15,15 @@ export class MobileUploadSource implements UploadSource {
 
   public async readPart(partNumber: number, offset: number, length: number): Promise<UploadChunk> {
     if (!this.blob) {
-      const response = await fetch(this.uri);
-      this.blob = await response.blob();
+      if (!this.loadPromise) {
+        this.loadPromise = fetch(this.uri).then(res => res.blob()).then(blob => {
+          this.blob = blob;
+          return blob;
+        });
+      }
+      await this.loadPromise;
     }
-    const chunk = this.blob.slice(offset, offset + length);
+    const chunk = this.blob!.slice(offset, offset + length);
     return {
       data: chunk
     };

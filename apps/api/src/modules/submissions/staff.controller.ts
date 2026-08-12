@@ -3,11 +3,11 @@ import { Submission } from './models/submission.model.js';
 import { User } from '../auth/models/user.model.js';
 import { VideoUpload } from '../video/models/video-upload.model.js';
 import { VideoVerification } from '../video/models/video-verification.model.js';
-import { UpdateSubmissionStatusRequestSchema } from '@repo/contracts';
+import { UpdateSubmissionStatusRequestSchema, SubmissionStatusSchema } from '@repo/contracts';
 import mongoose from 'mongoose';
 
 export class StaffSubmissionsController {
-  public list = async (req: Request, res: Response): Promise<void> => {
+  public list = async (req: Request, res: Response, next: import('express').NextFunction): Promise<void> => {
     try {
       const page = Math.max(1, parseInt(req.query.page as string) || 1);
       const limit = Math.max(1, Math.min(50, parseInt(req.query.limit as string) || 10));
@@ -15,7 +15,12 @@ export class StaffSubmissionsController {
 
       const query: Record<string, unknown> = {};
       if (req.query.status) {
-        query.status = req.query.status;
+        const parsedStatus = SubmissionStatusSchema.safeParse(req.query.status);
+        if (!parsedStatus.success) {
+          res.status(400).json({ error: 'Invalid status parameter' });
+          return;
+        }
+        query.status = parsedStatus.data;
       }
 
       const [submissions, total] = await Promise.all([
@@ -33,7 +38,7 @@ export class StaffSubmissionsController {
         status: sub.status,
         timeline: [], // Ideally map timeline, but omitted from SubmissionSchema for now
         createdAt: sub.createdAt.toISOString(),
-        user: {
+        user: sub.userId ? {
           id: (sub.userId as unknown as { _id: mongoose.Types.ObjectId })._id.toString(),
           name: (sub.userId as unknown as { name: string }).name,
           email: (sub.userId as unknown as { email: string }).email,
@@ -42,6 +47,14 @@ export class StaffSubmissionsController {
           role: (sub.userId as unknown as { role: string }).role,
           createdAt: (sub.userId as unknown as { createdAt: Date }).createdAt.toISOString(),
           updatedAt: (sub.userId as unknown as { updatedAt: Date }).updatedAt.toISOString(),
+        } : {
+          id: 'unknown',
+          name: 'Deleted User',
+          email: 'deleted@example.com',
+          isActive: false,
+          role: 'user',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         }
       }));
 
@@ -53,11 +66,11 @@ export class StaffSubmissionsController {
       });
     } catch (error) {
       console.error('List staff submissions error:', error);
-      res.status(500).json({ error: 'Failed to list submissions' });
+      next(error);
     }
   };
 
-  public get = async (req: Request, res: Response): Promise<void> => {
+  public get = async (req: Request, res: Response, next: import('express').NextFunction): Promise<void> => {
     try {
       const id = req.params.id as string;
       if (!id || !mongoose.Types.ObjectId.isValid(id)) {
@@ -90,7 +103,7 @@ export class StaffSubmissionsController {
         status: submission.status,
         timeline: [], // omit timeline
         createdAt: submission.createdAt.toISOString(),
-        user: {
+        user: userObj ? {
           id: userObj._id.toString(),
           name: userObj.name,
           email: userObj.email,
@@ -99,6 +112,14 @@ export class StaffSubmissionsController {
           role: userObj.role,
           createdAt: userObj.createdAt.toISOString(),
           updatedAt: userObj.updatedAt.toISOString(),
+        } : {
+          id: 'unknown',
+          name: 'Deleted User',
+          email: 'deleted@example.com',
+          isActive: false,
+          role: 'user',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         },
         reviewedBy: reviewerObj ? {
           id: reviewerObj._id.toString(),
@@ -127,11 +148,11 @@ export class StaffSubmissionsController {
       });
     } catch (error) {
       console.error('Get staff submission error:', error);
-      res.status(500).json({ error: 'Failed to get submission' });
+      next(error);
     }
   };
 
-  public update = async (req: Request, res: Response): Promise<void> => {
+  public updateStatus = async (req: Request, res: Response, next: import('express').NextFunction): Promise<void> => {
     try {
       const id = req.params.id as string;
       if (!id || !mongoose.Types.ObjectId.isValid(id)) {
@@ -155,21 +176,43 @@ export class StaffSubmissionsController {
 
       const user = await User.findById(req.auth!.userId).lean();
       const role = user?.role || 'user';
+      const currentStatus = submission.status;
 
-      // Validate transitions
+      // Define valid transitions map
+      const VALID_TRANSITIONS: Record<string, string[]> = {
+        'draft': ['in_review'], // System transitions normally, but documented
+        'in_review': ['approved', 'rejected'],
+        'approved': ['payment_pending'], // if payment logic exists
+        'payment_pending': ['paid'],
+        'rejected': [],
+        'paid': []
+      };
+
+      const allowedNextStatuses = VALID_TRANSITIONS[currentStatus] || [];
+      
+      if (!allowedNextStatuses.includes(status)) {
+        res.status(400).json({ error: `Invalid status transition from ${currentStatus} to ${status}` });
+        return;
+      }
+
+      // Enforce Role permissions
       if (role === 'employee') {
-        if (submission.status !== 'in_review') {
-          res.status(400).json({ error: 'Employee can only review submissions currently in_review' });
+        if (currentStatus !== 'in_review') {
+          res.status(403).json({ error: 'Employee can only transition submissions currently in_review' });
           return;
         }
         if (status !== 'approved' && status !== 'rejected') {
-          res.status(400).json({ error: 'Employee can only set status to approved or rejected' });
+          res.status(403).json({ error: 'Employee can only set status to approved or rejected' });
           return;
         }
+      } else if (role === 'admin') {
+        // Admin can transition if it's in VALID_TRANSITIONS.
+        // It's already validated against VALID_TRANSITIONS above.
+      } else {
+        res.status(403).json({ error: 'Forbidden' });
+        return;
       }
 
-      // Admins might have broader transitions but for now let's enforce similar rules unless specified.
-      // But admins can definitely reject or approve.
       if (status === 'rejected' && !rejectionReason) {
         res.status(400).json({ error: 'Rejection reason is required' });
         return;
@@ -180,16 +223,18 @@ export class StaffSubmissionsController {
         submission.reviewedBy = new mongoose.Types.ObjectId(req.auth!.userId);
         submission.reviewedAt = new Date();
       }
-      if (status === 'rejected') {
+      if (status !== 'rejected') {
+        submission.rejectionReason = undefined;
+      } else if (rejectionReason) {
         submission.rejectionReason = rejectionReason;
       }
-
+      
       await submission.save();
 
       res.json({ success: true });
     } catch (error) {
-      console.error('Update staff submission error:', error);
-      res.status(500).json({ error: 'Failed to update submission' });
+      console.error('Update submission status error:', error);
+      next(error);
     }
   };
 }

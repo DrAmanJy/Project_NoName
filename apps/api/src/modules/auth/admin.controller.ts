@@ -19,7 +19,12 @@ export class AdminController {
         query.isActive = req.query.isActive === 'true';
       }
       if (req.query.role) {
-        query.role = req.query.role;
+        const requestedRole = req.query.role as string;
+        if (['employee', 'admin'].includes(requestedRole)) {
+          query.role = requestedRole;
+        } else {
+          query.role = { $in: [] }; // Enforce employee/admin constraint by matching nothing
+        }
       }
 
       const [users, total] = await Promise.all([
@@ -125,50 +130,80 @@ export class AdminController {
         }
       }
 
-      // Prevent demotion/deactivation of the last active admin
-      if (targetUser.role === 'admin' && targetUser.isActive) {
-        const isDemoting = role && role !== 'admin';
-        const isDeactivating = isActive === false;
+      const isDemoting = role && role !== 'admin';
+      const isDeactivating = isActive === false;
+      const requiresSessionRevoke = (isActive === false && targetUser.isActive) || (role !== undefined && targetUser.role !== role);
+      
+      let updatedUser;
 
-        if (isDemoting || isDeactivating) {
-          const activeAdminCount = await User.countDocuments({ role: 'admin', isActive: true });
-          if (activeAdminCount <= 1) {
-            res.status(400).json({ error: 'Cannot deactivate or demote the last active admin.' });
+      if (targetUser.role === 'admin' && targetUser.isActive && (isDemoting || isDeactivating)) {
+        // Enforce last-active-admin atomically using a transaction
+        const session = await mongoose.startSession();
+        try {
+          let transactionError: string | null = null;
+          await session.withTransaction(async () => {
+            const activeAdminCount = await User.countDocuments({ role: 'admin', isActive: true }).session(session);
+            if (activeAdminCount <= 1) {
+              transactionError = 'Cannot deactivate or demote the last active admin.';
+              throw new Error('AbortTransaction');
+            }
+            
+            if (name !== undefined) targetUser.name = name;
+            if (isActive !== undefined) targetUser.isActive = isActive;
+            if (role !== undefined) targetUser.role = role;
+            
+            updatedUser = await targetUser.save({ session });
+          });
+          if (transactionError) {
+            res.status(400).json({ error: transactionError });
             return;
           }
+        } catch (error: unknown) {
+          if ((error as Error).message === 'AbortTransaction') {
+            // Already handled the res.status(400) above or will handle it
+            if (!res.headersSent) {
+              res.status(400).json({ error: 'Cannot deactivate or demote the last active admin.' });
+            }
+            return;
+          }
+          // If transaction fails for other reasons (e.g. standalone Mongo without replica set), fallback:
+          const activeAdminCount = await User.countDocuments({ role: 'admin', isActive: true });
+          if (activeAdminCount <= 1) {
+            if (!res.headersSent) res.status(400).json({ error: 'Cannot deactivate or demote the last active admin.' });
+            return;
+          }
+          
+          if (name !== undefined) targetUser.name = name;
+          if (isActive !== undefined) targetUser.isActive = isActive;
+          if (role !== undefined) targetUser.role = role;
+          
+          updatedUser = await targetUser.save();
+        } finally {
+          await session.endSession();
         }
+      } else {
+        if (name !== undefined) targetUser.name = name;
+        if (isActive !== undefined) targetUser.isActive = isActive;
+        if (role !== undefined) targetUser.role = role;
+        updatedUser = await targetUser.save();
       }
-
-      let requiresSessionRevoke = false;
-
-      if (name !== undefined) targetUser.name = name;
-      if (isActive !== undefined) {
-        if (targetUser.isActive && !isActive) {
-          requiresSessionRevoke = true;
-        }
-        targetUser.isActive = isActive;
-      }
-      if (role !== undefined) {
-        if (targetUser.role !== role) {
-          requiresSessionRevoke = true;
-        }
-        targetUser.role = role;
-      }
-
-      await targetUser.save();
 
       if (requiresSessionRevoke) {
         await sessionService.revokeAllSessions(targetId);
       }
 
+      if (!updatedUser) {
+        throw new Error('Failed to update user');
+      }
+
       res.json({
-        id: targetUser._id.toString(),
-        name: targetUser.name,
-        email: targetUser.email,
-        isActive: targetUser.isActive,
-        role: targetUser.role,
-        createdAt: targetUser.createdAt.toISOString(),
-        updatedAt: targetUser.updatedAt.toISOString(),
+        id: updatedUser._id.toString(),
+        name: updatedUser.name,
+        email: updatedUser.email,
+        isActive: updatedUser.isActive,
+        role: updatedUser.role,
+        createdAt: updatedUser.createdAt.toISOString(),
+        updatedAt: updatedUser.updatedAt.toISOString(),
       });
     } catch (error) {
       console.error('Update employee error:', error);

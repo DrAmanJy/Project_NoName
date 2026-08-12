@@ -20,8 +20,8 @@ staffSubmissionsRoutes.get(
 );
 
 staffSubmissionsRoutes.patch(
-  '/:id',
+  '/:id/status',
   requireAuth,
   authorize('submission:update'),
-  staffSubmissionsController.update
+  staffSubmissionsController.updateStatus
 );
