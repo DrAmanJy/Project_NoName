@@ -71,9 +71,16 @@ export const SubmissionListResponseSchema = z.object({
 
 export type SubmissionListResponse = z.infer<typeof SubmissionListResponseSchema>;
 
+export const AllowedVideoContentTypeSchema = z.enum([
+  'video/mp4',
+  'video/quicktime',
+  'video/webm',
+  'video/x-m4v',
+]);
+
 export const CreateSubmissionRequestSchema = z.object({
   fileName: z.string().min(1).max(255),
-  contentType: z.string().refine(val => val.startsWith('video/'), { message: 'Must be a video content type' }),
+  contentType: AllowedVideoContentTypeSchema,
   fileSize: z.number().int().positive(),
   totalParts: z.number().int().positive().max(10000), // S3 max is 10k
   country: z.string().min(2),

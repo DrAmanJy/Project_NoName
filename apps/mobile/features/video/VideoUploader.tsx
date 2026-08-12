@@ -29,6 +29,11 @@ export function VideoUploader() {
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const asset = result.assets[0]!;
+      const mime = asset.mimeType || 'video/mp4';
+      if (!['video/mp4', 'video/quicktime', 'video/webm', 'video/x-m4v'].includes(mime)) {
+        setError('Please select a supported video file (.mp4, .mov, or .webm).');
+        return;
+      }
       setFileUri(asset.uri);
       setFileName(asset.fileName || 'video.mp4');
       setFileSize(asset.fileSize || 0);
@@ -52,7 +57,7 @@ export function VideoUploader() {
 
       const response = await submissionsApi.create({
         fileName: fileName,
-        contentType: mimeType,
+        contentType: mimeType as any,
         fileSize: fileSize,
         totalParts,
         country: 'United States',
