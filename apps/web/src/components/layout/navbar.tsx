@@ -12,7 +12,6 @@ export function Navbar() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const { user, isAuthenticated, logout } = useAuth();
-  console.log(user, isAuthenticated);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
