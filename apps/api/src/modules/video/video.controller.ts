@@ -28,7 +28,7 @@ export class VideoController {
         return;
       }
 
-      const { fileName, contentType, fileSize, totalParts } = parsed.data;
+      const { fileName, contentType, fileSize, totalParts, title, description } = parsed.data;
 
       if (fileSize > env.VIDEO_MAX_SIZE_BYTES) {
         res.status(400).json({ error: 'UPLOAD_TOO_LARGE' });
@@ -47,6 +47,8 @@ export class VideoController {
         userId: new Types.ObjectId(auth.userId),
         objectKey,
         originalFileName: fileName,
+        title,
+        description,
         contentType,
         fileSize,
         uploadId,

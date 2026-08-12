@@ -21,6 +21,8 @@ export interface VideoUploadManagerOptions {
   apiClient: ApiClient;
   source: UploadSource;
   fileName: string;
+  title?: string;
+  description?: string;
   partSize?: number; // Default 8MB
   concurrency?: number; // Default 4
   onProgress?: (bytesUploaded: number, totalBytes: number) => void;
@@ -42,6 +44,8 @@ export class VideoUploadManager {
   private readonly apiClient: ApiClient;
   private readonly source: UploadSource;
   private readonly fileName: string;
+  private readonly title?: string;
+  private readonly description?: string;
   private readonly partSize: number;
   private readonly concurrency: number;
   private readonly onProgress?: (bytesUploaded: number, totalBytes: number) => void;
@@ -63,6 +67,8 @@ export class VideoUploadManager {
     this.apiClient = options.apiClient;
     this.source = options.source;
     this.fileName = options.fileName;
+    this.title = options.title;
+    this.description = options.description;
     this.partSize = options.partSize || 8 * 1024 * 1024;
     this.concurrency = options.concurrency || 4;
     
@@ -97,6 +103,29 @@ export class VideoUploadManager {
     }
   }
 
+  /**
+   * Retries an upload session without recreating the session or wiping progress,
+   * unless the upload was cancelled.
+   */
+  public async retry() {
+    if (this.isCancelled || !this.uploadId) {
+      this.uploadId = null;
+      this.multipartUploadId = null;
+      this.objectKey = null;
+      return this.start();
+    }
+    this.isPaused = false;
+    this.isCancelled = false;
+    for (const part of this.parts) {
+      if (part.status === 'failed') {
+        part.status = 'pending';
+        part.retryCount = 0;
+      }
+    }
+    this.setState('uploading');
+    this.uploadNextParts();
+  }
+
   public pause() {
     this.isPaused = true;
     this.setState('paused');
@@ -122,6 +151,8 @@ export class VideoUploadManager {
       contentType: this.source.contentType,
       fileSize: this.source.size,
       totalParts,
+      title: this.title,
+      description: this.description,
     };
 
     const response = await this.apiClient.post<CreateVideoUploadResponse>('/videos/uploads', request);

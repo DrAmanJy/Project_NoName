@@ -1,4 +1,4 @@
-import { AdminVideoItem } from "./video-review-console";
+import type { AdminVideoItem } from "./video-review-console";
 
 
 export function VideoMetadata({ selectedVideo }: { selectedVideo: AdminVideoItem }) {

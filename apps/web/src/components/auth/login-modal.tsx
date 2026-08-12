@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ShieldCheck, X, Loader2 } from 'lucide-react';
 import gsap from 'gsap';
+import { API_URL } from '@/lib/api-client';
 
 interface LoginModalProps {
   isOpen?: boolean;
@@ -104,9 +105,8 @@ export function LoginModal({ isOpen = true, onClose }: LoginModalProps) {
 
   const handleSocialLogin = (provider: 'google' | 'facebook' | 'apple') => {
     setLoadingProvider(provider);
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    const endpoint = `${apiUrl}/api/v1/auth/${provider}?client=web`;
-    
+    const endpoint = `${API_URL}/auth/${provider}?client=web`;
+
     // Initiate OAuth through browser navigation, NOT fetch, to avoid CORS failure
     window.location.assign(endpoint);
   };

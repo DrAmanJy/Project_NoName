@@ -4,6 +4,8 @@ export interface IVideoUpload extends Document {
   userId: Types.ObjectId;
   objectKey: string;
   originalFileName: string;
+  title?: string;
+  description?: string;
   contentType: string;
   fileSize: number;
   uploadId: string; // The multipart upload ID or unique session ID
@@ -41,6 +43,14 @@ const VideoUploadSchema = new Schema<IVideoUpload>(
     originalFileName: {
       type: String,
       required: true,
+    },
+    title: {
+      type: String,
+      required: false,
+    },
+    description: {
+      type: String,
+      required: false,
     },
     contentType: {
       type: String,

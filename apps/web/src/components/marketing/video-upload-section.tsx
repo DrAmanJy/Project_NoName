@@ -2,21 +2,39 @@
 
 import { useState } from 'react';
 import { Upload, Film, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
+import { VideoUploadManager } from '@repo/api-client';
+import { WebUploadSource } from '@/features/video/web-upload-source';
+import { apiClient } from '@/lib/api-client';
 
 export function VideoUploadSection() {
   const [file, setFile] = useState<File | null>(null);
   const [country, setCountry] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  const MAX_FILE_SIZE_BYTES = 500 * 1024 * 1024;
+  const ALLOWED_MIME_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'];
+
+  const validateFile = (selectedFile: File): boolean => {
+    if (!ALLOWED_MIME_TYPES.includes(selectedFile.type)) {
+      setFile(null);
+      setErrorMessage('Please select a valid video file (MP4, MOV, or WEBM).');
+      return false;
+    }
+    if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
+      setFile(null);
+      setErrorMessage('File size exceeds the 500 MB limit.');
+      return false;
+    }
+    return true;
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
-      if (!selectedFile.type.startsWith('video/')) {
-        setErrorMessage('Please select a valid video file (MP4, MOV, etc.).');
-        return;
-      }
+      if (!validateFile(selectedFile)) return;
       setFile(selectedFile);
       setErrorMessage('');
     }
@@ -26,16 +44,13 @@ export function VideoUploadSection() {
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const selectedFile = e.dataTransfer.files[0];
-      if (!selectedFile.type.startsWith('video/')) {
-        setErrorMessage('Please select a valid video file.');
-        return;
-      }
+      if (!validateFile(selectedFile)) return;
       setFile(selectedFile);
       setErrorMessage('');
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) {
       setErrorMessage('Please attach a video file to upload.');
@@ -44,13 +59,34 @@ export function VideoUploadSection() {
 
     setIsUploading(true);
     setErrorMessage('');
+    setProgress(0);
 
-    setTimeout(() => {
+    try {
+      const source = new WebUploadSource(file);
+      const manager = new VideoUploadManager({
+        apiClient,
+        source,
+        fileName: file.name,
+        onProgress: (uploaded: number, total: number) => {
+          setProgress(Math.round((uploaded / total) * 100));
+        },
+        onError: (err: Error) => {
+          setIsUploading(false);
+          setErrorMessage(err.message || 'Failed to upload video. Please try again.');
+        },
+        onComplete: (_videoId: string) => {
+          setIsUploading(false);
+          setUploadSuccess(true);
+          setFile(null);
+          setCountry('');
+        },
+      });
+
+      await manager.start();
+    } catch (err) {
       setIsUploading(false);
-      setUploadSuccess(true);
-      setFile(null);
-      setCountry('');
-    }, 2000);
+      setErrorMessage(err instanceof Error ? err.message : 'An error occurred during upload.');
+    }
   };
 
   return (
@@ -59,7 +95,7 @@ export function VideoUploadSection() {
         {/* Section Header */}
         <div className="text-center">
           <div className="inline-flex items-center gap-2 rounded-full bg-zinc-200 dark:bg-zinc-800 px-4 py-1.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-            <Sparkles className="h-3.5 w-3.5" />
+            <Sparkles className="h-3.5 w-3.5 text-amber-500" />
             <span>Instant Monetization</span>
           </div>
           <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white sm:text-5xl">
@@ -81,7 +117,7 @@ export function VideoUploadSection() {
                 Video Uploaded Successfully!
               </h3>
               <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 max-w-md mx-auto">
-                Your video is now under review. You can track its status and expected payout on your dashboard.
+                Your video is now under review. You can track its status and expected payout on your creator dashboard.
               </p>
               <button
                 type="button"
@@ -123,7 +159,7 @@ export function VideoUploadSection() {
                       Click to upload or drag and drop
                     </p>
                     <p className="text-xs text-zinc-500 mt-1">
-                      MP4, MOV, or AVI (Max 500MB)
+                      MP4, MOV, or WEBM (Max 500MB)
                     </p>
                   </div>
                 )}
@@ -131,21 +167,34 @@ export function VideoUploadSection() {
 
               {/* Input Fields */}
               <div>
-
-                <div>
-                  <label htmlFor="video-country" className="block text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-200">
-                    Country
-                  </label>
-                  <input
-                    type="text"
-                    id="video-country"
-                    value={country}
-                    onChange={(e) => setCountry(e.target.value)}
-                    placeholder="e.g. United States"
-                    className="mt-2 w-full rounded-xl border border-zinc-300 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 outline-none focus:border-zinc-900 dark:focus:border-white transition-colors"
-                  />
-                </div>
+                <label htmlFor="video-country" className="block text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-200">
+                  Country
+                </label>
+                <input
+                  type="text"
+                  id="video-country"
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  placeholder="e.g. United States"
+                  className="mt-2 w-full rounded-xl border border-zinc-300 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 outline-none focus:border-zinc-900 dark:focus:border-white transition-colors"
+                />
               </div>
+
+              {/* Progress Bar when uploading */}
+              {isUploading && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                    <span>Uploading video to S3 storage...</span>
+                    <span>{progress}%</span>
+                  </div>
+                  <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2.5 overflow-hidden">
+                    <div
+                      className="bg-amber-500 h-2.5 rounded-full transition-all duration-300"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Error Alert */}
               {errorMessage && (
@@ -158,12 +207,12 @@ export function VideoUploadSection() {
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={isUploading}
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-zinc-900 dark:bg-white py-4 text-sm font-semibold text-white dark:text-zinc-900 shadow-md transition-all hover:bg-zinc-800 dark:hover:bg-zinc-100 disabled:opacity-60"
+                disabled={isUploading || !file}
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-zinc-900 dark:bg-white py-4 text-sm font-semibold text-white dark:text-zinc-900 shadow-md transition-all hover:bg-zinc-800 dark:hover:bg-zinc-100 disabled:opacity-60 disabled:cursor-not-allowed"
                 id="submit-video-btn"
               >
                 {isUploading ? (
-                  <span>Uploading Video...</span>
+                  <span>Uploading Video ({progress}%)...</span>
                 ) : (
                   <span>Submit Video for Review</span>
                 )}

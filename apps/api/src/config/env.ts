@@ -38,7 +38,7 @@ const envSchema = z.object({
   R2_BUCKET_NAME: z.string().min(1),
   R2_PUBLIC_URL: z.string().url(),
 
-  VIDEO_MAX_SIZE_BYTES: z.coerce.number().default(100 * 1024 * 1024),
+  VIDEO_MAX_SIZE_BYTES: z.coerce.number().default(500 * 1024 * 1024),
   VIDEO_MAX_DURATION_SECONDS: z.coerce.number().default(120),
   VIDEO_MIN_DURATION_SECONDS: z.coerce.number().default(2),
   VIDEO_MAX_WIDTH: z.coerce.number().default(1920),
