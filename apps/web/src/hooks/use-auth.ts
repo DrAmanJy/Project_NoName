@@ -14,6 +14,7 @@ export function useAuth() {
     setError(null);
     try {
       const response = await authApi.me();
+      console.log(response);
       if (response.success && response.data?.user) {
         setUser(response.data.user);
       } else {

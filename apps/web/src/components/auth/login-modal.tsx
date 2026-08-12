@@ -105,7 +105,7 @@ export function LoginModal({ isOpen = true, onClose }: LoginModalProps) {
   const handleSocialLogin = (provider: 'google' | 'facebook' | 'apple') => {
     setLoadingProvider(provider);
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    const endpoint = `${apiUrl}/api/v1/auth/${provider}?client=web`;
+    const endpoint = `${apiUrl}/auth/${provider}?client=web`;
 
     // Initiate OAuth through browser navigation, NOT fetch, to avoid CORS failure
     window.location.assign(endpoint);
