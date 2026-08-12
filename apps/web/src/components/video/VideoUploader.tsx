@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { VideoUploadManager } from '@repo/api-client';
 import { WebUploadSource } from '@/features/video/web-upload-source';
-import { apiClient } from '@/lib/api-client';
+import { apiClient, submissionsApi } from '@/lib/api-client';
 
 export function VideoUploader() {
   const [file, setFile] = useState<File | null>(null);
@@ -81,13 +81,26 @@ export function VideoUploader() {
 
     try {
       setError(null);
+      
+      const idempotencyKey = crypto.randomUUID();
+      const totalParts = Math.ceil(file.size / (8 * 1024 * 1024));
+
+      const response = await submissionsApi.create(
+        {
+          fileName: file.name,
+          contentType: file.type || 'video/mp4',
+          fileSize: file.size,
+          totalParts,
+        },
+        idempotencyKey,
+      );
+
       const source = new WebUploadSource(file);
       const manager = new VideoUploadManager({
         apiClient,
+        uploadId: response.uploadId,
         source,
         fileName: file.name,
-        title: videoTitle || undefined,
-        description: videoDescription || undefined,
         onProgress: (uploaded: number, total: number) => {
           setProgress(Math.round((uploaded / total) * 100));
         },
@@ -126,7 +139,7 @@ export function VideoUploader() {
 
   const handleRetry = async () => {
     if (uploadManager) {
-      await uploadManager.retry();
+      await uploadManager.start();
     }
   };
 

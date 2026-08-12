@@ -1,4 +1,4 @@
-import { ApiClient, createAuthApi, createVideosApi, createEarningsApi } from '@repo/api-client';
+import { ApiClient, createAuthApi, createVideosApi, createEarningsApi, createSubmissionsApi } from '@repo/api-client';
 
 const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
@@ -16,9 +16,9 @@ export const API_URL = (() => {
 
 export const apiClient = new ApiClient({
   baseUrl: API_URL,
-  credentials: 'include',
 });
 
 export const authApi = createAuthApi(apiClient);
 export const videosApi = createVideosApi(apiClient);
 export const earningsApi = createEarningsApi(apiClient);
+export const submissionsApi = createSubmissionsApi(apiClient);

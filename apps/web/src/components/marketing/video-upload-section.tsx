@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Upload, Film, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
 import { VideoUploadManager } from '@repo/api-client';
 import { WebUploadSource } from '@/features/video/web-upload-source';
-import { apiClient } from '@/lib/api-client';
+import { apiClient, submissionsApi } from '@/lib/api-client';
 
 export function VideoUploadSection() {
   const [file, setFile] = useState<File | null>(null);
@@ -62,9 +62,23 @@ export function VideoUploadSection() {
     setProgress(0);
 
     try {
+      const idempotencyKey = crypto.randomUUID();
+      const totalParts = Math.ceil(file.size / (8 * 1024 * 1024));
+
+      const response = await submissionsApi.create(
+        {
+          fileName: file.name,
+          contentType: file.type || 'video/mp4',
+          fileSize: file.size,
+          totalParts,
+        },
+        idempotencyKey,
+      );
+
       const source = new WebUploadSource(file);
       const manager = new VideoUploadManager({
         apiClient,
+        uploadId: response.uploadId,
         source,
         fileName: file.name,
         onProgress: (uploaded: number, total: number) => {
