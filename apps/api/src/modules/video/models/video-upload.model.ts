@@ -7,6 +7,10 @@ export interface IVideoUpload extends Document {
   originalFileName: string;
   contentType: string;
   fileSize: number;
+  durationSeconds?: number;
+  width?: number;
+  height?: number;
+  thumbnailKey?: string;
   uploadId: string; // The multipart upload ID or unique session ID
   multipartUploadId: string; // The actual S3 multipart upload ID
   status:
@@ -56,6 +60,18 @@ const VideoUploadSchema = new Schema<IVideoUpload>(
     fileSize: {
       type: Number,
       required: true,
+    },
+    durationSeconds: {
+      type: Number,
+    },
+    width: {
+      type: Number,
+    },
+    height: {
+      type: Number,
+    },
+    thumbnailKey: {
+      type: String,
     },
     uploadId: {
       type: String,

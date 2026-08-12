@@ -102,7 +102,7 @@ export function VideoUploader() {
       const response = await submissionsApi.create(
         {
           fileName: file.name,
-          contentType: file.type || 'video/mp4',
+          contentType: file.type as any,
           fileSize: file.size,
           totalParts,
           country,

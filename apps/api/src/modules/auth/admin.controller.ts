@@ -14,16 +14,16 @@ export class AdminController {
       const limit = Math.max(1, Math.min(50, parseInt(req.query.limit as string) || 10));
       const skip = (page - 1) * limit;
 
-      const query: Record<string, unknown> = { role: { $in: ['employee', 'admin'] } };
+      const query: Record<string, unknown> = { role: 'employee' };
       if (req.query.isActive !== undefined) {
         query.isActive = req.query.isActive === 'true';
       }
       if (req.query.role) {
         const requestedRole = req.query.role as string;
-        if (['employee', 'admin'].includes(requestedRole)) {
+        if (requestedRole === 'employee') {
           query.role = requestedRole;
         } else {
-          query.role = { $in: [] }; // Enforce employee/admin constraint by matching nothing
+          query.role = { $in: [] }; // Enforce employee constraint by matching nothing
         }
       }
 

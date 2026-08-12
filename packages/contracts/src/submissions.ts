@@ -33,11 +33,31 @@ export const SubmissionTimelineStepSchema = z.object({
 
 export type SubmissionTimelineStep = z.infer<typeof SubmissionTimelineStepSchema>;
 
+export const VideoMetadataSchema = z.object({
+  id: z.string(),
+  originalFilename: z.string(),
+  mimeType: z.string(),
+  sizeBytes: z.number().int().nonnegative(),
+  durationSeconds: z.number().positive().nullable(),
+  width: z.number().int().positive().nullable(),
+  height: z.number().int().positive().nullable(),
+  uploadStatus: z.string(),
+  uploadedAt: z.string().datetime().nullable(),
+  previewUrl: z.string().url().nullable(),
+  thumbnailUrl: z.string().url().nullable(),
+});
+
+export const UserSafeVerificationSchema = z.object({
+  overallStatus: z.enum(['pass', 'fail', 'uncertain', 'not_run']),
+});
+
 export const SubmissionResponseSchema = z.object({
   id: z.string(),
   status: SubmissionStatusSchema,
   timeline: z.array(SubmissionTimelineStepSchema),
   createdAt: z.string().datetime(),
+  video: VideoMetadataSchema.nullable().optional(),
+  verification: UserSafeVerificationSchema.nullable().optional(),
 });
 
 export type SubmissionResponse = z.infer<typeof SubmissionResponseSchema>;
@@ -51,12 +71,22 @@ export const SubmissionListResponseSchema = z.object({
 
 export type SubmissionListResponse = z.infer<typeof SubmissionListResponseSchema>;
 
+export const AllowedVideoContentTypeSchema = z.enum([
+  'video/mp4',
+  'video/quicktime',
+  'video/webm',
+  'video/x-m4v',
+]);
+
 export const CreateSubmissionRequestSchema = z.object({
   fileName: z.string().min(1).max(255),
-  contentType: z.string().refine(val => val.startsWith('video/'), { message: 'Must be a video content type' }),
+  contentType: AllowedVideoContentTypeSchema,
   fileSize: z.number().int().positive(),
   totalParts: z.number().int().positive().max(10000), // S3 max is 10k
   country: z.string().min(2),
+  durationSeconds: z.number().positive().optional(),
+  width: z.number().int().positive().optional(),
+  height: z.number().int().positive().optional(),
 });
 
 export type CreateSubmissionRequest = z.infer<typeof CreateSubmissionRequestSchema>;

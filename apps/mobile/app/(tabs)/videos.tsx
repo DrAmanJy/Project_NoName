@@ -78,6 +78,11 @@ export default function VideosScreen() {
 
     const asset = !result.canceled ? result.assets?.[0] : null;
     if (asset) {
+      const mime = asset.mimeType || 'video/mp4';
+      if (!['video/mp4', 'video/quicktime', 'video/webm', 'video/x-m4v'].includes(mime)) {
+        Alert.alert('Unsupported Format', 'Please select a supported video file (.mp4, .mov, or .webm).');
+        return;
+      }
       setSelectedVideoUri(asset.uri);
       setVideoAsset(asset);
       setUploadManager(null);
@@ -108,7 +113,7 @@ export default function VideosScreen() {
 
       const response = await submissionsApi.create({
         fileName: videoAsset.fileName || 'video.mp4',
-        contentType: videoAsset.mimeType || 'video/mp4',
+        contentType: (videoAsset.mimeType || 'video/mp4') as any,
         fileSize: fileSize,
         totalParts,
         country: selectedCountry,

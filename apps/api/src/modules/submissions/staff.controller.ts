@@ -3,6 +3,7 @@ import { Submission } from './models/submission.model.js';
 import { User } from '../auth/models/user.model.js';
 import { VideoUpload } from '../video/models/video-upload.model.js';
 import { VideoVerification } from '../video/models/video-verification.model.js';
+import { s3Service } from '../video/storage/s3.service.js';
 import { UpdateSubmissionStatusRequestSchema, SubmissionStatusSchema } from '@repo/contracts';
 import mongoose from 'mongoose';
 
@@ -29,33 +30,100 @@ export class StaffSubmissionsController {
           .skip(skip)
           .limit(limit)
           .populate('userId', 'id name email avatarUrl isActive role createdAt updatedAt')
+          .populate('reviewedBy', 'id name email avatarUrl isActive role createdAt updatedAt')
           .lean(),
         Submission.countDocuments(query),
       ]);
 
-      const data = submissions.map((sub) => ({
-        id: sub._id.toString(),
-        status: sub.status,
-        timeline: [], // Ideally map timeline, but omitted from SubmissionSchema for now
-        createdAt: sub.createdAt.toISOString(),
-        user: sub.userId ? {
-          id: (sub.userId as unknown as { _id: mongoose.Types.ObjectId })._id.toString(),
-          name: (sub.userId as unknown as { name: string }).name,
-          email: (sub.userId as unknown as { email: string }).email,
-          avatarUrl: (sub.userId as unknown as { avatarUrl?: string }).avatarUrl,
-          isActive: (sub.userId as unknown as { isActive: boolean }).isActive,
-          role: (sub.userId as unknown as { role: string }).role,
-          createdAt: (sub.userId as unknown as { createdAt: Date }).createdAt.toISOString(),
-          updatedAt: (sub.userId as unknown as { updatedAt: Date }).updatedAt.toISOString(),
-        } : {
-          id: 'unknown',
-          name: 'Deleted User',
-          email: 'deleted@example.com',
-          isActive: false,
-          role: 'user',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+      const submissionIds = submissions.map(s => s._id);
+      const videos = await VideoUpload.find({ submissionId: { $in: submissionIds } }).lean();
+      const videoIds = videos.map(v => v._id);
+      const verifications = await VideoVerification.find({ videoUploadId: { $in: videoIds } }).lean();
+
+      const videosBySubId = new Map(videos.map(v => [v.submissionId.toString(), v]));
+      const verificationsByVidId = new Map(verifications.map(v => [v.videoUploadId.toString(), v]));
+
+      const data = await Promise.all(submissions.map(async (sub) => {
+        const video = videosBySubId.get(sub._id.toString());
+        let verification = null;
+        let previewUrl: string | null = null;
+        let thumbnailUrl: string | null = null;
+
+        if (video) {
+          verification = verificationsByVidId.get(video._id.toString()) || null;
+          
+          if (video.status === 'uploaded' || video.status === 'processing' || video.status === 'verified') {
+            previewUrl = await s3Service.getSignedDownloadUrl(video.objectKey, 900).catch(() => null);
+          }
+          if (video.thumbnailKey) {
+            thumbnailUrl = await s3Service.getSignedDownloadUrl(video.thumbnailKey, 900).catch(() => null);
+          }
         }
+
+        const userObj = sub.userId as unknown as { _id: mongoose.Types.ObjectId; name: string; email: string; avatarUrl?: string; isActive: boolean; role: string; createdAt: Date; updatedAt: Date };
+        const reviewerObj = sub.reviewedBy as unknown as { _id: mongoose.Types.ObjectId; name: string; email: string; avatarUrl?: string; isActive: boolean; role: string; createdAt: Date; updatedAt: Date } | undefined;
+
+        return {
+          id: sub._id.toString(),
+          status: sub.status,
+          timeline: [], // omit timeline
+          createdAt: sub.createdAt.toISOString(),
+          user: userObj ? {
+            id: userObj._id.toString(),
+            name: userObj.name,
+            email: userObj.email,
+            avatarUrl: userObj.avatarUrl,
+            isActive: userObj.isActive,
+            role: userObj.role,
+            createdAt: userObj.createdAt.toISOString(),
+            updatedAt: userObj.updatedAt.toISOString(),
+          } : {
+            id: 'unknown',
+            name: 'Deleted User',
+            email: 'deleted@example.com',
+            isActive: false,
+            role: 'user',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+          video: video ? {
+            id: video._id.toString(),
+            originalFilename: video.originalFileName,
+            mimeType: video.contentType,
+            sizeBytes: video.fileSize,
+            durationSeconds: video.durationSeconds || null,
+            width: video.width || null,
+            height: video.height || null,
+            uploadStatus: video.status,
+            uploadedAt: video.completedAt ? video.completedAt.toISOString() : null,
+            previewUrl,
+            thumbnailUrl,
+          } : null,
+          reviewedBy: reviewerObj ? {
+            id: reviewerObj._id.toString(),
+            name: reviewerObj.name,
+            email: reviewerObj.email,
+            avatarUrl: reviewerObj.avatarUrl,
+            isActive: reviewerObj.isActive,
+            role: reviewerObj.role,
+            createdAt: reviewerObj.createdAt.toISOString(),
+            updatedAt: reviewerObj.updatedAt.toISOString(),
+          } : null,
+          reviewedAt: sub.reviewedAt ? sub.reviewedAt.toISOString() : null,
+          rejectionReason: sub.rejectionReason || null,
+          verification: verification ? {
+            status: verification.overallStatus,
+            script: {
+              status: verification.scriptVerification?.status || 'pending',
+            },
+            document: {
+              status: verification.documentVerification?.status || 'pending',
+            },
+            authenticity: {
+              status: verification.videoAuthenticity?.status || 'pending',
+            }
+          } : null,
+        };
       }));
 
       res.json({
@@ -91,8 +159,18 @@ export class StaffSubmissionsController {
       // Fetch related video info and verification
       const video = await VideoUpload.findOne({ submissionId: submission._id }).lean();
       let verification = null;
+      let previewUrl: string | null = null;
+      let thumbnailUrl: string | null = null;
+
       if (video) {
         verification = await VideoVerification.findOne({ videoUploadId: video._id }).lean();
+        
+        if (video.status === 'uploaded' || video.status === 'processing' || video.status === 'verified') {
+          previewUrl = await s3Service.getSignedDownloadUrl(video.objectKey, 900).catch(() => null);
+        }
+        if (video.thumbnailKey) {
+          thumbnailUrl = await s3Service.getSignedDownloadUrl(video.thumbnailKey, 900).catch(() => null);
+        }
       }
 
       const userObj = submission.userId as unknown as { _id: mongoose.Types.ObjectId; name: string; email: string; avatarUrl?: string; isActive: boolean; role: string; createdAt: Date; updatedAt: Date };
@@ -121,6 +199,19 @@ export class StaffSubmissionsController {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
+        video: video ? {
+          id: video._id.toString(),
+          originalFilename: video.originalFileName,
+          mimeType: video.contentType,
+          sizeBytes: video.fileSize,
+          durationSeconds: video.durationSeconds || null,
+          width: video.width || null,
+          height: video.height || null,
+          uploadStatus: video.status,
+          uploadedAt: video.completedAt ? video.completedAt.toISOString() : null,
+          previewUrl,
+          thumbnailUrl,
+        } : null,
         reviewedBy: reviewerObj ? {
           id: reviewerObj._id.toString(),
           name: reviewerObj.name,

@@ -118,4 +118,32 @@ export class FFmpegWrapper {
       process.on('error', reject);
     });
   }
+
+  static async extractThumbnail(inputPath: string, outputPath: string, timeSeconds: number, signal?: AbortSignal): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const args = [
+        '-ss', timeSeconds.toString(), // Fast seek before input
+        '-i', inputPath,
+        '-frames:v', '1',              // Exactly one frame
+        '-vf', 'scale=320:-2',         // Small width, preserve aspect ratio
+        '-q:v', '7',                   // Moderate JPEG quality
+        '-y',
+        outputPath
+      ];
+
+      const process = spawn('ffmpeg', args, { signal });
+      let stderr = '';
+      process.stderr.on('data', (data) => { stderr += data; });
+
+      process.on('close', (code) => {
+        if (code !== 0) {
+          reject(new Error(`ffmpeg thumbnail extraction failed (code ${code}): ${stderr}`));
+          return;
+        }
+        resolve();
+      });
+
+      process.on('error', reject);
+    });
+  }
 }

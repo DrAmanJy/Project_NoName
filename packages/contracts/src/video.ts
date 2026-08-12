@@ -8,7 +8,7 @@ export const AllowedVideoContentTypes = [
 
 export const CreateVideoUploadSchema = z.object({
   fileName: z.string().min(1).max(255),
-  contentType: z.string().refine(val => AllowedVideoContentTypes.includes(val as any), { 
+  contentType: z.string().refine(val => AllowedVideoContentTypes.includes(val as typeof AllowedVideoContentTypes[number]), { 
     message: `Must be a supported video format: ${AllowedVideoContentTypes.join(', ')}` 
   }),
   fileSize: z.number().int().positive(),

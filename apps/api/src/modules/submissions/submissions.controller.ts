@@ -5,6 +5,7 @@ import { CreateSubmissionRequestSchema } from '@repo/contracts';
 import type { SubmissionTimelineStep } from '@repo/contracts';
 import { Submission } from './models/submission.model.js';
 import { VideoUpload } from '../video/models/video-upload.model.js';
+import { VideoVerification } from '../video/models/video-verification.model.js';
 import { s3Service } from '../video/storage/s3.service.js';
 import { env } from '../../config/env.js';
 
@@ -29,7 +30,7 @@ export class SubmissionsController {
         return;
       }
 
-      const { fileName, contentType, fileSize, totalParts } = parsed.data;
+      const { fileName, contentType, fileSize, totalParts, durationSeconds, width, height } = parsed.data;
 
       if (fileSize > env.VIDEO_MAX_SIZE_BYTES) {
         res.status(400).json({ error: 'UPLOAD_TOO_LARGE' });
@@ -76,14 +77,17 @@ export class SubmissionsController {
           multipartUploadId,
           status: 'created',
           totalParts,
+          durationSeconds,
+          width,
+          height,
         });
 
         res.status(201).json({
           submissionId: submission._id.toString(),
           uploadId,
         });
-      } catch (dbError: any) {
-        if (dbError.code === 11000) {
+      } catch (dbError: unknown) {
+        if (dbError && typeof dbError === 'object' && 'code' in dbError && dbError.code === 11000) {
           // Idempotency race condition occurred
           const existingSubmission = await Submission.findOne({ userId, idempotencyKey });
           if (existingSubmission) {
@@ -172,10 +176,15 @@ export class SubmissionsController {
         return;
       }
 
-      // Fetch the active upload to build the timeline
+      // Fetch the active upload to build the timeline and return metadata
       const upload = await VideoUpload.findOne({ submissionId: submission._id })
         .sort({ createdAt: -1 })
         .lean();
+
+      let verification = null;
+      if (upload) {
+        verification = await VideoVerification.findOne({ videoUploadId: upload._id }).lean();
+      }
 
       const baseUploadedStep: SubmissionTimelineStep = {
         key: 'video_uploaded',
@@ -217,11 +226,38 @@ export class SubmissionsController {
 
       const timeline = timelineMap[submission.status] || timelineMap.draft;
 
+      let previewUrl: string | null = null;
+      let thumbnailUrl: string | null = null;
+      if (upload) {
+        if (upload.status === 'uploaded' || upload.status === 'processing' || upload.status === 'verified') {
+          previewUrl = await s3Service.getSignedDownloadUrl(upload.objectKey, 900).catch(() => null);
+        }
+        if (upload.thumbnailKey) {
+          thumbnailUrl = await s3Service.getSignedDownloadUrl(upload.thumbnailKey, 900).catch(() => null);
+        }
+      }
+
       res.json({
         id: submission._id.toString(),
         status: submission.status,
         timeline,
         createdAt: submission.createdAt.toISOString(),
+        video: upload ? {
+          id: upload._id.toString(),
+          originalFilename: upload.originalFileName,
+          mimeType: upload.contentType,
+          sizeBytes: upload.fileSize,
+          durationSeconds: upload.durationSeconds || null,
+          width: upload.width || null,
+          height: upload.height || null,
+          uploadStatus: upload.status,
+          uploadedAt: upload.completedAt ? upload.completedAt.toISOString() : null,
+          previewUrl,
+          thumbnailUrl,
+        } : null,
+        verification: verification ? {
+          overallStatus: verification.overallStatus,
+        } : null,
       });
     } catch (error) {
       next(error);
