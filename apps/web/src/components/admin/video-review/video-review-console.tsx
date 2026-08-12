@@ -24,11 +24,46 @@ import { Footer } from '@/components/layout/footer';
 import { VideoMetadata } from './video-metadata';
 import { staffApi } from '@/lib/api-client';
 
+export interface AdminVideoUser {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl?: string | null;
+  isActive?: boolean;
+  role?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface AdminVideoInfo {
+  id: string;
+  originalFilename: string;
+  previewUrl?: string | null;
+  mimeType: string;
+  sizeBytes: number;
+  durationSeconds?: number | null;
+  height?: number | null;
+  width?: number | null;
+  thumbnailUrl?: string | null;
+  uploadStatus?: string;
+  uploadedAt?: string;
+}
+
 export interface AdminVideoItem {
   id: string;
+  createdAt: string;
+  status: VideoStatus;
+  rejectionReason?: string | null;
+  reviewedAt?: string | null;
+  reviewedBy?: AdminVideoUser | null;
+  timeline?: unknown[];
+  user?: AdminVideoUser | null;
+  verification: VideoVerificationStatus;
+  video?: AdminVideoInfo | null;
+
+  // Formatted display properties for UI components
   title: string;
   description?: string;
-  status: VideoStatus;
   userId: string;
   userName: string;
   userEmail: string;
@@ -40,10 +75,8 @@ export interface AdminVideoItem {
   createdAtFormatted: string;
   createdAtRaw: string;
   previewUrl?: string;
-  verification: VideoVerificationStatus;
   rewardAmount?: number;
   reviewNotes?: string;
-  reviewedAt?: string;
 }
 
 export function VideoReviewConsole() {
@@ -61,21 +94,23 @@ export function VideoReviewConsole() {
     try {
       const res = await staffApi.submissions.list(1, 50);
       if (res && res.data) {
-        const mapped: AdminVideoItem[] = res.data.map((sub) => {
+        const mapped: AdminVideoItem[] = (res.data as unknown as (Record<string, unknown> & { video?: AdminVideoInfo | null; user?: AdminVideoUser | null })[]).map((sub) => {
+          const rawStatus = String(sub.status || 'in_review');
           let mappedStatus: VideoStatus = 'UNDER_REVIEW';
-          if (sub.status === 'approved' || sub.status === 'payment_pending') {
+          if (rawStatus === 'approved' || rawStatus === 'payment_pending' || rawStatus === 'SELECTED') {
             mappedStatus = 'SELECTED';
-          } else if (sub.status === 'paid') {
+          } else if (rawStatus === 'paid' || rawStatus === 'PAID') {
             mappedStatus = 'PAID';
-          } else if (sub.status === 'rejected') {
+          } else if (rawStatus === 'rejected' || rawStatus === 'REJECTED') {
             mappedStatus = 'REJECTED';
-          } else if (sub.status === 'draft') {
+          } else if (rawStatus === 'draft' || rawStatus === 'PROCESSING') {
             mappedStatus = 'PROCESSING';
           } else {
             mappedStatus = 'UNDER_REVIEW';
           }
 
-          const rawDate = sub.createdAt ? new Date(sub.createdAt) : new Date();
+          const rawDateStr = sub.createdAt ? String(sub.createdAt) : new Date().toISOString();
+          const rawDate = new Date(rawDateStr);
           const formattedDate = rawDate.toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
@@ -84,26 +119,46 @@ export function VideoReviewConsole() {
             minute: '2-digit',
           });
 
+          const sizeBytes = sub.video?.sizeBytes || 0;
+          const fileSizeFormatted = sizeBytes > 0
+            ? `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`
+            : 'N/A';
+
+          const durationSecs = sub.video?.durationSeconds;
+          const durationFormatted = durationSecs && durationSecs > 0
+            ? `${Math.floor(durationSecs / 60)}:${String(Math.floor(durationSecs % 60)).padStart(2, '0')}`
+            : 'N/A';
+
+          const subId = String(sub.id || '');
+
           return {
-            id: sub.id,
-            title: `Submission #${sub.id.slice(-6)}`,
-            description: `Video submission uploaded by ${sub.user?.name || 'Creator'}.`,
+            id: subId,
+            createdAt: rawDateStr,
             status: mappedStatus,
+            rejectionReason: (sub.rejectionReason as string | null) || null,
+            reviewedAt: (sub.reviewedAt as string | null) || null,
+            reviewedBy: (sub.reviewedBy as AdminVideoUser | null) || null,
+            timeline: (sub.timeline as unknown[]) || [],
+            user: sub.user || null,
+            video: sub.video || null,
+            title: sub.video?.originalFilename || `Submission #${subId.slice(-6)}`,
+            description: `Video submission uploaded by ${sub.user?.name || 'Creator'}.`,
             userId: sub.user?.id || 'usr_unknown',
             userName: sub.user?.name || 'Creator User',
             userEmail: sub.user?.email || 'creator@example.com',
-            fileKey: `uploads/${sub.id}.mp4`,
-            fileSizeFormatted: '45.0 MB',
-            fileSizeRaw: 47185920,
-            mimeType: 'video/mp4',
-            durationFormatted: '0:45',
+            fileKey: sub.video?.originalFilename || `uploads/${subId}.mp4`,
+            fileSizeFormatted,
+            fileSizeRaw: sizeBytes,
+            mimeType: sub.video?.mimeType || 'video/mp4',
+            durationFormatted,
             createdAtFormatted: formattedDate,
-            createdAtRaw: sub.createdAt || new Date().toISOString(),
-            verification: {
-              status: sub.status === 'rejected' ? 'fail' : 'pass',
+            createdAtRaw: rawDateStr,
+            previewUrl: sub.video?.previewUrl || undefined,
+            verification: (sub.verification as VideoVerificationStatus | null) || {
+              status: rawStatus === 'rejected' ? 'fail' : 'pass',
               script: {
-                status: sub.status === 'rejected' ? 'fail' : 'pass',
-                transcript: `Verification transcript for submission ${sub.id}.`,
+                status: rawStatus === 'rejected' ? 'fail' : 'pass',
+                transcript: `Verification transcript for submission ${subId}.`,
                 confidence: 0.96,
                 missingSegments: [],
                 extraContent: [],
@@ -121,7 +176,7 @@ export function VideoReviewConsole() {
                 signals: ['Human liveness confirmed'],
               },
             },
-            rewardAmount: sub.status === 'paid' || sub.status === 'approved' ? 35.0 : undefined,
+            rewardAmount: rawStatus === 'paid' || rawStatus === 'approved' ? 35.0 : undefined,
           };
         });
         setVideos(mapped);
