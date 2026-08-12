@@ -11,6 +11,9 @@ export function VideoUploader() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [fileSize, setFileSize] = useState<number | null>(null);
   const [mimeType, setMimeType] = useState<string | null>(null);
+  const [duration, setDuration] = useState<number | null>(null);
+  const [width, setWidth] = useState<number | null>(null);
+  const [height, setHeight] = useState<number | null>(null);
 
   const [uploadManager, setUploadManager] = useState<VideoUploadManager | null>(null);
   const [progress, setProgress] = useState(0);
@@ -30,6 +33,10 @@ export function VideoUploader() {
       setFileName(asset.fileName || 'video.mp4');
       setFileSize(asset.fileSize || 0);
       setMimeType(asset.mimeType || 'video/mp4');
+      // Expo ImagePicker returns duration in milliseconds
+      setDuration(asset.duration ? asset.duration / 1000 : null);
+      setWidth(asset.width || null);
+      setHeight(asset.height || null);
       setError(null);
     }
   };
@@ -49,6 +56,9 @@ export function VideoUploader() {
         fileSize: fileSize,
         totalParts,
         country: 'United States',
+        durationSeconds: duration || undefined,
+        width: width || undefined,
+        height: height || undefined,
       }, idempotencyKey);
 
       const { submissionId, uploadId } = response;

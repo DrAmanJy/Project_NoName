@@ -100,9 +100,16 @@ export class S3Service {
     if (!response.Body) {
       throw new Error('Object body is empty');
     }
-
-    // response.Body is a Readable stream in Node.js
     return response.Body as NodeJS.ReadableStream;
+  }
+
+  public async getSignedDownloadUrl(key: string, expiresIn: number = 900): Promise<string> {
+    const command = new GetObjectCommand({
+      Bucket: env.R2_BUCKET_NAME,
+      Key: key,
+    });
+
+    return getSignedUrl(this.client, command, { expiresIn });
   }
 }
 
