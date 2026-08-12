@@ -2,6 +2,7 @@ import mongoose, { Schema, type Document, type Types } from 'mongoose';
 
 export interface IVideoUpload extends Document {
   userId: Types.ObjectId;
+  submissionId: Types.ObjectId;
   objectKey: string;
   originalFileName: string;
   contentType: string;
@@ -32,6 +33,12 @@ const VideoUploadSchema = new Schema<IVideoUpload>(
       type: Schema.Types.ObjectId,
       required: true,
       ref: 'User',
+      index: true,
+    },
+    submissionId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: 'Submission',
       index: true,
     },
     objectKey: {

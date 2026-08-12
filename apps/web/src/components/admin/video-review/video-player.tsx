@@ -94,7 +94,7 @@ export function VideoPlayer({
   const handleFullscreen = () => {
     if (!videoRef.current) return;
     if (videoRef.current.requestFullscreen) {
-      console.log(true)
+      console.warn('Video ended');
       videoRef.current.requestFullscreen();
     }
   };

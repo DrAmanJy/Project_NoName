@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated, Platform } from 'react-native';
-import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { FontAwesome5 } from '@expo/vector-icons';
 
 export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
@@ -8,7 +8,8 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
     <View style={styles.tabBarContainer}>
       <View style={styles.tabBar}>
         {state.routes.map((route, index) => {
-          const { options } = descriptors[route.key];
+          const descriptor = descriptors[route.key];
+          const options = descriptor?.options || {};
           const isFocused = state.index === index;
 
           const onPress = () => {
@@ -63,7 +64,16 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
   );
 }
 
-function TabBarButton({ isFocused, isCenter, iconName, label, onPress, onLongPress }: any) {
+type TabBarButtonProps = {
+  isFocused: boolean;
+  isCenter: boolean;
+  iconName: string;
+  label: string;
+  onPress: () => void;
+  onLongPress: () => void;
+};
+
+function TabBarButton({ isFocused, isCenter, iconName, label, onPress, onLongPress }: TabBarButtonProps) {
   const scale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {

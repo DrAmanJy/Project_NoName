@@ -10,7 +10,6 @@ import {
   Search,
   ArrowUpDown,
   FileX2,
-  UserCheck,
   Info,
   DollarSign,
   ChevronRight,

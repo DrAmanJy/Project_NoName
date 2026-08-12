@@ -365,6 +365,7 @@ export class AuthController {
         email: user.email,
         avatarUrl: user.avatarUrl,
         isActive: user.isActive,
+        role: user.role,
         createdAt: user.createdAt.toISOString(),
         updatedAt: user.updatedAt.toISOString(),
       };

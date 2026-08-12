@@ -2,15 +2,41 @@ import { z } from 'zod';
 
 // ─── Auth Schemas ────────────────────────────────────────────
 
+export const RoleSchema = z.enum(['user', 'employee', 'admin']);
+export type Role = z.infer<typeof RoleSchema>;
+
 export const UserSchema = z.object({
   id: z.string(),
   name: z.string().min(1).max(100),
   email: z.string().email().optional(),
   avatarUrl: z.string().url().optional(),
   isActive: z.boolean(),
+  role: RoleSchema.default('user'),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });
+
+export const EmployeeListResponseSchema = z.object({
+  users: z.array(UserSchema),
+  total: z.number(),
+  page: z.number(),
+  limit: z.number(),
+});
+export type EmployeeListResponse = z.infer<typeof EmployeeListResponseSchema>;
+
+export const CreateEmployeeRequestSchema = z.object({
+  name: z.string().min(1).max(100),
+  email: z.string().email(),
+  role: z.enum(['employee', 'admin']),
+});
+export type CreateEmployeeRequest = z.infer<typeof CreateEmployeeRequestSchema>;
+
+export const UpdateEmployeeRequestSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  isActive: z.boolean().optional(),
+  role: z.enum(['user', 'employee', 'admin']).optional(),
+});
+export type UpdateEmployeeRequest = z.infer<typeof UpdateEmployeeRequestSchema>;
 
 export type User = z.infer<typeof UserSchema>;
 

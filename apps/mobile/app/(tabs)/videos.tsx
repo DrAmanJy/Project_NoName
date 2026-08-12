@@ -6,7 +6,7 @@ import { useFocusEffect } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { VideoUploadManager } from '@repo/api-client';
 import { MobileUploadSource } from '../../features/video/mobile-upload-source';
-import { apiClient } from '../../lib/api';
+import { apiClient, submissionsApi } from '../../lib/api';
 
 export default function VideosScreen() {
   const [selectedVideoUri, setSelectedVideoUri] = useState<string | null>(null);
@@ -75,9 +75,10 @@ export default function VideosScreen() {
       quality: 1,
     });
 
-    if (!result.canceled && result.assets.length > 0) {
-      setSelectedVideoUri(result.assets[0].uri);
-      setVideoAsset(result.assets[0]);
+    const asset = !result.canceled ? result.assets?.[0] : null;
+    if (asset) {
+      setSelectedVideoUri(asset.uri);
+      setVideoAsset(asset);
       setUploadManager(null);
       setUploadError(null);
       setUploadStatus('idle');
@@ -96,14 +97,28 @@ export default function VideosScreen() {
     }
 
     try {
+      const idempotencyKey = Date.now().toString() + Math.random().toString(36).substring(7);
+      const fileSize = videoAsset.fileSize || 0;
+      const totalParts = Math.ceil(fileSize / (8 * 1024 * 1024));
+
+      const response = await submissionsApi.create({
+        fileName: videoAsset.fileName || 'video.mp4',
+        contentType: videoAsset.mimeType || 'video/mp4',
+        fileSize: fileSize,
+        totalParts,
+      }, idempotencyKey);
+
+      const { submissionId, uploadId } = response;
+
       const source = new MobileUploadSource(
         videoAsset.uri,
-        videoAsset.fileSize || 0,
+        fileSize,
         videoAsset.mimeType || 'video/mp4'
       );
       
       const manager = new VideoUploadManager({
         apiClient: apiClient,
+        uploadId: uploadId,
         source,
         fileName: videoAsset.fileName || 'video.mp4',
         onProgress: (uploaded, total) => {
@@ -115,6 +130,9 @@ export default function VideosScreen() {
         onError: (err) => {
           setUploadError(err.message);
           setUploadManager(null);
+          if (player && player.status === 'error') {
+            console.error('Video player error');
+          }
           setUploadStatus('error');
           Alert.alert('Upload Failed', err.message);
         },
@@ -125,6 +143,12 @@ export default function VideosScreen() {
           setSelectedCountry(null);
           setVideoAsset(null);
           setUploadManager(null);
+          
+          // Navigate to submission detail
+          // @ts-ignore - expo-router handles this path if valid
+          import('expo-router').then(({ router }) => {
+            router.push(`/submissions`);
+          });
         }
       });
 
@@ -358,7 +382,7 @@ const styles = StyleSheet.create({
     zIndex: 3,
   },
   centerControl: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1,

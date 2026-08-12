@@ -9,8 +9,12 @@ import {
 import { VideoUpload } from './models/video-upload.model.js';
 import { VideoVerificationJob } from './models/video-job.model.js';
 import { VideoVerification } from './models/video-verification.model.js';
+import { Submission } from '../submissions/models/submission.model.js';
 import { s3Service } from './storage/s3.service.js';
 import { env } from '../../config/env.js';
+import { User } from '../auth/models/user.model.js';
+import { ROLE_PERMISSIONS } from '../auth/authorization/roles.js';
+import type { Role } from '@repo/contracts';
 
 export class VideoController {
   
@@ -186,6 +190,12 @@ export class VideoController {
         { upsert: true }
       );
 
+      // Update parent submission status
+      await Submission.updateOne(
+        { _id: upload.submissionId, status: 'draft' },
+        { $set: { status: 'in_review' } }
+      );
+
       res.json({ status: 'uploaded' });
     } catch (error) {
       next(error);
@@ -240,8 +250,14 @@ export class VideoController {
         return;
       }
 
-      if (upload.userId.toString() !== auth.userId) {
-        res.status(403).json({ error: 'UPLOAD_NOT_OWNED' });
+      const user = await User.findById(auth.userId).lean();
+      const role = (user?.role as Role) || 'user';
+      const allowedPermissions = ROLE_PERMISSIONS[role] || [];
+      const isOwner = upload.userId.toString() === auth.userId;
+      const canVerify = allowedPermissions.includes('video:verify');
+
+      if (!isOwner && !canVerify) {
+        res.status(403).json({ error: 'UPLOAD_NOT_OWNED_OR_AUTHORIZED' });
         return;
       }
 
