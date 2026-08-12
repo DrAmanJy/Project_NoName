@@ -60,7 +60,6 @@ export function VideoReviewConsole() {
     setError(null);
     try {
       const res = await staffApi.submissions.list(1, 50);
-      console.log(res);
       if (res && res.data) {
         const mapped: AdminVideoItem[] = res.data.map((sub) => {
           let mappedStatus: VideoStatus = 'UNDER_REVIEW';
