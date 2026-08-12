@@ -70,8 +70,8 @@ export type CreateSubmissionResponse = z.infer<typeof CreateSubmissionResponseSc
 
 // ─── Staff Schemas ──────────────────────────────────────────────
 
-import { UserSchema } from './auth';
-import { VideoVerificationStatusSchema } from './video';
+import { UserSchema } from './auth.js';
+import { VideoVerificationStatusSchema } from './video.js';
 
 export const StaffSubmissionResponseSchema = SubmissionResponseSchema.extend({
   user: UserSchema,
