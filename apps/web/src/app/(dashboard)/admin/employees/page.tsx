@@ -10,7 +10,6 @@ import {
   FileVideo,
   RefreshCw,
   X,
-  ShieldCheck,
   Zap,
   Users,
   Eye,
@@ -234,7 +233,7 @@ export default function AdminEmployeesPage() {
           {
             id: 'emp-101',
             name: 'Sarah Connor',
-            email: 'sarah.connor@synax.io',
+            email: 'sarah.connor@trueservices.io',
             role: 'employee',
             isActive: true,
             createdAt: '2026-01-15T00:00:00Z',
@@ -243,7 +242,7 @@ export default function AdminEmployeesPage() {
           {
             id: 'emp-102',
             name: 'David Miller',
-            email: 'david.miller@synax.io',
+            email: 'david.miller@trueservices.io',
             role: 'employee',
             isActive: true,
             createdAt: '2026-02-10T00:00:00Z',
@@ -252,7 +251,7 @@ export default function AdminEmployeesPage() {
           {
             id: 'emp-103',
             name: 'Samantha Wu',
-            email: 'samantha.wu@synax.io',
+            email: 'samantha.wu@trueservices.io',
             role: 'admin',
             isActive: true,
             createdAt: '2026-01-01T00:00:00Z',
@@ -297,132 +296,140 @@ export default function AdminEmployeesPage() {
 
   return (
     <RoleGuard allowedRoles={['admin', 'employee']} fallbackUrl="/dashboard">
-      <div className="min-h-screen bg-white dark:bg-black text-zinc-900 dark:text-zinc-50 p-6 lg:p-10 transition-colors">
-      <div className="mx-auto max-w-7xl">
-        {/* Header Title & Navigation Tabs */}
-        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between border-b border-zinc-200 dark:border-zinc-900 pb-6">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-900 px-3 py-1 text-xs font-semibold text-zinc-900 dark:text-zinc-300 mb-2 border border-zinc-200 dark:border-zinc-800">
-              <Zap className="h-3.5 w-3.5 text-amber-500" />
-              <span>Admin & Staff Oversight Portal</span>
+      <div className="relative min-h-screen bg-white dark:bg-black text-zinc-900 dark:text-zinc-50 p-6 lg:p-10 transition-colors duration-300 overflow-hidden">
+        {/* Background Ambient Glow Accents */}
+        <div className="pointer-events-none absolute -top-40 right-1/4 h-96 w-96 rounded-full bg-purple-500/10 blur-[120px] dark:bg-purple-500/5" />
+        <div className="pointer-events-none absolute top-1/3 -left-20 h-96 w-96 rounded-full bg-amber-500/10 blur-[120px] dark:bg-amber-500/5" />
+
+        <div className="relative mx-auto max-w-7xl">
+          {/* Header Title & Navigation Tabs */}
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between border-b border-zinc-200/80 dark:border-zinc-800/80 pb-6">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-900/80 px-3.5 py-1 text-xs font-semibold text-zinc-900 dark:text-zinc-300 mb-2 border border-zinc-200 dark:border-zinc-800 backdrop-blur-md shadow-inner">
+                <Zap className="h-3.5 w-3.5 text-amber-500 animate-pulse" />
+                <span>Admin & Staff Oversight Portal</span>
+              </div>
+              <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
+                User Video Progress & Employee Dashboard
+              </h1>
+              <p className="mt-1 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400">
+                Monitor real-time user video submission timelines, verification progress, and manage staff employees.
+              </p>
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
-              User Video Progress & Employee Dashboard
-            </h1>
-            <p className="mt-1 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400">
-              Monitor real-time user video submission timelines, verification progress, and manage staff employees.
-            </p>
+
+            {/* Tab Switcher Pills */}
+            <div className="flex items-center gap-2 rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/80 dark:bg-zinc-950/80 p-1.5 shadow-sm backdrop-blur-md">
+              <button
+                type="button"
+                onClick={() => setActiveTab('video-progress')}
+                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all duration-300 ${
+                  activeTab === 'video-progress'
+                    ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-md ring-1 ring-zinc-700/50'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/60 dark:hover:bg-zinc-900'
+                }`}
+                id="admin-tab-video-progress"
+              >
+                <Video className="h-4 w-4" />
+                <span>User Video Progress</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('employees')}
+                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all duration-300 ${
+                  activeTab === 'employees'
+                    ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-md ring-1 ring-zinc-700/50'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/60 dark:hover:bg-zinc-900'
+                }`}
+                id="admin-tab-employees"
+              >
+                <Users className="h-4 w-4" />
+                <span>Manage Employees ({employees.length})</span>
+              </button>
+            </div>
           </div>
 
-          {/* Tab Switcher Pills */}
-          <div className="flex items-center gap-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-1.5 shadow-sm">
-            <button
-              type="button"
-              onClick={() => setActiveTab('video-progress')}
-              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
-                activeTab === 'video-progress'
-                  ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-md'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-900'
-              }`}
-              id="admin-tab-video-progress"
-            >
-              <Video className="h-4 w-4" />
-              <span>User Video Progress</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('employees')}
-              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
-                activeTab === 'employees'
-                  ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-md'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-900'
-              }`}
-              id="admin-tab-employees"
-            >
-              <Users className="h-4 w-4" />
-              <span>Manage Employees ({employees.length})</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Tab 1: User Video Progress Monitor */}
-        {activeTab === 'video-progress' && (
-          <div className="mt-8 space-y-8 animate-in fade-in duration-300">
-            {/* KPI Cards Grid */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {/* Card 1: Total User Submissions */}
-              <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-5 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                    USER SUBMISSIONS
-                  </span>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white">
-                    <FileVideo className="h-5 w-5" />
+          {/* Tab 1: User Video Progress Monitor */}
+          {activeTab === 'video-progress' && (
+            <div className="mt-8 space-y-8 animate-in fade-in duration-300">
+              {/* KPI Cards Grid */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {/* Card 1: Total User Submissions */}
+                <div className="group rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/80 dark:bg-zinc-950/80 p-5 shadow-sm backdrop-blur-xl transition-all duration-300 hover:border-zinc-400 dark:hover:border-zinc-700 hover:shadow-xl hover:-translate-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                      USER SUBMISSIONS
+                    </span>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white shadow-sm transition-transform duration-300 group-hover:scale-110">
+                      <FileVideo className="h-5 w-5" />
+                    </div>
                   </div>
-                </div>
-                <div className="mt-2 text-3xl font-extrabold text-zinc-900 dark:text-white">
-                  {totalCount}
-                </div>
-                <span className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 block">
-                  Total user videos tracked
-                </span>
-              </div>
-
-              {/* Card 2: In Review */}
-              <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-5 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                    IN QUALITY REVIEW
-                  </span>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 text-amber-600 dark:text-amber-400">
-                    <Clock className="h-5 w-5" />
+                  <div className="mt-2 text-3xl font-extrabold text-zinc-900 dark:text-white">
+                    {totalCount}
                   </div>
-                </div>
-                <div className="mt-2 text-3xl font-extrabold text-amber-600 dark:text-amber-400">
-                  {inReviewCount}
-                </div>
-                <span className="mt-1 text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  <span>Requires moderation</span>
-                </span>
-              </div>
-
-              {/* Card 3: Approved & Paid */}
-              <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-5 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                    APPROVED & PAID
+                  <span className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 block">
+                    Total user videos tracked
                   </span>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400">
-                    <CheckCircle2 className="h-5 w-5" />
-                  </div>
                 </div>
-                <div className="mt-2 text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
-                  {paidCount}
-                </div>
-                <span className="mt-1 text-xs text-emerald-600 dark:text-emerald-400 block">
-                  Payouts completed
-                </span>
-              </div>
 
-              {/* Card 4: Rejected Submissions */}
-              <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-5 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                    REJECTED SUBMISSIONS
-                  </span>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400">
-                    <AlertCircle className="h-5 w-5" />
+                {/* Card 2: In Review */}
+                <div className="group rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/80 dark:bg-zinc-950/80 p-5 shadow-sm backdrop-blur-xl transition-all duration-300 hover:border-amber-400/50 dark:hover:border-amber-500/50 hover:shadow-xl hover:-translate-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                      IN QUALITY REVIEW
+                    </span>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 text-amber-600 dark:text-amber-400 shadow-sm transition-transform duration-300 group-hover:scale-110">
+                      <Clock className="h-5 w-5" />
+                    </div>
                   </div>
+                  <div className="mt-2 text-3xl font-extrabold text-amber-600 dark:text-amber-400">
+                    {inReviewCount}
+                  </div>
+                  <span className="mt-1 text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+                    </span>
+                    <span>Requires moderation</span>
+                  </span>
                 </div>
-                <div className="mt-2 text-3xl font-extrabold text-red-600 dark:text-red-400">
-                  {rejectedCount}
+
+                {/* Card 3: Approved & Paid */}
+                <div className="group rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/80 dark:bg-zinc-950/80 p-5 shadow-sm backdrop-blur-xl transition-all duration-300 hover:border-emerald-400/50 dark:hover:border-emerald-500/50 hover:shadow-xl hover:-translate-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                      APPROVED & PAID
+                    </span>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400 shadow-sm transition-transform duration-300 group-hover:scale-110">
+                      <CheckCircle2 className="h-5 w-5" />
+                    </div>
+                  </div>
+                  <div className="mt-2 text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
+                    {paidCount}
+                  </div>
+                  <span className="mt-1 text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                    <span>Payouts completed</span>
+                  </span>
                 </div>
-                <span className="mt-1 text-xs text-red-500 dark:text-red-400 block">
-                  Non-compliant videos
-                </span>
+
+                {/* Card 4: Rejected Submissions */}
+                <div className="group rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/80 dark:bg-zinc-950/80 p-5 shadow-sm backdrop-blur-xl transition-all duration-300 hover:border-red-400/50 dark:hover:border-red-500/50 hover:shadow-xl hover:-translate-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                      REJECTED SUBMISSIONS
+                    </span>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 shadow-sm transition-transform duration-300 group-hover:scale-110">
+                      <AlertCircle className="h-5 w-5" />
+                    </div>
+                  </div>
+                  <div className="mt-2 text-3xl font-extrabold text-red-600 dark:text-red-400">
+                    {rejectedCount}
+                  </div>
+                  <span className="mt-1 text-xs text-red-500 dark:text-red-400 block">
+                    Non-compliant videos
+                  </span>
+                </div>
               </div>
-            </div>
 
             {/* Filter & Search Bar */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -716,7 +723,21 @@ export default function AdminEmployeesPage() {
                 </button>
               </div>
 
-              <div className="mt-4 space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+              <div className="mt-4 space-y-4 max-h-[75vh] overflow-y-auto pr-2">
+                {/* HTML5 Video Player */}
+                <div className="relative overflow-hidden rounded-2xl bg-black border border-zinc-200 dark:border-zinc-800 shadow-md">
+                  <video
+                    controls
+                    autoPlay
+                    playsInline
+                    controlsList="nodownload"
+                    src={(selectedSubmission as unknown as { videoUrl?: string; url?: string }).videoUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'}
+                    className="w-full aspect-video rounded-2xl object-contain bg-black"
+                  >
+                    Your browser does not support HTML5 video playback.
+                  </video>
+                </div>
+
                 <div className="rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 p-4 border border-zinc-200 dark:border-zinc-800">
                   <h4 className="text-base font-bold text-zinc-900 dark:text-white">
                     {selectedSubmission.title}

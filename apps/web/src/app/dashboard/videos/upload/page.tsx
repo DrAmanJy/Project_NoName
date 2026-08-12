@@ -31,7 +31,7 @@ export default function UploadVideoPage() {
             <div className="border-b border-zinc-200 dark:border-zinc-900 pb-6 mb-8">
               <div className="inline-flex items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-900 px-3 py-1 text-xs font-semibold text-zinc-900 dark:text-zinc-300 mb-3 border border-zinc-200 dark:border-zinc-800">
                 <Video className="h-3.5 w-3.5 text-amber-500" />
-                <span>Synax Direct S3 Multipart Upload</span>
+                <span>True Services Direct S3 Multipart Upload</span>
               </div>
               <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
                 Upload Creator Video

@@ -184,17 +184,21 @@ export function EarningsView() {
   });
 
   return (
-    <div className="flex min-h-screen flex-col bg-white dark:bg-black text-zinc-900 dark:text-zinc-50 transition-colors duration-300">
+    <div className="relative flex min-h-screen flex-col bg-white dark:bg-black text-zinc-900 dark:text-zinc-50 transition-colors duration-300 overflow-hidden">
+      {/* Background Ambient Glow Accents */}
+      <div className="pointer-events-none absolute -top-40 right-1/4 h-96 w-96 rounded-full bg-emerald-500/10 blur-[120px] dark:bg-emerald-500/5" />
+      <div className="pointer-events-none absolute top-1/3 -left-20 h-96 w-96 rounded-full bg-teal-500/10 blur-[120px] dark:bg-teal-500/5" />
+
       <Navbar />
 
-      <main className="flex-1 py-8 lg:py-12">
+      <main className="relative flex-1 py-8 lg:py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Top Page Header Banner */}
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-zinc-200 dark:border-zinc-900 pb-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-zinc-200/80 dark:border-zinc-800/80 pb-6">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-900 px-3 py-1 text-xs font-semibold text-zinc-900 dark:text-zinc-300 mb-2 border border-zinc-200 dark:border-zinc-800">
-                <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
-                <span>Creator Earnings & Status</span>
+              <div className="inline-flex items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-900/80 px-3.5 py-1 text-xs font-semibold text-zinc-900 dark:text-zinc-300 mb-2 border border-zinc-200 dark:border-zinc-800 backdrop-blur-md shadow-inner">
+                <TrendingUp className="h-3.5 w-3.5 text-emerald-500 animate-pulse" />
+                <span>Creator Earnings & Payout Status</span>
               </div>
               <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
                 Earnings & Submissions
@@ -207,7 +211,7 @@ export function EarningsView() {
             <div className="flex items-center gap-3">
               <Link
                 href="/dashboard/videos/upload"
-                className="group flex items-center gap-2 rounded-full bg-zinc-900 dark:bg-white px-5 py-2.5 text-sm font-semibold text-white dark:text-zinc-900 shadow-md transition-all hover:bg-zinc-800 dark:hover:bg-zinc-100 hover:shadow-lg"
+                className="group flex items-center gap-2 rounded-full bg-zinc-900 dark:bg-white px-5 py-2.5 text-sm font-semibold text-white dark:text-zinc-900 shadow-md transition-all duration-300 hover:bg-zinc-800 dark:hover:bg-zinc-100 hover:shadow-xl hover:-translate-y-0.5"
                 id="earnings-upload-btn"
               >
                 <Upload className="h-4 w-4" />
@@ -227,74 +231,82 @@ export function EarningsView() {
           {/* Web Summary Metrics Cards Grid (4 Columns) */}
           <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {/* Card 1: Total Earnings */}
-            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-6 shadow-sm transition-all hover:border-zinc-400 dark:hover:border-zinc-700">
+            <div className="group relative overflow-hidden rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/30 via-zinc-900 to-zinc-950 p-6 text-white shadow-md transition-all duration-300 hover:border-emerald-500/60 hover:shadow-emerald-500/10 hover:shadow-xl hover:-translate-y-1">
               <div className="flex items-center justify-between">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
                   TOTAL EARNINGS
                 </p>
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 shadow-sm transition-transform duration-300 group-hover:scale-110">
                   <Wallet className="h-6 w-6" />
                 </div>
               </div>
-              <div className="mt-2 text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
+              <div className="mt-3 text-3xl font-extrabold tracking-tight text-white">
                 ${summary.totalEarnings.toFixed(2)}
               </div>
-              <div className="mt-3 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                Lifetime calculated rewards
+              <div className="mt-2 text-xs font-medium text-emerald-300/80 flex items-center gap-1.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
+                <span>Lifetime calculated rewards</span>
               </div>
             </div>
 
             {/* Card 2: Total Paid Out */}
-            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-6 shadow-sm transition-all hover:border-zinc-400 dark:hover:border-zinc-700">
+            <div className="group rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/80 dark:bg-zinc-950/80 p-6 shadow-sm backdrop-blur-xl transition-all duration-300 hover:border-emerald-400/50 dark:hover:border-emerald-500/50 hover:shadow-xl hover:-translate-y-1">
               <div className="flex items-center justify-between">
                 <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                   TOTAL PAID OUT
                 </p>
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-emerald-600 dark:text-emerald-400">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400 shadow-sm transition-transform duration-300 group-hover:scale-110">
                   <DollarSign className="h-6 w-6" />
                 </div>
               </div>
-              <div className="mt-2 text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
+              <div className="mt-3 text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
                 ${summary.paidEarnings.toFixed(2)}
               </div>
-              <div className="mt-3 text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+              <div className="mt-2 text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                 <Check className="h-3.5 w-3.5" />
                 <span>Direct wallet payouts</span>
               </div>
             </div>
 
             {/* Card 3: Pending Earnings */}
-            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-6 shadow-sm transition-all hover:border-zinc-400 dark:hover:border-zinc-700">
+            <div className="group rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/80 dark:bg-zinc-950/80 p-6 shadow-sm backdrop-blur-xl transition-all duration-300 hover:border-amber-400/50 dark:hover:border-amber-500/50 hover:shadow-xl hover:-translate-y-1">
               <div className="flex items-center justify-between">
                 <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                   PENDING EARNINGS
                 </p>
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-amber-600 dark:text-amber-400">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 text-amber-600 dark:text-amber-400 shadow-sm transition-transform duration-300 group-hover:scale-110">
                   <Clock className="h-6 w-6" />
                 </div>
               </div>
-              <div className="mt-2 text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
+              <div className="mt-3 text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
                 ${summary.pendingEarnings.toFixed(2)}
               </div>
-              <div className="mt-3 text-xs font-medium text-amber-600 dark:text-amber-400">
-                Awaiting review completion
+              <div className="mt-2 text-xs font-medium text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+                </span>
+                <span>Awaiting review completion</span>
               </div>
             </div>
 
             {/* Card 4: Total Submissions */}
-            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-6 shadow-sm transition-all hover:border-zinc-400 dark:hover:border-zinc-700">
+            <div className="group rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/80 dark:bg-zinc-950/80 p-6 shadow-sm backdrop-blur-xl transition-all duration-300 hover:border-zinc-400 dark:hover:border-zinc-700 hover:shadow-xl hover:-translate-y-1">
               <div className="flex items-center justify-between">
                 <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                   SUBMISSIONS
                 </p>
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white shadow-sm transition-transform duration-300 group-hover:scale-110">
                   <FileText className="h-6 w-6" />
                 </div>
               </div>
-              <div className="mt-2 text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
+              <div className="mt-3 text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
                 {submissions.length}
               </div>
-              <div className="mt-3 text-xs font-medium text-zinc-600 dark:text-zinc-400">
+              <div className="mt-2 text-xs font-medium text-zinc-600 dark:text-zinc-400">
                 Uploaded video submissions
               </div>
             </div>

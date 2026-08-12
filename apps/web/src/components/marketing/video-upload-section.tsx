@@ -1,12 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { Upload, Film, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
+import { Upload, Film, CheckCircle2, AlertCircle, Sparkles, Lock, LogIn } from 'lucide-react';
 import { VideoUploadManager } from '@repo/api-client';
 import { WebUploadSource } from '@/features/video/web-upload-source';
 import { apiClient, submissionsApi } from '@/lib/api-client';
+import { useAuth } from '@/hooks/use-auth';
+import { LoginModal } from '@/components/auth/login-modal';
 
 export function VideoUploadSection() {
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [country, setCountry] = useState('');
   const [isUploading, setIsUploading] = useState(false);
@@ -32,6 +36,11 @@ export function VideoUploadSection() {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isAuthenticated) {
+      setIsLoginModalOpen(true);
+      setErrorMessage('Please sign in to your account to upload videos.');
+      return;
+    }
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
       if (!validateFile(selectedFile)) return;
@@ -42,6 +51,11 @@ export function VideoUploadSection() {
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
+    if (!isAuthenticated) {
+      setIsLoginModalOpen(true);
+      setErrorMessage('Please sign in to your account to upload videos.');
+      return;
+    }
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const selectedFile = e.dataTransfer.files[0];
       if (!validateFile(selectedFile)) return;
@@ -52,6 +66,11 @@ export function VideoUploadSection() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAuthenticated) {
+      setIsLoginModalOpen(true);
+      setErrorMessage('Please sign in to your account to upload videos.');
+      return;
+    }
     if (!file) {
       setErrorMessage('Please attach a video file to upload.');
       return;
@@ -123,7 +142,30 @@ export function VideoUploadSection() {
 
         {/* Upload Form Card */}
         <div className="mt-12 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-10 shadow-lg">
-          {uploadSuccess ? (
+          {!isAuthLoading && !isAuthenticated ? (
+            <div className="py-12 text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 mb-6 shadow-sm">
+                <Lock className="h-8 w-8" />
+              </div>
+              <h3 className="text-2xl font-extrabold text-zinc-900 dark:text-white">
+                Sign In Required to Upload
+              </h3>
+              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 max-w-md mx-auto">
+                You must be logged in to upload video content, submit raw footage for review, and receive creator rewards.
+              </p>
+              <div className="mt-8 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="inline-flex items-center gap-2 rounded-full bg-zinc-900 dark:bg-white px-8 py-3.5 text-sm font-bold text-white dark:text-zinc-900 shadow-md transition-all duration-300 hover:bg-zinc-800 dark:hover:bg-zinc-100 hover:shadow-xl hover:scale-105"
+                  id="upload-section-login-btn"
+                >
+                  <LogIn className="h-4 w-4" />
+                  <span>Log In / Sign Up to Upload</span>
+                </button>
+              </div>
+            </div>
+          ) : uploadSuccess ? (
             <div className="py-12 text-center">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
                 <CheckCircle2 className="h-8 w-8" />
@@ -236,6 +278,12 @@ export function VideoUploadSection() {
           )}
         </div>
       </div>
+
+      {/* Login Modal for unauthenticated users */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+      />
     </section>
   );
 }

@@ -18,7 +18,6 @@ import {
   Eye,
   RefreshCw,
   X,
-  ShieldCheck,
   Zap,
 } from 'lucide-react';
 import { Navbar } from '@/components/layout/navbar';
@@ -44,6 +43,7 @@ interface UploadedVideoItem {
   statusLabel: string;
   rewardAmount?: string;
   thumbnailBg: string;
+  videoUrl?: string;
   steps: VideoProgressStep[];
   rejectionReason?: string;
 }
@@ -112,6 +112,8 @@ export function DashboardView() {
             year: 'numeric',
           });
 
+          const rawItem = item as unknown as { videoUrl?: string; url?: string };
+
           return {
             id: item.id,
             title: `Submission - ${formattedDate}`,
@@ -123,6 +125,7 @@ export function DashboardView() {
             statusLabel,
             rewardAmount: item.status === 'paid' || item.status === 'approved' ? '$50.00' : '$0.00',
             thumbnailBg: 'from-amber-600/30 to-zinc-900',
+            videoUrl: rawItem.videoUrl || rawItem.url || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
             steps,
           };
         });
@@ -167,16 +170,20 @@ export function DashboardView() {
     .reduce((acc, _v) => acc + 35.0, 0);
 
   return (
-    <div className="flex min-h-screen flex-col bg-white dark:bg-black text-zinc-900 dark:text-zinc-50 transition-colors duration-300">
+    <div className="relative flex min-h-screen flex-col bg-white dark:bg-black text-zinc-900 dark:text-zinc-50 transition-colors duration-300 overflow-hidden">
+      {/* Background Ambient Glow Accents */}
+      <div className="pointer-events-none absolute -top-40 right-1/4 h-96 w-96 rounded-full bg-emerald-500/10 blur-[120px] dark:bg-emerald-500/5" />
+      <div className="pointer-events-none absolute top-1/3 -left-20 h-96 w-96 rounded-full bg-amber-500/10 blur-[120px] dark:bg-amber-500/5" />
+
       <Navbar />
 
-      <main className="flex-1 py-8 lg:py-12">
+      <main className="relative flex-1 py-8 lg:py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Header Banner */}
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between border-b border-zinc-200 dark:border-zinc-900 pb-8">
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between border-b border-zinc-200/80 dark:border-zinc-800/80 pb-8">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-900 px-3 py-1 text-xs font-semibold text-zinc-900 dark:text-zinc-300 mb-3 border border-zinc-200 dark:border-zinc-800">
-                <Zap className="h-3.5 w-3.5 text-amber-500" />
+              <div className="inline-flex items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-900/80 px-3.5 py-1 text-xs font-semibold text-zinc-900 dark:text-zinc-300 mb-3 border border-zinc-200 dark:border-zinc-800 backdrop-blur-md shadow-inner">
+                <Zap className="h-3.5 w-3.5 text-amber-500 animate-pulse" />
                 <span>Creator Management Portal</span>
               </div>
               <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
@@ -191,17 +198,17 @@ export function DashboardView() {
             <div className="flex flex-wrap items-center gap-3">
               <Link
                 href="/dashboard/earnings"
-                className="group inline-flex items-center gap-2.5 rounded-xl bg-emerald-600 dark:bg-emerald-500 px-5 py-2.5 text-sm font-bold text-white shadow-md transition-all hover:bg-emerald-700 dark:hover:bg-emerald-600 hover:shadow-lg hover:scale-[1.02]"
+                className="group inline-flex items-center gap-2.5 rounded-xl bg-emerald-600 dark:bg-emerald-500 px-5 py-2.5 text-sm font-bold text-white shadow-md transition-all duration-300 hover:bg-emerald-700 dark:hover:bg-emerald-600 hover:shadow-emerald-500/20 hover:shadow-xl hover:-translate-y-0.5"
                 id="dashboard-view-earnings-btn"
               >
                 <Wallet className="h-4 w-4" />
                 <span>View Earnings</span>
-                <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </Link>
 
               <Link
                 href="/dashboard/videos/upload"
-                className="group inline-flex items-center gap-2 rounded-xl bg-zinc-900 dark:bg-white px-5 py-2.5 text-sm font-bold text-white dark:text-zinc-900 shadow-md transition-all hover:bg-zinc-800 dark:hover:bg-zinc-100 hover:shadow-lg hover:scale-[1.02]"
+                className="group inline-flex items-center gap-2 rounded-xl bg-zinc-900 dark:bg-white px-5 py-2.5 text-sm font-bold text-white dark:text-zinc-900 shadow-md transition-all duration-300 hover:bg-zinc-800 dark:hover:bg-zinc-100 hover:shadow-xl hover:-translate-y-0.5"
                 id="dashboard-upload-video-btn"
               >
                 <Upload className="h-4 w-4" />
@@ -213,12 +220,12 @@ export function DashboardView() {
           {/* Key KPI Overview Grid */}
           <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {/* Card 1: Total Uploads */}
-            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-6 shadow-sm transition-all hover:border-zinc-400 dark:hover:border-zinc-700">
+            <div className="group rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/80 dark:bg-zinc-950/80 p-6 shadow-sm backdrop-blur-xl transition-all duration-300 hover:border-zinc-400 dark:hover:border-zinc-700 hover:shadow-xl hover:-translate-y-1">
               <div className="flex items-center justify-between">
                 <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                   TOTAL UPLOADS
                 </p>
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white shadow-sm transition-transform duration-300 group-hover:scale-110">
                   <FileVideo className="h-5 w-5" />
                 </div>
               </div>
@@ -231,44 +238,48 @@ export function DashboardView() {
             </div>
 
             {/* Card 2: In Review / Processing */}
-            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-6 shadow-sm transition-all hover:border-zinc-400 dark:hover:border-zinc-700">
+            <div className="group rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/80 dark:bg-zinc-950/80 p-6 shadow-sm backdrop-blur-xl transition-all duration-300 hover:border-amber-400/50 dark:hover:border-amber-500/50 hover:shadow-xl hover:-translate-y-1">
               <div className="flex items-center justify-between">
                 <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                   IN REVIEW / PROCESSING
                 </p>
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 text-amber-600 dark:text-amber-400">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 text-amber-600 dark:text-amber-400 shadow-sm transition-transform duration-300 group-hover:scale-110">
                   <Clock className="h-5 w-5" />
                 </div>
               </div>
               <div className="mt-3 text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
                 {inReviewCount} Pending
               </div>
-              <div className="mt-2 text-xs font-medium text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                <ShieldCheck className="h-3.5 w-3.5" />
+              <div className="mt-2 text-xs font-medium text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+                </span>
                 <span>Verification in progress</span>
               </div>
             </div>
 
             {/* Card 3: Approved & Paid */}
-            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-6 shadow-sm transition-all hover:border-zinc-400 dark:hover:border-zinc-700">
+            <div className="group rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/80 dark:bg-zinc-950/80 p-6 shadow-sm backdrop-blur-xl transition-all duration-300 hover:border-emerald-400/50 dark:hover:border-emerald-500/50 hover:shadow-xl hover:-translate-y-1">
               <div className="flex items-center justify-between">
                 <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                   APPROVED & PAID
                 </p>
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400 shadow-sm transition-transform duration-300 group-hover:scale-110">
                   <CheckCircle2 className="h-5 w-5" />
                 </div>
               </div>
               <div className="mt-3 text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
                 {paidCount} Approved
               </div>
-              <div className="mt-2 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                Direct payouts unlocked
+              <div className="mt-2 text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                <span>Direct payouts unlocked</span>
               </div>
             </div>
 
             {/* Card 4: Total & Pending Earnings Summary Card */}
-            <div className="relative overflow-hidden rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/20 via-zinc-900 to-zinc-950 p-6 text-white shadow-sm transition-all hover:border-emerald-500/60">
+            <div className="group relative overflow-hidden rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/30 via-zinc-900 to-zinc-950 p-6 text-white shadow-md transition-all duration-300 hover:border-emerald-500/60 hover:shadow-emerald-500/10 hover:shadow-xl hover:-translate-y-1">
               <div className="flex items-center justify-between">
                 <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
                   TOTAL EARNINGS
@@ -430,19 +441,20 @@ export function DashboardView() {
                   return (
                     <div
                       key={video.id}
-                      className="group rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-6 shadow-sm transition-all hover:border-zinc-400 dark:hover:border-zinc-700"
+                      className="group rounded-3xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/80 dark:bg-zinc-950/80 p-6 shadow-sm backdrop-blur-xl transition-all duration-300 hover:border-zinc-400 dark:hover:border-zinc-700 hover:shadow-xl hover:-translate-y-0.5"
                     >
                       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                         {/* Left: Video Preview & Metadata */}
                         <div className="flex items-start gap-4">
                           {/* Video Thumbnail Placeholder */}
                           <div
-                            className={`relative flex h-24 w-36 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${video.thumbnailBg} border border-zinc-700/50 shadow-inner group-hover:scale-102 transition-transform`}
+                            onClick={() => setSelectedVideo(video)}
+                            className={`relative flex h-24 w-36 shrink-0 cursor-pointer items-center justify-center rounded-2xl bg-gradient-to-br ${video.thumbnailBg} border border-zinc-700/50 shadow-inner group-hover:scale-102 transition-transform duration-300`}
                           >
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-md">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-md transition-transform duration-300 group-hover:scale-110">
                               <Play className="h-4 w-4 fill-white ml-0.5" />
                             </div>
-                            <span className="absolute bottom-2 right-2 rounded-md bg-black/80 px-1.5 py-0.5 text-[10px] font-mono font-medium text-white">
+                            <span className="absolute bottom-2 right-2 rounded-md bg-black/80 px-1.5 py-0.5 text-[10px] font-mono font-medium text-white shadow-sm">
                               {video.duration}
                             </span>
                           </div>
@@ -501,6 +513,16 @@ export function DashboardView() {
 
                         {/* Right: Actions */}
                         <div className="flex items-center gap-2 shrink-0 self-end lg:self-start">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedVideo(video)}
+                            className="flex items-center gap-1.5 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-4 py-2 text-xs font-bold shadow-sm hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-colors"
+                            id={`play-video-btn-${video.id}`}
+                          >
+                            <Play className="h-3.5 w-3.5 fill-current" />
+                            <span>Play Video</span>
+                          </button>
+
                           <button
                             type="button"
                             onClick={() => setSelectedVideo(video)}
@@ -628,7 +650,7 @@ export function DashboardView() {
               <div className="flex items-center gap-2">
                 <FileVideo className="h-5 w-5 text-amber-500" />
                 <h3 className="text-lg font-bold text-zinc-900 dark:text-white">
-                  Video Status & Timeline Audit
+                  Video Player & Status Audit
                 </h3>
               </div>
               <button
@@ -641,7 +663,21 @@ export function DashboardView() {
               </button>
             </div>
 
-            <div className="mt-4 space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+            <div className="mt-4 space-y-4 max-h-[75vh] overflow-y-auto pr-2">
+              {/* HTML5 Video Player */}
+              <div className="relative overflow-hidden rounded-2xl bg-black border border-zinc-200 dark:border-zinc-800 shadow-md">
+                <video
+                  controls
+                  autoPlay
+                  playsInline
+                  controlsList="nodownload"
+                  src={selectedVideo.videoUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'}
+                  className="w-full aspect-video rounded-2xl object-contain bg-black"
+                >
+                  Your browser does not support HTML5 video playback.
+                </video>
+              </div>
+
               <div className="rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 p-4 border border-zinc-200 dark:border-zinc-800">
                 <h4 className="text-base font-bold text-zinc-900 dark:text-white">
                   {selectedVideo.title}

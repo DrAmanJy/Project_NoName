@@ -20,7 +20,6 @@ export function LoginModal({ isOpen = true, onClose }: LoginModalProps) {
 
   useEffect(() => {
     if (isOpen && isAuthenticated && !isLoading) {
-      console.log(isAuthenticated);
       router.push('/dashboard');
     }
   }, [isOpen, isAuthenticated, isLoading, router]);

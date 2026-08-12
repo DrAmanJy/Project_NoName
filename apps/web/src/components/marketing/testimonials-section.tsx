@@ -12,7 +12,7 @@ export function TestimonialsSection() {
     },
     {
       quote:
-        'Finally a platform where I do not need millions of followers to monetize my videos. Synax pays for quality authentic moments.',
+        'Finally a platform where I do not need millions of followers to monetize my videos. True Services pays for quality authentic moments.',
       name: 'Marcus Chen',
       role: 'Travel Enthusiast',
       avatar: 'MC',

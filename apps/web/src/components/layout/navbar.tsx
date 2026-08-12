@@ -2,16 +2,23 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Video, Menu, X, ArrowRight, Sun, Moon } from 'lucide-react';
 import { LoginModal } from '@/components/auth/login-modal';
 import { useAuth } from '@/hooks/use-auth';
 
 export function Navbar() {
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const { user, isAuthenticated, logout, role } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/');
+  };
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -58,7 +65,7 @@ export function Navbar() {
               <Video className="h-5 w-5 transition-transform group-hover:rotate-6" />
             </div>
             <span className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">
-              Synax<span className="text-zinc-500">.</span>
+              True Services<span className="text-zinc-500">.</span>
             </span>
           </Link>
 
@@ -115,7 +122,7 @@ export function Navbar() {
                 )}
                 <button
                   type="button"
-                  onClick={logout}
+                  onClick={handleLogout}
                   className="rounded-full px-3 py-1.5 text-xs font-semibold text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors"
                 >
                   Logout
@@ -212,7 +219,7 @@ export function Navbar() {
                       type="button"
                       onClick={() => {
                         setMobileMenuOpen(false);
-                        logout();
+                        handleLogout();
                       }}
                       className="w-full text-center rounded-full border border-zinc-200 dark:border-zinc-800 py-2 text-xs font-semibold text-red-600 dark:text-red-400"
                     >

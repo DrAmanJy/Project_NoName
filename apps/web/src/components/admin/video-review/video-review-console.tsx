@@ -67,7 +67,7 @@ const INITIAL_ADMIN_VIDEOS: AdminVideoItem[] = [
       script: {
         status: 'pass',
         transcript:
-          'Hello, my name is Alex Rivera. Today I am verifying my ID document for Synax platform.',
+          'Hello, my name is Alex Rivera. Today I am verifying my ID document for True Services platform.',
         confidence: 0.98,
         missingSegments: [],
         extraContent: [],
@@ -142,7 +142,7 @@ const INITIAL_ADMIN_VIDEOS: AdminVideoItem[] = [
       status: 'pass',
       script: {
         status: 'pass',
-        transcript: 'Verified tech review for Synax creator program.',
+        transcript: 'Verified tech review for True Services creator program.',
         confidence: 0.99,
         missingSegments: [],
         extraContent: [],
