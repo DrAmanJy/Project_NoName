@@ -3,6 +3,7 @@ import { Submission } from './models/submission.model.js';
 import { User } from '../auth/models/user.model.js';
 import { VideoUpload } from '../video/models/video-upload.model.js';
 import { VideoVerification } from '../video/models/video-verification.model.js';
+import { s3Service } from '../video/storage/s3.service.js';
 import { UpdateSubmissionStatusRequestSchema, SubmissionStatusSchema } from '@repo/contracts';
 import mongoose from 'mongoose';
 
@@ -91,8 +92,18 @@ export class StaffSubmissionsController {
       // Fetch related video info and verification
       const video = await VideoUpload.findOne({ submissionId: submission._id }).lean();
       let verification = null;
+      let previewUrl: string | null = null;
+      let thumbnailUrl: string | null = null;
+
       if (video) {
         verification = await VideoVerification.findOne({ videoUploadId: video._id }).lean();
+        
+        if (video.status === 'uploaded' || video.status === 'processing' || video.status === 'verified') {
+          previewUrl = await s3Service.getSignedDownloadUrl(video.objectKey, 900).catch(() => null);
+        }
+        if (video.thumbnailKey) {
+          thumbnailUrl = await s3Service.getSignedDownloadUrl(video.thumbnailKey, 900).catch(() => null);
+        }
       }
 
       const userObj = submission.userId as unknown as { _id: mongoose.Types.ObjectId; name: string; email: string; avatarUrl?: string; isActive: boolean; role: string; createdAt: Date; updatedAt: Date };
@@ -121,6 +132,19 @@ export class StaffSubmissionsController {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
+        video: video ? {
+          id: video._id.toString(),
+          originalFilename: video.originalFileName,
+          mimeType: video.contentType,
+          sizeBytes: video.fileSize,
+          durationSeconds: video.durationSeconds || null,
+          width: video.width || null,
+          height: video.height || null,
+          uploadStatus: video.status,
+          uploadedAt: video.completedAt ? video.completedAt.toISOString() : null,
+          previewUrl,
+          thumbnailUrl,
+        } : null,
         reviewedBy: reviewerObj ? {
           id: reviewerObj._id.toString(),
           name: reviewerObj.name,
