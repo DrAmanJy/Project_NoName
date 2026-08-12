@@ -61,7 +61,7 @@ export function Navbar() {
   const navLinks = [
     { name: 'About', href: '#about' },
     { name: 'How It Works', href: '#how-it-works' },
-    { name: 'Upload Video', href: '#upload' },
+    { name: 'Submit Video', href: '#upload' },
     { name: 'Testimonials', href: '#testimonials' },
     { name: 'Contact', href: '#contact' },
     { name: 'Download App', href: '#download' },

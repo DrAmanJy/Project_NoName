@@ -56,7 +56,8 @@ async function processJob(job: IVideoVerificationJob) {
 
     if (upload.status !== 'uploaded') {
       logger.info({ jobId: job._id, status: upload.status }, 'Upload not ready or already processed');
-      await VideoVerificationJob.updateOne({ _id: job._id }, { $set: { status: 'completed', completedAt: new Date() } });
+      const cleanupAt = new Date(Date.now() + env.VIDEO_RETENTION_DAYS * 24 * 60 * 60 * 1000);
+      await VideoVerificationJob.updateOne({ _id: job._id }, { $set: { status: 'completed', completedAt: new Date(), cleanupAt } });
       return;
     }
 
@@ -68,8 +69,9 @@ async function processJob(job: IVideoVerificationJob) {
 
     const resultStatus = 'verified'; // Depending on overallStatus we could update this
 
+    const cleanupAt = new Date(Date.now() + env.VIDEO_RETENTION_DAYS * 24 * 60 * 60 * 1000);
     await VideoUpload.updateOne({ _id: upload._id }, { $set: { status: resultStatus, processingCompletedAt: new Date() } });
-    await VideoVerificationJob.updateOne({ _id: job._id }, { $set: { status: 'completed', completedAt: new Date() } });
+    await VideoVerificationJob.updateOne({ _id: job._id }, { $set: { status: 'completed', completedAt: new Date(), cleanupAt } });
 
     logger.info({ jobId: job._id }, 'Job completed successfully');
   } catch (error) {
@@ -90,12 +92,14 @@ async function processJob(job: IVideoVerificationJob) {
         }
       );
     } else {
+      const cleanupAt = new Date(Date.now() + env.VIDEO_RETENTION_DAYS * 24 * 60 * 60 * 1000);
       await VideoVerificationJob.updateOne(
         { _id: job._id },
         {
           $set: {
             status: 'failed',
             lastErrorCode: error instanceof Error ? error.message : 'UnknownError',
+            cleanupAt,
           },
         }
       );

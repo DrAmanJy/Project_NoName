@@ -13,6 +13,7 @@ export interface IVideoVerificationJob extends Document {
   updatedAt: Date;
   startedAt?: Date;
   completedAt?: Date;
+  cleanupAt?: Date | null;
 }
 
 const VideoVerificationJobSchema = new Schema<IVideoVerificationJob>(
@@ -59,6 +60,13 @@ const VideoVerificationJobSchema = new Schema<IVideoVerificationJob>(
     },
     completedAt: {
       type: Date,
+    },
+    cleanupAt: {
+      type: Date,
+      default: null,
+      index: {
+        expireAfterSeconds: 0,
+      },
     },
   },
   {
