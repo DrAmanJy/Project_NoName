@@ -165,7 +165,7 @@ export class StaffSubmissionsController {
         res.status(400).json({ error: 'Invalid request', details: bodyResult.error.issues });
         return;
       }
-      
+
       const { status, rejectionReason } = bodyResult.data;
 
       const submission = await Submission.findById(id);
@@ -189,7 +189,7 @@ export class StaffSubmissionsController {
       };
 
       const allowedNextStatuses = VALID_TRANSITIONS[currentStatus] || [];
-      
+
       if (!allowedNextStatuses.includes(status)) {
         res.status(400).json({ error: `Invalid status transition from ${currentStatus} to ${status}` });
         return;
@@ -228,7 +228,7 @@ export class StaffSubmissionsController {
       } else if (rejectionReason) {
         submission.rejectionReason = rejectionReason;
       }
-      
+
       await submission.save();
 
       res.json({ success: true });

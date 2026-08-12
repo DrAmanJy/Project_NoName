@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Video, Menu, X, ArrowRight, Sun, Moon } from 'lucide-react';
+import { Video, Menu, X, ArrowRight, Sun, Moon, ChevronDown, LogOut, LayoutDashboard, Wallet, ShieldCheck } from 'lucide-react';
 import { LoginModal } from '@/components/auth/login-modal';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -12,6 +12,8 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
 
   const { user, isAuthenticated, logout, role } = useAuth();
 
@@ -19,6 +21,16 @@ export function Navbar() {
     await logout();
     router.push('/');
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -98,12 +110,14 @@ export function Navbar() {
             </button>
 
             {isAuthenticated && user ? (
-              <div className="flex items-center gap-3">
-                <Link
-                  href="/dashboard"
-                  className="flex items-center gap-2 rounded-full border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-zinc-900 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+              <div className="relative" ref={profileMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                  className="flex items-center gap-2.5 rounded-full border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/90 px-3.5 py-1.5 text-xs font-semibold text-zinc-900 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all shadow-sm group"
+                  id="user-profile-menu-btn"
                 >
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[10px] font-bold overflow-hidden">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[10px] font-bold overflow-hidden ring-2 ring-zinc-300 dark:ring-zinc-700 group-hover:ring-amber-500 transition-all">
                     {user.avatarUrl ? (
                       <img src={user.avatarUrl} alt={user.name} className="h-6 w-6 rounded-full object-cover" />
                     ) : (
@@ -111,22 +125,79 @@ export function Navbar() {
                     )}
                   </div>
                   <span>{user.name}</span>
-                </Link>
-                {(role === 'admin' || role === 'employee') && (
-                  <Link
-                    href="/admin/employees"
-                    className="rounded-full bg-purple-100 dark:bg-purple-950/60 px-3 py-1 text-xs font-bold text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 hover:bg-purple-200 dark:hover:bg-purple-900 transition-colors"
-                  >
-                    {role === 'admin' ? 'Admin Portal' : 'Staff Portal'}
-                  </Link>
-                )}
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="rounded-full px-3 py-1.5 text-xs font-semibold text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors"
-                >
-                  Logout
+                  <ChevronDown className={`h-3.5 w-3.5 text-zinc-400 transition-transform duration-200 ${isProfileMenuOpen ? 'rotate-180 text-zinc-900 dark:text-white' : ''}`} />
                 </button>
+
+                {isProfileMenuOpen && (
+                  <div className="absolute right-0 mt-2.5 w-64 rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/95 dark:bg-zinc-950/95 p-4 shadow-2xl backdrop-blur-xl z-50 animate-in fade-in zoom-in-95 duration-150">
+                    {/* Profile Card Header */}
+                    <div className="flex items-center gap-3 pb-3 border-b border-zinc-100 dark:border-zinc-800/80">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-sm font-bold shadow-md">
+                        {user.avatarUrl ? (
+                          <img src={user.avatarUrl} alt={user.name} className="h-10 w-10 rounded-full object-cover" />
+                        ) : (
+                          user.name.charAt(0).toUpperCase()
+                        )}
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-bold text-zinc-900 dark:text-white truncate">{user.name}</span>
+                        <span className="text-xs text-zinc-500 dark:text-zinc-400 truncate">{user.email || 'Creator Account'}</span>
+                        <span className="mt-1.5 inline-flex w-fit items-center rounded-md bg-zinc-100 dark:bg-zinc-900 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800">
+                          {role}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Navigation Items */}
+                    <div className="py-2.5 space-y-1 border-b border-zinc-100 dark:border-zinc-800/80">
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                      >
+                        <LayoutDashboard className="h-4 w-4 text-zinc-500" />
+                        <span>Dashboard</span>
+                      </Link>
+                      <Link
+                        href="/dashboard/earnings"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                      >
+                        <Wallet className="h-4 w-4 text-emerald-500" />
+                        <span>My Earnings</span>
+                      </Link>
+                      {(role === 'admin' || role === 'employee') && (
+                        <Link
+                          href="/admin/employees"
+                          onClick={() => setIsProfileMenuOpen(false)}
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/50 transition-colors"
+                        >
+                          <ShieldCheck className="h-4 w-4" />
+                          <span>{role === 'admin' ? 'Admin Portal' : 'Staff Portal'}</span>
+                        </Link>
+                      )}
+                    </div>
+
+                    {/* Dedicated Logout Action Button */}
+                    <div className="pt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsProfileMenuOpen(false);
+                          handleLogout();
+                        }}
+                        className="flex w-full items-center justify-between gap-2 rounded-xl bg-red-50/80 dark:bg-red-950/30 px-3 py-2 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/70 border border-red-200/50 dark:border-red-900/30 transition-all group/btn"
+                        id="user-profile-logout-btn"
+                      >
+                        <span className="flex items-center gap-2">
+                          <LogOut className="h-4 w-4 transition-transform group-hover/btn:-translate-x-0.5" />
+                          <span>Log Out</span>
+                        </span>
+                        <span className="text-[10px] opacity-75 font-normal">End Session</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <button
@@ -221,9 +292,11 @@ export function Navbar() {
                         setMobileMenuOpen(false);
                         handleLogout();
                       }}
-                      className="w-full text-center rounded-full border border-zinc-200 dark:border-zinc-800 py-2 text-xs font-semibold text-red-600 dark:text-red-400"
+                      className="flex items-center justify-center gap-2 w-full text-center rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 py-2.5 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/80 transition-colors"
+                      id="mobile-profile-logout-btn"
                     >
-                      Logout
+                      <LogOut className="h-4 w-4" />
+                      <span>Log Out</span>
                     </button>
                   </div>
                 ) : (

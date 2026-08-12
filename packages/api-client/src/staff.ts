@@ -1,8 +1,8 @@
 import type { ApiClient } from './client.js';
-import type { 
+import type {
   StaffSubmissionListResponse,
   StaffSubmissionDetailResponse,
-  UpdateSubmissionStatusRequest 
+  UpdateSubmissionStatusRequest
 } from '@repo/contracts';
 
 export function createStaffApi(client: ApiClient) {
