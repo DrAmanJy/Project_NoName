@@ -19,10 +19,12 @@ export function VideoUploadSection() {
 
   const validateFile = (selectedFile: File): boolean => {
     if (!ALLOWED_MIME_TYPES.includes(selectedFile.type)) {
+      setFile(null);
       setErrorMessage('Please select a valid video file (MP4, MOV, or WEBM).');
       return false;
     }
     if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
+      setFile(null);
       setErrorMessage('File size exceeds the 500 MB limit.');
       return false;
     }

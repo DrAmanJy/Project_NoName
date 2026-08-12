@@ -104,10 +104,14 @@ export class VideoUploadManager {
   }
 
   /**
-   * Retries an upload session without recreating the session or wiping progress.
+   * Retries an upload session without recreating the session or wiping progress,
+   * unless the upload was cancelled.
    */
   public async retry() {
-    if (!this.uploadId) {
+    if (this.isCancelled || !this.uploadId) {
+      this.uploadId = null;
+      this.multipartUploadId = null;
+      this.objectKey = null;
       return this.start();
     }
     this.isPaused = false;
