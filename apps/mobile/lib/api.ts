@@ -1,4 +1,4 @@
-import { ApiClient, createAuthApi } from '@repo/api-client';
+import { ApiClient, createAuthApi, createSubmissionsApi, createVideosApi } from '@repo/api-client';
 import * as SecureStore from 'expo-secure-store';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://project-no-name-api-rosy.vercel.app/api/v1';
@@ -16,6 +16,8 @@ export const apiClient = new ApiClient({
 });
 
 export const authApi = createAuthApi(apiClient);
+export const submissionsApi = createSubmissionsApi(apiClient);
+export const videosApi = createVideosApi(apiClient);
 
 export async function setSessionToken(token: string) {
   await SecureStore.setItemAsync(TOKEN_KEY, token);

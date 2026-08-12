@@ -13,15 +13,33 @@ import {
   ArrowRight,
   Wallet,
   LayoutDashboard,
+  Globe,
 } from 'lucide-react';
 import { VideoUploadManager } from '@repo/api-client';
 import { WebUploadSource } from '@/features/video/web-upload-source';
-import { apiClient } from '@/lib/api-client';
+import { apiClient, submissionsApi } from '@/lib/api-client';
+
+const COUNTRIES = [
+  'United States',
+  'United Kingdom',
+  'Canada',
+  'Australia',
+  'Germany',
+  'France',
+  'Japan',
+  'India',
+  'Brazil',
+  'Mexico',
+  'Spain',
+  'Italy',
+  'Netherlands',
+  'Singapore',
+  'Other',
+];
 
 export function VideoUploader() {
   const [file, setFile] = useState<File | null>(null);
-  const [videoTitle, setVideoTitle] = useState<string>('');
-  const [videoDescription, setVideoDescription] = useState<string>('');
+  const [country, setCountry] = useState<string>('United States');
   const [isDragging, setIsDragging] = useState<boolean>(false);
 
   const [uploadManager, setUploadManager] = useState<VideoUploadManager | null>(null);
@@ -30,7 +48,7 @@ export function VideoUploader() {
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const MAX_FILE_SIZE_BYTES = 500 * 1024 * 1024; // 500 MB limit
+  const MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024; // 100 MB limit
   const ALLOWED_MIME_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'];
 
   const handleFileSelection = (selectedFile: File) => {
@@ -39,15 +57,11 @@ export function VideoUploader() {
       return;
     }
     if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
-      setError('File size exceeds the 500 MB limit.');
+      setError('File size exceeds the 100 MB limit.');
       return;
     }
     setFile(selectedFile);
     setError(null);
-    if (!videoTitle) {
-      const defaultName = selectedFile.name.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
-      setVideoTitle(defaultName.charAt(0).toUpperCase() + defaultName.slice(1));
-    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,15 +95,31 @@ export function VideoUploader() {
 
     try {
       setError(null);
+      
+      const idempotencyKey = crypto.randomUUID();
+      const totalParts = Math.ceil(file.size / (8 * 1024 * 1024));
+
+      const response = await submissionsApi.create(
+        {
+          fileName: file.name,
+          contentType: file.type as any,
+          fileSize: file.size,
+          totalParts,
+          country,
+        },
+        idempotencyKey,
+      );
+
       const source = new WebUploadSource(file);
       const manager = new VideoUploadManager({
         apiClient,
+        uploadId: response.uploadId,
         source,
         fileName: file.name,
-        title: videoTitle || undefined,
-        description: videoDescription || undefined,
         onProgress: (uploaded: number, total: number) => {
-          setProgress(Math.round((uploaded / total) * 100));
+          if (!total || total <= 0) return;
+          const pct = Math.min(100, Math.max(0, Math.round((uploaded / total) * 100)));
+          setProgress(pct);
         },
         onStateChange: (state: string) => {
           setStatus(state);
@@ -98,10 +128,9 @@ export function VideoUploader() {
           setError(err.message);
         },
         onComplete: (videoId: string) => {
+          setProgress(100);
           setStatus('completed');
-          // Upload complete callback
           if (process.env.NODE_ENV !== 'production') {
-            // Log in development for debug
             process.stdout?.write?.(`Upload complete, ID: ${videoId}\n`);
           }
         },
@@ -126,7 +155,7 @@ export function VideoUploader() {
 
   const handleRetry = async () => {
     if (uploadManager) {
-      await uploadManager.retry();
+      await uploadManager.start();
     }
   };
 
@@ -151,7 +180,7 @@ export function VideoUploader() {
               Video Uploaded Successfully!
             </h3>
             <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 max-w-md mx-auto">
-              Your video <span className="font-semibold text-zinc-900 dark:text-white">&quot;{videoTitle || file?.name}&quot;</span> has been received and queued for review.
+              Your video <span className="font-semibold text-zinc-900 dark:text-white">&quot;{file?.name}&quot;</span> ({country}) has been received and queued for review.
             </p>
           </div>
 
@@ -186,16 +215,16 @@ export function VideoUploader() {
               </div>
               <div>
                 <h4 className="text-base font-bold text-zinc-900 dark:text-white truncate max-w-xs sm:max-w-md">
-                  {videoTitle || file?.name}
+                  {file?.name}
                 </h4>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  {file && formatFileSize(file.size)} • Status: <span className="font-semibold capitalize text-zinc-800 dark:text-zinc-200">{status}</span>
+                  {file && formatFileSize(file.size)} • Country: {country} • Status: <span className="font-semibold capitalize text-zinc-800 dark:text-zinc-200">{status}</span>
                 </p>
               </div>
             </div>
 
             <span className="text-2xl font-extrabold font-mono text-amber-600 dark:text-amber-400">
-              {progress}%
+              {Math.min(100, Math.max(0, progress))}%
             </span>
           </div>
 
@@ -203,7 +232,7 @@ export function VideoUploader() {
           <div className="relative w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-3 overflow-hidden">
             <div
               className="bg-linear-to-r from-amber-500 to-emerald-500 h-3 rounded-full transition-all duration-300 relative"
-              style={{ width: `${progress}%` }}
+              style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
             >
               <div className="absolute inset-0 bg-white/20 animate-pulse" />
             </div>
@@ -251,10 +280,10 @@ export function VideoUploader() {
           <div>
             <div className="flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-1">
               <Sparkles className="h-3.5 w-3.5" />
-              <span>Step 1: Video File Selection</span>
+              <span>Step 1: Video File & Region Selection</span>
             </div>
             <h3 className="text-xl font-bold text-zinc-900 dark:text-white">
-              Select & Configure Video Upload
+              Select Video File & Country
             </h3>
           </div>
 
@@ -318,41 +347,30 @@ export function VideoUploader() {
                   Drag & drop your video here, or <span className="text-amber-600 dark:text-amber-400 underline">browse</span>
                 </p>
                 <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                  Supports MP4, MOV, or WEBM (Max 500 MB)
+                  Supports MP4, MOV, or WEBM (Max 100 MB)
                 </p>
               </>
             )}
           </div>
 
-          {/* Video Metadata Form Fields */}
-          <div className="space-y-4 pt-2">
-            <div>
-              <label htmlFor="video-title-input" className="block text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1.5">
-                Video Title
-              </label>
-              <input
-                id="video-title-input"
-                type="text"
-                value={videoTitle}
-                onChange={(e) => setVideoTitle(e.target.value)}
-                placeholder="E.g. Urban Exploration Vlog 4K"
-                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-2.5 text-sm text-zinc-900 dark:text-white outline-none focus:border-zinc-900 dark:focus:border-white transition-colors"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="video-desc-input" className="block text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1.5">
-                Description / Context (Optional)
-              </label>
-              <textarea
-                id="video-desc-input"
-                rows={3}
-                value={videoDescription}
-                onChange={(e) => setVideoDescription(e.target.value)}
-                placeholder="Add brief details about the content, location, or equipment used..."
-                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-2.5 text-sm text-zinc-900 dark:text-white outline-none focus:border-zinc-900 dark:focus:border-white transition-colors resize-none"
-              />
-            </div>
+          {/* Country Selection Dropdown */}
+          <div className="pt-2">
+            <label htmlFor="country-select-input" className="block text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1.5 flex items-center gap-1.5">
+              <Globe className="h-3.5 w-3.5 text-amber-500" />
+              <span>Select Country / Region</span>
+            </label>
+            <select
+              id="country-select-input"
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-900 dark:text-white outline-none focus:border-zinc-900 dark:focus:border-white transition-colors cursor-pointer"
+            >
+              {COUNTRIES.map((c) => (
+                <option key={c} value={c} className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">
+                  {c}
+                </option>
+              ))}
+            </select>
           </div>
 
           {error && (

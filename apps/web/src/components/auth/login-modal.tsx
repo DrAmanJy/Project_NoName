@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ShieldCheck, X, Loader2 } from 'lucide-react';
 import gsap from 'gsap';
 import { API_URL } from '@/lib/api-client';
+import { useAuth } from '@/hooks/use-auth';
 
 interface LoginModalProps {
   isOpen?: boolean;
@@ -14,7 +15,14 @@ interface LoginModalProps {
 
 export function LoginModal({ isOpen = true, onClose }: LoginModalProps) {
   const router = useRouter();
+  const { isAuthenticated, isLoading } = useAuth();
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen && isAuthenticated && !isLoading) {
+      router.push('/dashboard');
+    }
+  }, [isOpen, isAuthenticated, isLoading, router]);
 
   const backdropRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);

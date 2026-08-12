@@ -1,9 +1,21 @@
 export {
+  RoleSchema,
   UserSchema,
   AuthResponseSchema,
   MobileHandoffExchangeRequestSchema,
+  EmployeeListResponseSchema,
+  CreateEmployeeRequestSchema,
+  UpdateEmployeeRequestSchema,
 } from './auth.js';
-export type { User, AuthResponse, MobileHandoffExchangeRequest } from './auth.js';
+export type { 
+  Role,
+  User, 
+  AuthResponse, 
+  MobileHandoffExchangeRequest,
+  EmployeeListResponse,
+  CreateEmployeeRequest,
+  UpdateEmployeeRequest,
+} from './auth.js';
 
 export { VideoStatusSchema, VideoSchema, CreateVideoRequestSchema, UploadUrlResponseSchema, VideoListResponseSchema } from './videos.js';
 export type {
@@ -28,3 +40,4 @@ export type {
 } from './earnings.js';
 
 export * from './video.js';
+export * from './submissions.js';

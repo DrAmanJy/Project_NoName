@@ -1,27 +1,38 @@
 import type {
-  CreateVideoRequest,
-  UploadUrlResponse,
-  Video,
-  VideoListResponse,
+  CreateVideoUploadInput,
+  CreateVideoUploadResponse,
+  MultipartSignRequestInput,
+  MultipartSignResponse,
+  MultipartCompleteRequestInput,
 } from '@repo/contracts';
 import type { ApiClient } from './client';
 
 export function createVideosApi(client: ApiClient) {
   return {
-    list(page = 1, pageSize = 20): Promise<VideoListResponse> {
-      return client.get<VideoListResponse>(`/videos?page=${page}&pageSize=${pageSize}`);
+    createUpload(data: CreateVideoUploadInput): Promise<CreateVideoUploadResponse> {
+      return client.post<CreateVideoUploadResponse>('/videos/uploads', data);
     },
 
-    getById(id: string): Promise<Video> {
-      return client.get<Video>(`/videos/${id}`);
+    signParts(uploadId: string, data: MultipartSignRequestInput): Promise<MultipartSignResponse> {
+      return client.post<MultipartSignResponse>(`/videos/uploads/${uploadId}/sign-parts`, data);
     },
 
-    requestUploadUrl(data: CreateVideoRequest): Promise<UploadUrlResponse> {
-      return client.post<UploadUrlResponse>('/videos/upload-url', data);
+    completeUpload(uploadId: string, data: MultipartCompleteRequestInput): Promise<void> {
+      return client.post<void>(`/videos/uploads/${uploadId}/complete`, data);
     },
 
-    confirmUpload(fileKey: string): Promise<Video> {
-      return client.post<Video>('/videos/confirm-upload', { fileKey });
+    cancelUpload(uploadId: string): Promise<void> {
+      return client.post<void>(`/videos/uploads/${uploadId}/cancel`);
+    },
+
+    getUpload(uploadId: string): Promise<unknown> {
+      // Returning 'unknown' for now since specific interface might not exist in contracts for status yet,
+      // or we can use a basic Record<string, unknown>.
+      return client.get<unknown>(`/videos/${uploadId}`);
+    },
+
+    getVerification(uploadId: string): Promise<unknown> {
+      return client.get<unknown>(`/videos/${uploadId}/verification`);
     },
   };
 }

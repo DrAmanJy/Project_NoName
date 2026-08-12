@@ -1,24 +1,18 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import type { User } from '@repo/contracts';
+import type { User, Role } from '@repo/contracts';
 import { authApi } from '@/lib/api-client';
 
-export type UserRole = 'user' | 'employee' | 'admin';
-
-export interface UserWithRole extends User {
-  role?: UserRole;
-}
-
 interface AuthContextType {
-  user: UserWithRole | null;
-  role: UserRole;
+  user: User | null;
+  role: Role;
   isLoading: boolean;
   isAuthenticated: boolean;
   isUser: boolean;
   isEmployee: boolean;
   isAdmin: boolean;
-  hasRole: (allowedRoles: UserRole[]) => boolean;
+  hasRole: (allowedRoles: Role[]) => boolean;
   error: string | null;
   refetch: () => Promise<void>;
   logout: () => Promise<void>;
@@ -27,18 +21,18 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserWithRole | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const requestIdRef = useRef<number>(0);
 
-  const role: UserRole = user?.role ?? 'user';
+  const role: Role = user?.role ?? 'user';
   const isUser = role === 'user';
   const isEmployee = role === 'employee';
   const isAdmin = role === 'admin';
 
   const hasRole = useCallback(
-    (allowedRoles: UserRole[]) => allowedRoles.includes(role),
+    (allowedRoles: Role[]) => allowedRoles.includes(role),
     [role]
   );
 
@@ -50,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await authApi.me();
       if (currentRequestId !== requestIdRef.current) return;
       if (response.success && response.data?.user) {
-        setUser(response.data.user as UserWithRole);
+        setUser(response.data.user);
       } else {
         setUser(null);
       }

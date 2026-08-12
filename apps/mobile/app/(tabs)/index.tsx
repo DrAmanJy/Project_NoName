@@ -5,7 +5,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 export default function HomeScreen() {
-  const { signOut } = useAuth();
+  useAuth();
   const router = useRouter();
 
   return (

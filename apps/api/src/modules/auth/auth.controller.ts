@@ -18,7 +18,7 @@ export class AuthController {
     res.cookie(env.AUTH_COOKIE_NAME, token, {
       httpOnly: true,
       secure: env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'none',
       path: '/',
       maxAge: env.AUTH_SESSION_TTL_DAYS * 24 * 60 * 60 * 1000,
     });
@@ -85,7 +85,7 @@ export class AuthController {
 
     this.setSessionCookie(res, sessionToken);
 
-    res.redirect(`${env.FRONTEND_URL}/`);
+    res.redirect(`${env.FRONTEND_URL}/dashboard`);
   }
 
   // ================= Google =================
@@ -365,6 +365,7 @@ export class AuthController {
         email: user.email,
         avatarUrl: user.avatarUrl,
         isActive: user.isActive,
+        role: user.role,
         createdAt: user.createdAt.toISOString(),
         updatedAt: user.updatedAt.toISOString(),
       };

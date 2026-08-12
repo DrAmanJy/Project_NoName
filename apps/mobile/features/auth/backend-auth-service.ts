@@ -17,9 +17,9 @@ export class BackendAuthService implements AuthService {
       if (response.data?.user) {
         return response.data.user;
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Clear token ONLY on 401 Unauthorized (not on network errors or timeouts)
-      if (error?.status === 401) {
+      if (error && typeof error === 'object' && 'status' in error && error.status === 401) {
         await clearSessionToken();
       }
     }

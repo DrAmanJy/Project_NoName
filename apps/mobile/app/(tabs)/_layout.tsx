@@ -4,6 +4,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useAuth } from '../../features/auth/auth-provider';
 import { LoadingScreen } from '../../components/LoadingScreen';
 import { CustomTabBar } from '../../components/CustomTabBar';
+import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
 export default function TabsLayout() {
   const { status, user, signOut } = useAuth();
@@ -18,7 +19,7 @@ export default function TabsLayout() {
 
   return (
     <Tabs
-      tabBar={(props) => <CustomTabBar {...props} />}
+      tabBar={(props) => <CustomTabBar {...(props as unknown as BottomTabBarProps)} />}
       screenOptions={{
         headerShown: true,
         headerStyle: {

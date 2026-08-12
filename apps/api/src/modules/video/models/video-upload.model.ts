@@ -2,12 +2,15 @@ import mongoose, { Schema, type Document, type Types } from 'mongoose';
 
 export interface IVideoUpload extends Document {
   userId: Types.ObjectId;
+  submissionId: Types.ObjectId;
   objectKey: string;
   originalFileName: string;
-  title?: string;
-  description?: string;
   contentType: string;
   fileSize: number;
+  durationSeconds?: number;
+  width?: number;
+  height?: number;
+  thumbnailKey?: string;
   uploadId: string; // The multipart upload ID or unique session ID
   multipartUploadId: string; // The actual S3 multipart upload ID
   status:
@@ -36,6 +39,12 @@ const VideoUploadSchema = new Schema<IVideoUpload>(
       ref: 'User',
       index: true,
     },
+    submissionId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: 'Submission',
+      index: true,
+    },
     objectKey: {
       type: String,
       required: true,
@@ -44,14 +53,6 @@ const VideoUploadSchema = new Schema<IVideoUpload>(
       type: String,
       required: true,
     },
-    title: {
-      type: String,
-      required: false,
-    },
-    description: {
-      type: String,
-      required: false,
-    },
     contentType: {
       type: String,
       required: true,
@@ -59,6 +60,18 @@ const VideoUploadSchema = new Schema<IVideoUpload>(
     fileSize: {
       type: Number,
       required: true,
+    },
+    durationSeconds: {
+      type: Number,
+    },
+    width: {
+      type: Number,
+    },
+    height: {
+      type: Number,
+    },
+    thumbnailKey: {
+      type: String,
     },
     uploadId: {
       type: String,

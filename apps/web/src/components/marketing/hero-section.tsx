@@ -90,6 +90,8 @@ export function HeroSection() {
 
         // Initial fallback center position
         const rect = targetContainer.getBoundingClientRect();
+        targetContainer.style.setProperty('--mx', `${rect.width / 2}px`);
+        targetContainer.style.setProperty('--my', `${rect.height / 2}px`);
         targetDotGrid.style.setProperty('--mx', `${rect.width / 2}px`);
         targetDotGrid.style.setProperty('--my', `${rect.height / 2}px`);
 
@@ -97,6 +99,8 @@ export function HeroSection() {
           const r = targetContainer.getBoundingClientRect();
           const x = e.clientX - r.left;
           const y = e.clientY - r.top;
+          targetContainer.style.setProperty('--mx', `${x}px`);
+          targetContainer.style.setProperty('--my', `${y}px`);
           targetDotGrid.style.setProperty('--mx', `${x}px`);
           targetDotGrid.style.setProperty('--my', `${y}px`);
 
@@ -135,6 +139,7 @@ export function HeroSection() {
       </div>
 
       <div className="dot-grid-base" />
+      <div className="hero-spotlight" />
       <div ref={dotGridRef} className="dot-grid-hover" />
 
       <div className="z-20 text-center px-4 max-w-4xl mx-auto mt-20">

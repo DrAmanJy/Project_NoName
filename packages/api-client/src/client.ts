@@ -4,26 +4,31 @@ export class ApiError extends Error {
     public readonly statusText: string,
     public readonly body: unknown,
   ) {
-    super(`API Error ${status}: ${statusText}`);
+    const apiMessage = (body as { error?: string; message?: string })?.error || (body as { error?: string; message?: string })?.message;
+    const message = apiMessage ? String(apiMessage) : `HTTP ${status}: ${statusText}`;
+    super(message);
     this.name = 'ApiError';
   }
 }
 
 export interface ApiClientConfig {
   baseUrl: string;
-  getAccessToken?: () => Promise<string | null>;
   credentials?: RequestCredentials;
+  getAccessToken?: () => Promise<string | null>;
+  defaultOptions?: RequestInit;
 }
 
 export class ApiClient {
   private readonly baseUrl: string;
-  private readonly getAccessToken?: () => Promise<string | null>;
   private readonly credentials?: RequestCredentials;
+  private readonly getAccessToken?: () => Promise<string | null>;
+  private readonly defaultOptions: RequestInit;
 
   constructor(config: ApiClientConfig) {
     this.baseUrl = config.baseUrl.replace(/\/$/, '');
-    this.getAccessToken = config.getAccessToken;
     this.credentials = config.credentials;
+    this.getAccessToken = config.getAccessToken;
+    this.defaultOptions = config.defaultOptions || { credentials: 'include' };
   }
 
   private async buildHeaders(customHeaders?: HeadersInit): Promise<Headers> {
@@ -49,6 +54,7 @@ export class ApiClient {
 
     const response = await fetch(url, {
       credentials: this.credentials,
+      ...this.defaultOptions,
       ...options,
       headers,
     });
@@ -69,8 +75,9 @@ export class ApiClient {
     return this.request<T>(path, { method: 'GET' });
   }
 
-  async post<T>(path: string, body?: unknown): Promise<T> {
+  async post<T>(path: string, body?: unknown, options: RequestInit = {}): Promise<T> {
     return this.request<T>(path, {
+      ...options,
       method: 'POST',
       body: body ? JSON.stringify(body) : undefined,
     });

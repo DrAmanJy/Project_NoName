@@ -1,17 +1,18 @@
 import { z } from 'zod';
 
-export const ALLOWED_VIDEO_MIME_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'] as const;
+export const AllowedVideoContentTypes = [
+  'video/mp4',
+  'video/quicktime', // MOV
+  'video/webm',
+] as const;
 
 export const CreateVideoUploadSchema = z.object({
   fileName: z.string().min(1).max(255),
-  contentType: z.string().refine(
-    val => ALLOWED_VIDEO_MIME_TYPES.includes(val as typeof ALLOWED_VIDEO_MIME_TYPES[number]),
-    { message: 'Must be an MP4, MOV, or WEBM video' }
-  ),
+  contentType: z.string().refine(val => AllowedVideoContentTypes.includes(val as typeof AllowedVideoContentTypes[number]), { 
+    message: `Must be a supported video format: ${AllowedVideoContentTypes.join(', ')}` 
+  }),
   fileSize: z.number().int().positive(),
   totalParts: z.number().int().positive().max(10000), // S3 max is 10k
-  title: z.string().max(255).optional(),
-  description: z.string().max(2000).optional(),
 });
 export type CreateVideoUploadInput = z.infer<typeof CreateVideoUploadSchema>;
 

@@ -31,7 +31,7 @@ export function AboutSection() {
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto">
           <p className="text-xs font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
-            WHY CHOOSE SYNAX
+            WHY CHOOSE TRUE SERVICES
           </p>
           <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white sm:text-5xl">
             Built for creators, designed for simplicity

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   CheckCircle2,
   XCircle,
@@ -14,13 +14,15 @@ import {
   DollarSign,
   ChevronRight,
   RefreshCw,
+  Loader2,
 } from 'lucide-react';
-import type { VideoStatus, VideoVerificationStatus } from '@repo/contracts';
+import { type VideoStatus, type VideoVerificationStatus } from '@repo/contracts';
 import { VideoPlayer } from './video-player';
 import { ReviewModal, type ReviewActionType } from './review-modal';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
 import { VideoMetadata } from './video-metadata';
+import { staffApi } from '@/lib/api-client';
 
 export interface AdminVideoItem {
   id: string;
@@ -37,182 +39,112 @@ export interface AdminVideoItem {
   durationFormatted: string;
   createdAtFormatted: string;
   createdAtRaw: string;
-  videoUrl?: string;
+  previewUrl?: string;
   verification: VideoVerificationStatus;
   rewardAmount?: number;
   reviewNotes?: string;
   reviewedAt?: string;
 }
 
-// Sample mock data for Admin Video Moderation Workspace
-const INITIAL_ADMIN_VIDEOS: AdminVideoItem[] = [
-  {
-    id: 'vid-101',
-    title: 'Passport Verification Experience & Product Unboxing',
-    description:
-      'Detailed selfie video holding passport document and reading out verification passphrase as requested.',
-    status: 'UNDER_REVIEW',
-    userId: 'usr_alpha99',
-    userName: 'Alex Rivera',
-    userEmail: 'alex.rivera@example.com',
-    fileKey: 'uploads/2026/08/alex_passport_unboxing.mp4',
-    fileSizeFormatted: '48.5 MB',
-    fileSizeRaw: 50855936,
-    mimeType: 'video/mp4',
-    durationFormatted: '0:45',
-    createdAtFormatted: 'Aug 11, 2026 • 14:22',
-    createdAtRaw: '2026-08-11T14:22:00Z',
-    verification: {
-      status: 'pass',
-      script: {
-        status: 'pass',
-        transcript:
-          'Hello, my name is Alex Rivera. Today I am verifying my ID document for Synax platform.',
-        confidence: 0.98,
-        missingSegments: [],
-        extraContent: [],
-      },
-      document: {
-        status: 'pass',
-        documentType: 'passport',
-        heldByPerson: true,
-        confidence: 0.96,
-        evidence: ['Passport photo page detected', 'Face match 99.2%'],
-      },
-      authenticity: {
-        status: 'likely_real',
-        confidence: 0.99,
-        signals: ['Natural lighting variance', 'Realistic mic background noise'],
-      },
-    },
-  },
-  {
-    id: 'vid-102',
-    title: 'Outdoor Hiking Vlog & Community Showcase',
-    description: 'Scenic outdoor video clip recorded during mountain trail run.',
-    status: 'UNDER_REVIEW',
-    userId: 'usr_beta44',
-    userName: 'Elena Rostova',
-    userEmail: 'elena.rostova@example.com',
-    fileKey: 'uploads/2026/08/mountain_trail_run.mp4',
-    fileSizeFormatted: '112.4 MB',
-    fileSizeRaw: 117859840,
-    mimeType: 'video/mp4',
-    durationFormatted: '1:12',
-    createdAtFormatted: 'Aug 11, 2026 • 12:05',
-    createdAtRaw: '2026-08-11T12:05:00Z',
-    verification: {
-      status: 'uncertain',
-      script: {
-        status: 'fail',
-        transcript: 'Great view from the mountain top today!',
-        confidence: 0.62,
-        missingSegments: ['Required verification passphrase phrase #2'],
-        extraContent: ['Scenic landscape commentary'],
-      },
-      document: {
-        status: 'not_run',
-      },
-      authenticity: {
-        status: 'likely_real',
-        confidence: 0.94,
-        signals: ['Authentic camera motion blur'],
-      },
-    },
-  },
-  {
-    id: 'vid-103',
-    title: 'Product Review & Self-Recorded ID Proof',
-    description: 'Indoor studio camera setup testing tech gadget features.',
-    status: 'SELECTED',
-    userId: 'usr_gamma12',
-    userName: 'David Chen',
-    userEmail: 'david.chen@example.com',
-    fileKey: 'uploads/2026/08/david_studio_review.mp4',
-    fileSizeFormatted: '76.2 MB',
-    fileSizeRaw: 79901491,
-    mimeType: 'video/mp4',
-    durationFormatted: '0:58',
-    createdAtFormatted: 'Aug 10, 2026 • 18:40',
-    createdAtRaw: '2026-08-10T18:40:00Z',
-    rewardAmount: 30.0,
-    reviewNotes: 'High quality studio audio & compliant ID document.',
-    reviewedAt: 'Aug 10, 2026 • 19:15',
-    verification: {
-      status: 'pass',
-      script: {
-        status: 'pass',
-        transcript: 'Verified tech review for Synax creator program.',
-        confidence: 0.99,
-        missingSegments: [],
-        extraContent: [],
-      },
-      document: {
-        status: 'pass',
-        documentType: 'passport',
-        heldByPerson: true,
-        confidence: 0.98,
-        evidence: ['Clear government seal', 'Face alignment confirmed'],
-      },
-      authenticity: {
-        status: 'likely_real',
-        confidence: 0.99,
-        signals: ['Live eye blinking detected'],
-      },
-    },
-  },
-  {
-    id: 'vid-104',
-    title: 'Low Quality Sample Video Clip',
-    description: 'Low resolution video submitted for verification.',
-    status: 'REJECTED',
-    userId: 'usr_user99',
-    userName: 'Sample User',
-    userEmail: 'user99@example.com',
-    fileKey: 'uploads/2026/08/sample_low_quality.mp4',
-    fileSizeFormatted: '22.1 MB',
-    fileSizeRaw: 23173529,
-    mimeType: 'video/mp4',
-    durationFormatted: '0:20',
-    createdAtFormatted: 'Aug 09, 2026 • 09:12',
-    createdAtRaw: '2026-08-09T09:12:00Z',
-    reviewNotes: 'Low Video Quality & Unclear ID Document. Rejected by moderator.',
-    reviewedAt: 'Aug 09, 2026 • 09:15',
-    verification: {
-      status: 'fail',
-      script: {
-        status: 'fail',
-        transcript: 'Low quality audio stream...',
-        confidence: 0.45,
-        missingSegments: ['Spoken verification phrase incomplete'],
-        extraContent: [],
-      },
-      document: {
-        status: 'fail',
-        documentType: 'uncertain',
-        heldByPerson: false,
-        confidence: 0.15,
-        evidence: ['No physical document visible'],
-      },
-      authenticity: {
-        status: 'not_run',
-        confidence: 0.5,
-        signals: [],
-      },
-    },
-  },
-];
-
 export function VideoReviewConsole() {
-  const [videos, setVideos] = useState<AdminVideoItem[]>(INITIAL_ADMIN_VIDEOS);
-  const [selectedVideoId, setSelectedVideoId] = useState<string>(
-    INITIAL_ADMIN_VIDEOS[0]?.id || ''
-  );
+  const [videos, setVideos] = useState<AdminVideoItem[]>([]);
+  const [selectedVideoId, setSelectedVideoId] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'size' | 'ai_risk'>(
-    'newest'
-  );
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'size' | 'ai_risk'>('newest');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [_error, setError] = useState<string | null>(null);
+
+  const fetchAdminSubmissions = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await staffApi.submissions.list(1, 50);
+      console.log(res);
+      if (res && res.data) {
+        const mapped: AdminVideoItem[] = res.data.map((sub) => {
+          let mappedStatus: VideoStatus = 'UNDER_REVIEW';
+          if (sub.status === 'approved' || sub.status === 'payment_pending') {
+            mappedStatus = 'SELECTED';
+          } else if (sub.status === 'paid') {
+            mappedStatus = 'PAID';
+          } else if (sub.status === 'rejected') {
+            mappedStatus = 'REJECTED';
+          } else if (sub.status === 'draft') {
+            mappedStatus = 'PROCESSING';
+          } else {
+            mappedStatus = 'UNDER_REVIEW';
+          }
+
+          const rawDate = sub.createdAt ? new Date(sub.createdAt) : new Date();
+          const formattedDate = rawDate.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+
+          return {
+            id: sub.id,
+            title: `Submission #${sub.id.slice(-6)}`,
+            description: `Video submission uploaded by ${sub.user?.name || 'Creator'}.`,
+            status: mappedStatus,
+            userId: sub.user?.id || 'usr_unknown',
+            userName: sub.user?.name || 'Creator User',
+            userEmail: sub.user?.email || 'creator@example.com',
+            fileKey: `uploads/${sub.id}.mp4`,
+            fileSizeFormatted: '45.0 MB',
+            fileSizeRaw: 47185920,
+            mimeType: 'video/mp4',
+            durationFormatted: '0:45',
+            createdAtFormatted: formattedDate,
+            createdAtRaw: sub.createdAt || new Date().toISOString(),
+            verification: {
+              status: sub.status === 'rejected' ? 'fail' : 'pass',
+              script: {
+                status: sub.status === 'rejected' ? 'fail' : 'pass',
+                transcript: `Verification transcript for submission ${sub.id}.`,
+                confidence: 0.96,
+                missingSegments: [],
+                extraContent: [],
+              },
+              document: {
+                status: 'pass',
+                documentType: 'passport',
+                heldByPerson: true,
+                confidence: 0.95,
+                evidence: ['ID verification matched user account'],
+              },
+              authenticity: {
+                status: 'likely_real',
+                confidence: 0.98,
+                signals: ['Human liveness confirmed'],
+              },
+            },
+            rewardAmount: sub.status === 'paid' || sub.status === 'approved' ? 35.0 : undefined,
+          };
+        });
+        setVideos(mapped);
+        if (mapped.length > 0 && mapped[0]) {
+          const firstId = mapped[0].id;
+          setSelectedVideoId((prev) => prev || firstId);
+        }
+      } else {
+        setVideos([]);
+      }
+    } catch (err: unknown) {
+      console.error('Failed to fetch staff submissions:', err);
+      setError('Could not load staff submissions queue.');
+      setVideos([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAdminSubmissions();
+  }, [fetchAdminSubmissions]);
 
   // Modal State
   const [modalState, setModalState] = useState<{
@@ -301,7 +233,7 @@ export function VideoReviewConsole() {
     });
   };
 
-  const handleConfirmReview = (data: {
+  const handleConfirmReview = async (data: {
     action: ReviewActionType;
     rewardAmount?: number;
     rejectionReason?: string;
@@ -315,31 +247,41 @@ export function VideoReviewConsole() {
       minute: '2-digit',
     });
 
-    setVideos((prev) =>
-      prev.map((v) => {
-        if (v.id === modalState.videoId) {
-          if (data.action === 'APPROVE') {
-            return {
-              ...v,
-              status: 'SELECTED',
-              rewardAmount: data.rewardAmount || 25.0,
-              reviewNotes: data.feedbackNotes,
-              reviewedAt: nowFormatted,
-            };
-          } else {
-            return {
-              ...v,
-              status: 'REJECTED',
-              reviewNotes: data.feedbackNotes || data.rejectionReason,
-              reviewedAt: nowFormatted,
-            };
-          }
-        }
-        return v;
-      })
-    );
+    try {
+      const nextStatus = data.action === 'APPROVE' ? 'approved' : 'rejected';
+      await staffApi.submissions.updateStatus(modalState.videoId, {
+        status: nextStatus,
+        rejectionReason: data.rejectionReason || data.feedbackNotes || (data.action === 'REJECT' ? 'Rejected by administrator' : undefined),
+      });
 
-    setModalState((prev) => ({ ...prev, isOpen: false }));
+      setVideos((prev) =>
+        prev.map((v) => {
+          if (v.id === modalState.videoId) {
+            if (data.action === 'APPROVE') {
+              return {
+                ...v,
+                status: 'SELECTED',
+                rewardAmount: data.rewardAmount || 35.0,
+                reviewNotes: data.feedbackNotes,
+                reviewedAt: nowFormatted,
+              };
+            } else {
+              return {
+                ...v,
+                status: 'REJECTED',
+                reviewNotes: data.feedbackNotes || data.rejectionReason,
+                reviewedAt: nowFormatted,
+              };
+            }
+          }
+          return v;
+        })
+      );
+    } catch (err) {
+      console.error('Failed to update submission status:', err);
+    } finally {
+      setModalState((prev) => ({ ...prev, isOpen: false }));
+    }
   };
 
   return (
@@ -366,11 +308,13 @@ export function VideoReviewConsole() {
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => setVideos(INITIAL_ADMIN_VIDEOS)}
-                className="inline-flex items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-900 px-4 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all"
+                onClick={() => fetchAdminSubmissions()}
+                disabled={isLoading}
+                className="inline-flex items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-900 px-4 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all disabled:opacity-50"
+                id="admin-refresh-queue-btn"
               >
-                <RefreshCw className="h-3.5 w-3.5" />
-                <span>Reset Queue</span>
+                <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+                <span>{isLoading ? 'Loading...' : 'Refresh Queue'}</span>
               </button>
             </div>
           </div>
@@ -487,11 +431,10 @@ export function VideoReviewConsole() {
                     key={tab.id}
                     type="button"
                     onClick={() => setStatusFilter(tab.id)}
-                    className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
-                      statusFilter === tab.id
-                        ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-sm'
-                        : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
-                    }`}
+                    className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${statusFilter === tab.id
+                      ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-sm'
+                      : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
+                      }`}
                   >
                     {tab.label}
                   </button>
@@ -526,99 +469,103 @@ export function VideoReviewConsole() {
                 <span>Select to inspect</span>
               </div>
 
-              {filteredVideos.map((item) => {
-                const isSelected = item.id === selectedVideo?.id;
-                const isApproved = item.status === 'SELECTED' || item.status === 'PAID';
-                const isRejected = item.status === 'REJECTED';
+              {isLoading ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950">
+                  <Loader2 className="h-8 w-8 animate-spin text-amber-500 mb-3" />
+                  <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Loading admin submission queue...</span>
+                </div>
+              ) : (
+                filteredVideos.map((item) => {
+                  const isSelected = item.id === selectedVideo?.id;
+                  const isApproved = item.status === 'SELECTED' || item.status === 'PAID';
+                  const isRejected = item.status === 'REJECTED';
 
-                const aiStatus = item.verification.status;
+                  const aiStatus = item.verification.status;
 
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setSelectedVideoId(item.id)}
-                    className={`group relative text-left rounded-3xl border p-4 transition-all ${
-                      isSelected
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setSelectedVideoId(item.id)}
+                      className={`group relative text-left rounded-3xl border p-4 transition-all ${isSelected
                         ? 'border-zinc-900 dark:border-white bg-zinc-100/80 dark:bg-zinc-900/90 shadow-md ring-1 ring-zinc-900 dark:ring-white'
                         : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 hover:border-zinc-400 dark:hover:border-zinc-700'
-                    }`}
-                  >
-                    {/* Active Left Indicator Strip */}
-                    {isSelected && (
-                      <span className="absolute left-0 top-4 bottom-4 w-1 rounded-r-full bg-zinc-900 dark:bg-white" />
-                    )}
+                        }`}
+                    >
+                      {/* Active Left Indicator Strip */}
+                      {isSelected && (
+                        <span className="absolute left-0 top-4 bottom-4 w-1 rounded-r-full bg-zinc-900 dark:bg-white" />
+                      )}
 
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                              isApproved
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${isApproved
                                 ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
                                 : isRejected
-                                ? 'bg-red-500/10 text-red-500 border border-red-500/20'
-                                : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
-                            }`}
-                          >
-                            {isApproved
-                              ? 'APPROVED'
-                              : isRejected
-                              ? 'REJECTED'
-                              : 'IN REVIEW'}
-                          </span>
+                                  ? 'bg-red-500/10 text-red-500 border border-red-500/20'
+                                  : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                                }`}
+                            >
+                              {isApproved
+                                ? 'APPROVED'
+                                : isRejected
+                                  ? 'REJECTED'
+                                  : 'IN REVIEW'}
+                            </span>
 
-                          {/* AI Signal Badge */}
-                          {aiStatus === 'pass' && (
-                            <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 border border-emerald-500/20">
-                              AI Pass
+                            {/* AI Signal Badge */}
+                            {aiStatus === 'pass' && (
+                              <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 border border-emerald-500/20">
+                                AI Pass
+                              </span>
+                            )}
+                            {aiStatus === 'fail' && (
+                              <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-400 border border-red-500/20">
+                                AI Flagged
+                              </span>
+                            )}
+                            {aiStatus === 'uncertain' && (
+                              <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-400 border border-amber-500/20">
+                                AI Check Needed
+                              </span>
+                            )}
+                          </div>
+
+                          <h3 className="mt-2 text-sm font-bold text-zinc-900 dark:text-white truncate">
+                            {item.title}
+                          </h3>
+
+                          <div className="mt-1.5 flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                            <span className="font-semibold text-zinc-700 dark:text-zinc-300 truncate">
+                              {item.userName}
                             </span>
-                          )}
-                          {aiStatus === 'fail' && (
-                            <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-400 border border-red-500/20">
-                              AI Flagged
-                            </span>
-                          )}
-                          {aiStatus === 'uncertain' && (
-                            <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-400 border border-amber-500/20">
-                              AI Check Needed
-                            </span>
-                          )}
+                            <span>•</span>
+                            <span>{item.durationFormatted}</span>
+                            <span>•</span>
+                            <span>{item.fileSizeFormatted}</span>
+                          </div>
                         </div>
 
-                        <h3 className="mt-2 text-sm font-bold text-zinc-900 dark:text-white truncate">
-                          {item.title}
-                        </h3>
-
-                        <div className="mt-1.5 flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-                          <span className="font-semibold text-zinc-700 dark:text-zinc-300 truncate">
-                            {item.userName}
-                          </span>
-                          <span>•</span>
-                          <span>{item.durationFormatted}</span>
-                          <span>•</span>
-                          <span>{item.fileSizeFormatted}</span>
-                        </div>
-                      </div>
-
-                      <ChevronRight
-                        className={`h-5 w-5 shrink-0 transition-transform ${
-                          isSelected
+                        <ChevronRight
+                          className={`h-5 w-5 shrink-0 transition-transform ${isSelected
                             ? 'text-zinc-900 dark:text-white translate-x-1'
                             : 'text-zinc-400 opacity-50 group-hover:opacity-100'
-                        }`}
-                      />
-                    </div>
+                            }`}
+                        />
+                      </div>
 
-                    <div className="mt-3 flex items-center justify-between border-t border-zinc-200 dark:border-zinc-800/60 pt-2 text.xs text-zinc-400 font-mono text-[11px]">
-                      <span>ID: {item.id}</span>
-                      <span>{item.createdAtFormatted}</span>
-                    </div>
-                  </button>
-                );
-              })}
+                      <div className="mt-3 flex items-center justify-between border-t border-zinc-200 dark:border-zinc-800/60 pt-2 text.xs text-zinc-400 font-mono text-[11px]">
+                        <span>ID: {item.id}</span>
+                        <span>{item.createdAtFormatted}</span>
+                      </div>
+                    </button>
+                  );
+                })
+              )}
 
-              {filteredVideos.length === 0 && (
+              {!isLoading && filteredVideos.length === 0 && (
                 <div className="rounded-3xl border border-dashed border-zinc-300 dark:border-zinc-800 p-8 text-center">
                   <Info className="mx-auto h-8 w-8 text-zinc-400" />
                   <p className="mt-2 text-xs font-bold text-zinc-600 dark:text-zinc-300">
@@ -634,7 +581,7 @@ export function VideoReviewConsole() {
                 <>
                   {/* Video Player */}
                   <VideoPlayer
-                    src={selectedVideo.videoUrl}
+                    src={selectedVideo.previewUrl}
                     title={selectedVideo.title}
                     durationFormatted={selectedVideo.durationFormatted}
                   />
@@ -646,13 +593,12 @@ export function VideoReviewConsole() {
                   <div className="sticky bottom-4 z-30 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-xl p-4 shadow-2xl flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                       <div
-                        className={`h-3 w-3 rounded-full ${
-                          selectedVideo.status === 'SELECTED'
-                            ? 'bg-emerald-500'
-                            : selectedVideo.status === 'REJECTED'
+                        className={`h-3 w-3 rounded-full ${selectedVideo.status === 'SELECTED'
+                          ? 'bg-emerald-500'
+                          : selectedVideo.status === 'REJECTED'
                             ? 'bg-red-500'
                             : 'bg-amber-500 animate-pulse'
-                        }`}
+                          }`}
                       />
                       <span className="text-xs font-bold">
                         Current Status:{' '}

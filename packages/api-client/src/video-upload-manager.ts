@@ -1,6 +1,4 @@
 import type {
-  CreateVideoUploadInput,
-  CreateVideoUploadResponse,
   MultipartSignRequestInput,
   MultipartSignResponse,
   MultipartCompleteRequestInput,
@@ -19,10 +17,9 @@ export interface UploadSource {
 
 export interface VideoUploadManagerOptions {
   apiClient: ApiClient;
+  uploadId: string;
   source: UploadSource;
   fileName: string;
-  title?: string;
-  description?: string;
   partSize?: number; // Default 8MB
   concurrency?: number; // Default 4
   onProgress?: (bytesUploaded: number, totalBytes: number) => void;
@@ -42,20 +39,15 @@ interface PartState {
 
 export class VideoUploadManager {
   private readonly apiClient: ApiClient;
+  private readonly uploadId: string;
   private readonly source: UploadSource;
   private readonly fileName: string;
-  private readonly title?: string;
-  private readonly description?: string;
   private readonly partSize: number;
   private readonly concurrency: number;
   private readonly onProgress?: (bytesUploaded: number, totalBytes: number) => void;
   private readonly onStateChange?: (state: 'created' | 'uploading' | 'paused' | 'completed' | 'error' | 'cancelled') => void;
   private readonly onError?: (error: Error) => void;
   private readonly onComplete?: (videoId: string) => void;
-
-  private uploadId: string | null = null;
-  private multipartUploadId: string | null = null;
-  private objectKey: string | null = null;
   
   private parts: PartState[] = [];
   private activeUploads = 0;
@@ -65,10 +57,9 @@ export class VideoUploadManager {
 
   constructor(options: VideoUploadManagerOptions) {
     this.apiClient = options.apiClient;
+    this.uploadId = options.uploadId;
     this.source = options.source;
     this.fileName = options.fileName;
-    this.title = options.title;
-    this.description = options.description;
     this.partSize = options.partSize || 8 * 1024 * 1024;
     this.concurrency = options.concurrency || 4;
     
@@ -79,20 +70,16 @@ export class VideoUploadManager {
   }
 
   /**
-   * Resumes an existing upload or starts a new one if uploadId is not provided.
+   * Resumes an existing upload or starts a new one based on the initialized uploadId.
    */
-  public async start(existingUploadId?: string, existingMultipartUploadId?: string, existingObjectKey?: string, completedParts?: { partNumber: number, eTag: string }[]) {
+  public async start(completedParts?: { partNumber: number, eTag: string }[]) {
     try {
       this.isPaused = false;
       this.isCancelled = false;
 
-      if (existingUploadId && existingMultipartUploadId && existingObjectKey) {
-        this.uploadId = existingUploadId;
-        this.multipartUploadId = existingMultipartUploadId;
-        this.objectKey = existingObjectKey;
-        this.initializeParts(completedParts || []);
-      } else {
-        await this.createUploadSession();
+      if (completedParts) {
+        this.initializeParts(completedParts);
+      } else if (this.parts.length === 0) {
         this.initializeParts([]);
       }
 
@@ -103,29 +90,6 @@ export class VideoUploadManager {
     }
   }
 
-  /**
-   * Retries an upload session without recreating the session or wiping progress,
-   * unless the upload was cancelled.
-   */
-  public async retry() {
-    if (this.isCancelled || !this.uploadId) {
-      this.uploadId = null;
-      this.multipartUploadId = null;
-      this.objectKey = null;
-      return this.start();
-    }
-    this.isPaused = false;
-    this.isCancelled = false;
-    for (const part of this.parts) {
-      if (part.status === 'failed') {
-        part.status = 'pending';
-        part.retryCount = 0;
-      }
-    }
-    this.setState('uploading');
-    this.uploadNextParts();
-  }
-
   public pause() {
     this.isPaused = true;
     this.setState('paused');
@@ -134,32 +98,11 @@ export class VideoUploadManager {
   public async cancel() {
     this.isCancelled = true;
     this.setState('cancelled');
-    if (this.uploadId) {
-      try {
-        await this.apiClient.post(`/videos/uploads/${this.uploadId}/cancel`);
-      } catch (err) {
-        console.error('Failed to cancel upload on server:', err);
-      }
+    try {
+      await this.apiClient.post(`/videos/uploads/${this.uploadId}/cancel`);
+    } catch (err) {
+      console.error('Failed to cancel upload on server:', err);
     }
-  }
-
-  private async createUploadSession() {
-    const totalParts = Math.ceil(this.source.size / this.partSize);
-    
-    const request: CreateVideoUploadInput = {
-      fileName: this.fileName,
-      contentType: this.source.contentType,
-      fileSize: this.source.size,
-      totalParts,
-      title: this.title,
-      description: this.description,
-    };
-
-    const response = await this.apiClient.post<CreateVideoUploadResponse>('/videos/uploads', request);
-    this.uploadId = response.uploadId;
-    this.multipartUploadId = response.multipartUploadId;
-    this.objectKey = response.objectKey;
-    this.setState('created');
   }
 
   private initializeParts(completedParts: { partNumber: number, eTag: string }[]) {

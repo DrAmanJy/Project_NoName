@@ -1,15 +1,12 @@
-import type { Metadata } from 'next';
+'use client';
+
+import { RoleGuard } from '@/components/auth/role-guard';
 import { DashboardView } from '@/components/dashboard/dashboard-view';
 
-export const metadata: Metadata = {
-  title: 'Creator Dashboard | Synax',
-  description: 'View your uploaded videos, track verification and progress status, and monitor video earnings.',
-  robots: {
-    index: false,
-    follow: false,
-  },
-};
-
 export default function DashboardPage() {
-  return <DashboardView />;
+  return (
+    <RoleGuard allowedRoles={['user', 'employee', 'admin']} fallbackUrl="/">
+      <DashboardView />
+    </RoleGuard>
+  );
 }

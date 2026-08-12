@@ -13,7 +13,7 @@ export function Footer() {
                 <Video className="h-5 w-5" />
               </div>
               <span className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                Synax<span className="text-zinc-500">.</span>
+                True Services<span className="text-zinc-500">.</span>
               </span>
             </Link>
             <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400 max-w-sm leading-relaxed">
@@ -30,7 +30,7 @@ export function Footer() {
             <div>
               <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-white">Platform</h3>
               <ul className="mt-4 flex flex-col gap-2.5 text-sm text-zinc-600 dark:text-zinc-400">
-                <li><a href="#about" className="hover:text-zinc-900 dark:hover:text-white">About Synax</a></li>
+                <li><a href="#about" className="hover:text-zinc-900 dark:hover:text-white">About True Services</a></li>
                 <li><a href="#how-it-works" className="hover:text-zinc-900 dark:hover:text-white">How It Works</a></li>
                 <li><a href="#upload" className="hover:text-zinc-900 dark:hover:text-white">Upload Video</a></li>
                 <li><a href="#testimonials" className="hover:text-zinc-900 dark:hover:text-white">Creator Reviews</a></li>
@@ -60,7 +60,7 @@ export function Footer() {
 
         {/* Bottom Bar */}
         <div className="mt-12 border-t border-zinc-200 dark:border-zinc-900 pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-500 dark:text-zinc-400 gap-4">
-          <p>© {new Date().getFullYear()} Synax Platform. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} True Services Platform. All rights reserved.</p>
           <div className="flex gap-6 font-medium">
             <a href="#about" className="hover:text-zinc-900 dark:hover:text-white">Privacy</a>
             <a href="#about" className="hover:text-zinc-900 dark:hover:text-white">Terms</a>

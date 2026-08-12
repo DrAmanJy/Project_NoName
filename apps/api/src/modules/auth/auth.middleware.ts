@@ -9,6 +9,7 @@ declare global {
         userId: string;
         sessionId: string;
       };
+      authError?: string;
     }
   }
 }
@@ -22,6 +23,7 @@ export const optionalAuth = async (req: Request, res: Response, next: NextFuncti
     }
 
     if (!sessionToken) {
+      req.authError = 'Missing session token';
       return next();
     }
 
@@ -34,6 +36,7 @@ export const optionalAuth = async (req: Request, res: Response, next: NextFuncti
         sameSite: 'lax',
         path: '/',
       });
+      req.authError = 'Session invalid or expired';
       return next();
     }
 
@@ -53,7 +56,10 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
       return next(err);
     }
     if (!req.auth) {
-      res.status(401).json({ success: false, error: 'Unauthorized' });
+      res.status(401).json({ 
+        success: false, 
+        error: `Unauthorized: ${req.authError || 'Access denied'}` 
+      });
       return;
     }
     next();

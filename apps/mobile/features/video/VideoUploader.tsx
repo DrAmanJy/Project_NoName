@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
-import { View, Text, Button, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, Button, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { router } from 'expo-router';
 import { VideoUploadManager } from '@repo/api-client';
 import { MobileUploadSource } from './mobile-upload-source';
-import { apiClient } from '../../lib/api';
+import { apiClient, submissionsApi } from '../../lib/api';
 
 export function VideoUploader() {
   const [fileUri, setFileUri] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [fileSize, setFileSize] = useState<number | null>(null);
   const [mimeType, setMimeType] = useState<string | null>(null);
+  const [duration, setDuration] = useState<number | null>(null);
+  const [width, setWidth] = useState<number | null>(null);
+  const [height, setHeight] = useState<number | null>(null);
 
   const [uploadManager, setUploadManager] = useState<VideoUploadManager | null>(null);
   const [progress, setProgress] = useState(0);
@@ -25,10 +29,19 @@ export function VideoUploader() {
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const asset = result.assets[0]!;
+      const mime = asset.mimeType || 'video/mp4';
+      if (!['video/mp4', 'video/quicktime', 'video/webm', 'video/x-m4v'].includes(mime)) {
+        setError('Please select a supported video file (.mp4, .mov, or .webm).');
+        return;
+      }
       setFileUri(asset.uri);
       setFileName(asset.fileName || 'video.mp4');
       setFileSize(asset.fileSize || 0);
       setMimeType(asset.mimeType || 'video/mp4');
+      // Expo ImagePicker returns duration in milliseconds
+      setDuration(asset.duration ? asset.duration / 1000 : null);
+      setWidth(asset.width || null);
+      setHeight(asset.height || null);
       setError(null);
     }
   };
@@ -37,23 +50,44 @@ export function VideoUploader() {
     if (!fileUri || !fileSize || !fileName || !mimeType) return;
 
     try {
+      // 1. Create submission
+      // React Native doesn't have crypto.randomUUID() by default, use a fallback or Math.random
+      const idempotencyKey = Date.now().toString() + Math.random().toString(36).substring(7);
+      const totalParts = Math.ceil(fileSize / (8 * 1024 * 1024));
+
+      const response = await submissionsApi.create({
+        fileName: fileName,
+        contentType: mimeType as any,
+        fileSize: fileSize,
+        totalParts,
+        country: 'United States',
+        durationSeconds: duration || undefined,
+        width: width || undefined,
+        height: height || undefined,
+      }, idempotencyKey);
+
+      const { submissionId, uploadId } = response;
+
+      // 2. Start upload
       const source = new MobileUploadSource(fileUri, fileSize, mimeType);
       const manager = new VideoUploadManager({
         apiClient: apiClient,
+        uploadId: uploadId,
         source,
         fileName: fileName,
         onProgress: (uploaded: number, total: number) => {
           setProgress(Math.round((uploaded / total) * 100));
         },
-        onStateChange: (state: any) => {
-          setStatus(state);
+        onStateChange: (state: unknown) => {
+          setStatus(state as string);
         },
         onError: (err: Error) => {
           setError(err.message);
         },
         onComplete: (videoId: string) => {
           setStatus('completed');
-          console.log('Upload complete, ID:', videoId);
+          console.warn('Upload complete, ID:', videoId);
+          router.push(`/submissions/${submissionId}`);
         }
       });
 
