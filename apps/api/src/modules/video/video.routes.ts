@@ -6,7 +6,7 @@ const router = Router();
 
 router.use(requireAuth);
 
-router.post('/uploads', (req, res, next) => { videoController.createUpload(req, res, next).catch(next); });
+router.post('/uploads', (req, res, next) => { videoController.createUpload(req, res).catch(next); });
 router.post('/uploads/:uploadId/sign-parts', (req, res, next) => { videoController.signParts(req, res, next).catch(next); });
 router.post('/uploads/:uploadId/complete', (req, res, next) => { videoController.completeUpload(req, res, next).catch(next); });
 router.post('/uploads/:uploadId/cancel', (req, res, next) => { videoController.cancelUpload(req, res, next).catch(next); });

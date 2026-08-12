@@ -5,8 +5,10 @@ import {
   CompleteMultipartUploadCommand,
   AbortMultipartUploadCommand,
   GetObjectCommand,
-  DeleteObjectCommand
+  DeleteObjectCommand,
+  PutObjectCommand
 } from '@aws-sdk/client-s3';
+import fs from 'fs';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { NodeHttpHandler } from '@smithy/node-http-handler';
 import { env } from '../../../config/env.js';
@@ -110,6 +112,18 @@ export class S3Service {
     });
 
     return getSignedUrl(this.client, command, { expiresIn });
+  }
+
+  public async uploadFile(key: string, filePath: string, contentType: string) {
+    const fileStream = fs.createReadStream(filePath);
+    const command = new PutObjectCommand({
+      Bucket: env.R2_BUCKET_NAME,
+      Key: key,
+      Body: fileStream,
+      ContentType: contentType,
+    });
+    
+    await this.client.send(command);
   }
 }
 

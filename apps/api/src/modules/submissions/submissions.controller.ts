@@ -227,8 +227,14 @@ export class SubmissionsController {
       const timeline = timelineMap[submission.status] || timelineMap.draft;
 
       let previewUrl: string | null = null;
-      if (upload && (upload.status === 'uploaded' || upload.status === 'processing' || upload.status === 'verified')) {
-        previewUrl = await s3Service.getSignedDownloadUrl(upload.objectKey, 900).catch(() => null);
+      let thumbnailUrl: string | null = null;
+      if (upload) {
+        if (upload.status === 'uploaded' || upload.status === 'processing' || upload.status === 'verified') {
+          previewUrl = await s3Service.getSignedDownloadUrl(upload.objectKey, 900).catch(() => null);
+        }
+        if (upload.thumbnailKey) {
+          thumbnailUrl = await s3Service.getSignedDownloadUrl(upload.thumbnailKey, 900).catch(() => null);
+        }
       }
 
       res.json({
@@ -247,7 +253,7 @@ export class SubmissionsController {
           uploadStatus: upload.status,
           uploadedAt: upload.completedAt ? upload.completedAt.toISOString() : null,
           previewUrl,
-          thumbnailUrl: null, // Hardcoded to null until thumbnail generation exists
+          thumbnailUrl,
         } : null,
         verification: verification ? {
           overallStatus: verification.overallStatus,
