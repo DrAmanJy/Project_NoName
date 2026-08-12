@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import {
   Video,
@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
+import { submissionsApi } from '@/lib/api-client';
 import type { VideoStatus } from '@repo/contracts';
 
 interface VideoProgressStep {
@@ -51,193 +52,96 @@ export function DashboardView() {
   const [selectedFilter, setSelectedFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedVideo, setSelectedVideo] = useState<UploadedVideoItem | null>(null);
+  const [videos, setVideos] = useState<UploadedVideoItem[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const mockVideos: UploadedVideoItem[] = [
-    {
-      id: 'vid-101',
-      title: 'Urban Exploration & Coffee Culture Vlog',
-      fileName: 'urban_coffee_vlog_4k.mp4',
-      fileSize: '124.5 MB',
-      duration: '03:42',
-      uploadedAt: 'Aug 11, 2026',
-      status: 'UNDER_REVIEW',
-      statusLabel: 'In Review',
-      rewardAmount: '$35.00',
-      thumbnailBg: 'from-amber-600/30 to-zinc-900',
-      steps: [
-        {
-          title: 'Video Uploaded',
-          description: 'Multipart chunk upload completed successfully',
-          state: 'completed',
-          timestamp: 'Aug 11, 2026 • 10:15 AM',
-        },
-        {
-          title: 'Transcoding & Processing',
-          description: 'Format optimization and resolution check done',
-          state: 'completed',
-          timestamp: 'Aug 11, 2026 • 10:17 AM',
-        },
-        {
-          title: 'Quality & Guideline Review',
-          description: 'Reviewing against platform guidelines',
-          state: 'current',
-          timestamp: 'In progress (Est. 2-4 hours remaining)',
-        },
-        {
-          title: 'Payout Approval',
-          description: 'Reward credited to creator wallet',
-          state: 'pending',
-        },
-      ],
-    },
-    {
-      id: 'vid-102',
-      title: 'Mountain Sunset Timelapse Experience',
-      fileName: 'mountain_sunset_timelapse.mov',
-      fileSize: '88.2 MB',
-      duration: '02:15',
-      uploadedAt: 'Aug 09, 2026',
-      status: 'PAID',
-      statusLabel: 'Approved & Paid',
-      rewardAmount: '$50.00',
-      thumbnailBg: 'from-emerald-600/30 to-zinc-900',
-      steps: [
-        {
-          title: 'Video Uploaded',
-          description: 'Upload verified',
-          state: 'completed',
-          timestamp: 'Aug 09, 2026 • 02:30 PM',
-        },
-        {
-          title: 'Transcoding & Processing',
-          description: 'H.264 1080p stream generated',
-          state: 'completed',
-          timestamp: 'Aug 09, 2026 • 02:32 PM',
-        },
-        {
-          title: 'Quality & Guideline Review',
-          description: 'Passed all manual quality standards',
-          state: 'completed',
-          timestamp: 'Aug 09, 2026 • 04:10 PM',
-        },
-        {
-          title: 'Payout Approval',
-          description: '$50.00 transferred to wallet balance',
-          state: 'completed',
-          timestamp: 'Aug 09, 2026 • 04:15 PM',
-        },
-      ],
-    },
-    {
-      id: 'vid-103',
-      title: 'Tech Gadget Unboxing & First Impression',
-      fileName: 'gadget_unbox_draft1.mp4',
-      fileSize: '210.0 MB',
-      duration: '05:20',
-      uploadedAt: 'Aug 11, 2026',
-      status: 'PROCESSING',
-      statusLabel: 'Processing',
-      rewardAmount: '$40.00',
-      thumbnailBg: 'from-blue-600/30 to-zinc-900',
-      steps: [
-        {
-          title: 'Video Uploaded',
-          description: 'Upload finished',
-          state: 'completed',
-          timestamp: 'Aug 11, 2026 • 04:45 PM',
-        },
-        {
-          title: 'Transcoding & Processing',
-          description: 'Generating adaptive streaming formats',
-          state: 'current',
-          timestamp: 'Processing 75%',
-        },
-        {
-          title: 'Quality & Guideline Review',
-          description: 'Queued for review team',
-          state: 'pending',
-        },
-        {
-          title: 'Payout Approval',
-          description: 'Pending review outcome',
-          state: 'pending',
-        },
-      ],
-    },
-    {
-      id: 'vid-104',
-      title: 'Night Drone Shots of City Skyline',
-      fileName: 'city_drone_night_fail.mp4',
-      fileSize: '64.8 MB',
-      duration: '01:45',
-      uploadedAt: 'Aug 07, 2026',
-      status: 'REJECTED',
-      statusLabel: 'Rejected',
-      rewardAmount: '$0.00',
-      rejectionReason: 'Video resolution below required 1080p threshold or contains heavy compression artifacts.',
-      thumbnailBg: 'from-red-600/30 to-zinc-900',
-      steps: [
-        {
-          title: 'Video Uploaded',
-          description: 'File received',
-          state: 'completed',
-          timestamp: 'Aug 07, 2026 • 11:20 AM',
-        },
-        {
-          title: 'Transcoding & Processing',
-          description: 'Transcode complete',
-          state: 'completed',
-          timestamp: 'Aug 07, 2026 • 11:22 AM',
-        },
-        {
-          title: 'Quality & Guideline Review',
-          description: 'Failed technical requirements (Low resolution)',
-          state: 'rejected',
-          timestamp: 'Aug 07, 2026 • 01:05 PM',
-        },
-      ],
-    },
-    {
-      id: 'vid-105',
-      title: 'Beachside Fitness & Workout Routine',
-      fileName: 'beach_workout_4k.mp4',
-      fileSize: '155.3 MB',
-      duration: '04:10',
-      uploadedAt: 'Aug 03, 2026',
-      status: 'PAID',
-      statusLabel: 'Approved & Paid',
-      rewardAmount: '$60.00',
-      thumbnailBg: 'from-emerald-600/30 to-zinc-900',
-      steps: [
-        {
-          title: 'Video Uploaded',
-          description: 'Upload verified',
-          state: 'completed',
-          timestamp: 'Aug 03, 2026 • 09:00 AM',
-        },
-        {
-          title: 'Transcoding & Processing',
-          description: 'Transcode complete',
-          state: 'completed',
-          timestamp: 'Aug 03, 2026 • 09:03 AM',
-        },
-        {
-          title: 'Quality & Guideline Review',
-          description: 'Approved by review panel',
-          state: 'completed',
-          timestamp: 'Aug 03, 2026 • 11:30 AM',
-        },
-        {
-          title: 'Payout Approval',
-          description: '$60.00 transferred to wallet balance',
-          state: 'completed',
-          timestamp: 'Aug 03, 2026 • 11:35 AM',
-        },
-      ],
-    },
-  ];
+  const fetchUserSubmissions = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const res = await submissionsApi.list(1, 50).catch(() => null);
+      if (res && Array.isArray(res.data) && res.data.length > 0) {
+        const mapped: UploadedVideoItem[] = res.data.map((item) => {
+          let status: VideoStatus = 'UNDER_REVIEW';
+          let statusLabel = 'In Review';
+          if (item.status === 'approved' || item.status === 'paid') {
+            status = 'PAID';
+            statusLabel = 'Approved & Paid';
+          } else if (item.status === 'rejected') {
+            status = 'REJECTED';
+            statusLabel = 'Rejected';
+          } else if (item.status === 'draft') {
+            status = 'PROCESSING';
+            statusLabel = 'Processing';
+          }
 
-  const filteredVideos = mockVideos.filter((video) => {
+          const steps: VideoProgressStep[] =
+            item.timeline && item.timeline.length > 0
+              ? item.timeline.map((step) => ({
+                  title:
+                    step.key === 'video_uploaded'
+                      ? 'Video Uploaded'
+                      : step.key === 'under_review'
+                      ? 'Quality & Guideline Review'
+                      : 'Payout Approval',
+                  description: step.message || 'Timeline step status updated',
+                  state: step.status as VideoProgressStep['state'],
+                  timestamp: step.completedAt ? new Date(step.completedAt).toLocaleString() : undefined,
+                }))
+              : [
+                  {
+                    title: 'Video Uploaded',
+                    description: 'S3 chunk upload verified',
+                    state: 'completed',
+                    timestamp: new Date(item.createdAt).toLocaleString(),
+                  },
+                  {
+                    title: 'Quality & Guideline Review',
+                    description: 'Checking content against guidelines',
+                    state: item.status === 'in_review' ? 'current' : item.status === 'rejected' ? 'rejected' : 'completed',
+                  },
+                  {
+                    title: 'Payout Approval',
+                    description: 'Reward disbursement to wallet',
+                    state: item.status === 'paid' ? 'completed' : 'pending',
+                  },
+                ];
+
+          const formattedDate = new Date(item.createdAt).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+          });
+
+          return {
+            id: item.id,
+            title: `Submission - ${formattedDate}`,
+            fileName: `submission_${item.id.slice(-6)}.mp4`,
+            fileSize: '120.0 MB',
+            duration: '03:30',
+            uploadedAt: formattedDate,
+            status,
+            statusLabel,
+            rewardAmount: item.status === 'paid' || item.status === 'approved' ? '$50.00' : '$0.00',
+            thumbnailBg: 'from-amber-600/30 to-zinc-900',
+            steps,
+          };
+        });
+        setVideos(mapped);
+      } else {
+        setVideos([]);
+      }
+    } catch {
+      setVideos([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUserSubmissions();
+  }, [fetchUserSubmissions]);
+
+  const filteredVideos = videos.filter((video) => {
     const matchesFilter =
       selectedFilter === 'ALL' ||
       (selectedFilter === 'PROCESSING' && (video.status === 'PROCESSING' || video.status === 'UPLOADING')) ||
@@ -252,11 +156,15 @@ export function DashboardView() {
     return matchesFilter && matchesSearch;
   });
 
-  const totalVideos = mockVideos.length;
-  const inReviewCount = mockVideos.filter((v) => v.status === 'UNDER_REVIEW' || v.status === 'PROCESSING').length;
-  const paidCount = mockVideos.filter((v) => v.status === 'PAID' || v.status === 'SELECTED').length;
-  const totalEarnedAmount = 110.0;
-  const pendingEarnedAmount = 75.0;
+  const totalVideos = videos.length;
+  const inReviewCount = videos.filter((v) => v.status === 'UNDER_REVIEW' || v.status === 'PROCESSING').length;
+  const paidCount = videos.filter((v) => v.status === 'PAID' || v.status === 'SELECTED').length;
+  const totalEarnedAmount = videos
+    .filter((v) => v.status === 'PAID' || v.status === 'SELECTED')
+    .reduce((acc, v) => acc + (parseFloat(v.rewardAmount?.replace('$', '') || '0') || 50), 0);
+  const pendingEarnedAmount = videos
+    .filter((v) => v.status === 'UNDER_REVIEW' || v.status === 'PROCESSING')
+    .reduce((acc, _v) => acc + 35.0, 0);
 
   return (
     <div className="flex min-h-screen flex-col bg-white dark:bg-black text-zinc-900 dark:text-zinc-50 transition-colors duration-300">
@@ -398,282 +306,316 @@ export function DashboardView() {
               </div>
 
               {/* Controls: Search & Filter Tabs */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                {/* Search input */}
-                <div className="relative flex items-center">
-                  <Search className="absolute left-3 h-4 w-4 text-zinc-400 pointer-events-none" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search videos by title..."
-                    className="h-10 w-full sm:w-64 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 pl-9 pr-4 text-xs text-zinc-900 dark:text-white outline-none focus:border-zinc-900 dark:focus:border-white transition-colors"
-                    id="dashboard-search-input"
-                  />
-                </div>
-
-                {/* Filter Pills */}
-                <div className="flex items-center gap-1 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-1">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedFilter('ALL')}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                      selectedFilter === 'ALL'
-                        ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-sm'
-                        : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
-                    }`}
-                    id="filter-tab-all"
-                  >
-                    All
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedFilter('PROCESSING')}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                      selectedFilter === 'PROCESSING'
-                        ? 'bg-blue-600 text-white shadow-sm'
-                        : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
-                    }`}
-                    id="filter-tab-processing"
-                  >
-                    Processing
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedFilter('IN_REVIEW')}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                      selectedFilter === 'IN_REVIEW'
-                        ? 'bg-amber-600 text-white shadow-sm'
-                        : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
-                    }`}
-                    id="filter-tab-in-review"
-                  >
-                    In Review
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedFilter('PAID')}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                      selectedFilter === 'PAID'
-                        ? 'bg-emerald-600 text-white shadow-sm'
-                        : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
-                    }`}
-                    id="filter-tab-paid"
-                  >
-                    Paid
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedFilter('REJECTED')}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                      selectedFilter === 'REJECTED'
-                        ? 'bg-red-600 text-white shadow-sm'
-                        : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
-                    }`}
-                    id="filter-tab-rejected"
-                  >
-                    Rejected
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Video Items List / Grid */}
-            <div className="space-y-4">
-              {filteredVideos.map((video) => {
-                const isRejected = video.status === 'REJECTED';
-                const isInReview = video.status === 'UNDER_REVIEW';
-                const isProcessing = video.status === 'PROCESSING' || video.status === 'UPLOADING';
-                const isPaid = video.status === 'PAID' || video.status === 'SELECTED';
-
-                return (
-                  <div
-                    key={video.id}
-                    className="group rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-6 shadow-sm transition-all hover:border-zinc-400 dark:hover:border-zinc-700"
-                  >
-                    <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-                      {/* Left: Video Preview & Metadata */}
-                      <div className="flex items-start gap-4">
-                        {/* Video Thumbnail Placeholder */}
-                        <div
-                          className={`relative flex h-24 w-36 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${video.thumbnailBg} border border-zinc-700/50 shadow-inner group-hover:scale-102 transition-transform`}
-                        >
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-md">
-                            <Play className="h-4 w-4 fill-white ml-0.5" />
-                          </div>
-                          <span className="absolute bottom-2 right-2 rounded-md bg-black/80 px-1.5 py-0.5 text-[10px] font-mono font-medium text-white">
-                            {video.duration}
-                          </span>
-                        </div>
-
-                        {/* Details */}
-                        <div>
-                          <div className="flex items-center gap-3 flex-wrap">
-                            <h3 className="text-base font-bold text-zinc-900 dark:text-white group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors">
-                              {video.title}
-                            </h3>
-                            {/* Status Badge */}
-                            <span
-                              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-xs font-bold ${
-                                isPaid
-                                  ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
-                                  : isInReview
-                                  ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
-                                  : isProcessing
-                                  ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
-                                  : 'bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
-                              }`}
-                            >
-                              {isProcessing && <RefreshCw className="h-3 w-3 animate-spin" />}
-                              {isInReview && <Clock className="h-3 w-3" />}
-                              {isPaid && <CheckCircle2 className="h-3 w-3" />}
-                              {isRejected && <AlertCircle className="h-3 w-3" />}
-                              <span>{video.statusLabel}</span>
-                            </span>
-                          </div>
-
-                          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-2">
-                            <span>{video.fileName}</span>
-                            <span>•</span>
-                            <span>{video.fileSize}</span>
-                            <span>•</span>
-                            <span>Uploaded on {video.uploadedAt}</span>
-                          </p>
-
-                          {/* Rejection Notice Banner if Rejected */}
-                          {isRejected && video.rejectionReason && (
-                            <div className="mt-3 rounded-xl bg-red-50 dark:bg-red-950/40 p-3 border border-red-200 dark:border-red-900/50 text-xs text-red-700 dark:text-red-300">
-                              <span className="font-bold">Reason: </span>
-                              {video.rejectionReason}
-                            </div>
-                          )}
-
-                          {/* Reward Badge */}
-                          {video.rewardAmount && !isRejected && (
-                            <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-900/50">
-                              <DollarSign className="h-3.5 w-3.5" />
-                              <span>Reward Target: {video.rewardAmount}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Right: Actions */}
-                      <div className="flex items-center gap-2 shrink-0 self-end lg:self-start">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedVideo(video)}
-                          className="flex items-center gap-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-2 text-xs font-bold text-zinc-900 dark:text-white shadow-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-                          id={`video-details-btn-${video.id}`}
-                        >
-                          <Eye className="h-3.5 w-3.5 text-zinc-500" />
-                          <span>Status Details</span>
-                        </button>
-
-                        {isPaid && (
-                          <Link
-                            href="/dashboard/earnings"
-                            className="flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 text-xs font-bold shadow-sm transition-colors"
-                            id={`video-earnings-btn-${video.id}`}
-                          >
-                            <Wallet className="h-3.5 w-3.5" />
-                            <span>View Earning</span>
-                          </Link>
-                        )}
-
-                        {isRejected && (
-                          <Link
-                            href="/dashboard/videos/upload"
-                            className="flex items-center gap-1.5 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-4 py-2 text-xs font-bold shadow-sm hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-colors"
-                          >
-                            <Upload className="h-3.5 w-3.5" />
-                            <span>Re-upload</span>
-                          </Link>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Horizontal 4-Step Progress Tracker */}
-                    <div className="mt-6 pt-5 border-t border-zinc-200 dark:border-zinc-900">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                        {video.steps.map((step, idx) => {
-                          const isCompleted = step.state === 'completed';
-                          const isCurrent = step.state === 'current';
-                          const isStepRejected = step.state === 'rejected';
-
-                          return (
-                            <div
-                              key={idx}
-                              className={`flex items-start gap-3 rounded-xl p-3 border transition-colors ${
-                                isCompleted
-                                  ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200/60 dark:border-emerald-900/30'
-                                  : isCurrent
-                                  ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200/60 dark:border-amber-900/30'
-                                  : isStepRejected
-                                  ? 'bg-red-50/50 dark:bg-red-950/20 border-red-200/60 dark:border-red-900/30'
-                                  : 'bg-zinc-100/50 dark:bg-zinc-900/40 border-zinc-200/40 dark:border-zinc-800/40'
-                              }`}
-                            >
-                              <div
-                                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                                  isCompleted
-                                    ? 'bg-emerald-600 text-white'
-                                    : isCurrent
-                                    ? 'bg-amber-600 text-white'
-                                    : isStepRejected
-                                    ? 'bg-red-600 text-white'
-                                    : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-500'
-                                }`}
-                              >
-                                {isCompleted ? (
-                                  <CheckCircle2 className="h-3.5 w-3.5" />
-                                ) : isCurrent ? (
-                                  <Clock className="h-3.5 w-3.5" />
-                                ) : isStepRejected ? (
-                                  <X className="h-3.5 w-3.5" />
-                                ) : (
-                                  <span>{idx + 1}</span>
-                                )}
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <p
-                                  className={`text-xs font-bold truncate ${
-                                    isCompleted
-                                      ? 'text-emerald-900 dark:text-emerald-300'
-                                      : isCurrent
-                                      ? 'text-amber-900 dark:text-amber-300'
-                                      : isStepRejected
-                                      ? 'text-red-900 dark:text-red-300'
-                                      : 'text-zinc-500 dark:text-zinc-400'
-                                  }`}
-                                >
-                                  {step.title}
-                                </p>
-                                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-1">
-                                  {step.description}
-                                </p>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
+              {videos.length > 0 && (
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  {/* Search input */}
+                  <div className="relative flex items-center">
+                    <Search className="absolute left-3 h-4 w-4 text-zinc-400 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search videos by title..."
+                      className="h-10 w-full sm:w-64 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 pl-9 pr-4 text-xs text-zinc-900 dark:text-white outline-none focus:border-zinc-900 dark:focus:border-white transition-colors"
+                      id="dashboard-search-input"
+                    />
                   </div>
-                );
-              })}
 
-              {filteredVideos.length === 0 && (
-                <div className="rounded-3xl border border-dashed border-zinc-300 dark:border-zinc-800 p-12 text-center">
-                  <Video className="mx-auto h-12 w-12 text-zinc-400" />
-                  <h3 className="mt-4 text-base font-bold text-zinc-900 dark:text-white">
-                    No matching videos found
-                  </h3>
-                  <p className="mt-1 text-xs text-zinc-500">
-                    Try adjusting your search query or filter selection.
-                  </p>
+                  {/* Filter Pills */}
+                  <div className="flex items-center gap-1 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-1">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFilter('ALL')}
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                        selectedFilter === 'ALL'
+                          ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-sm'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
+                      }`}
+                      id="filter-tab-all"
+                    >
+                      All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFilter('PROCESSING')}
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                        selectedFilter === 'PROCESSING'
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
+                      }`}
+                      id="filter-tab-processing"
+                    >
+                      Processing
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFilter('IN_REVIEW')}
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                        selectedFilter === 'IN_REVIEW'
+                          ? 'bg-amber-600 text-white shadow-sm'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
+                      }`}
+                      id="filter-tab-in-review"
+                    >
+                      In Review
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFilter('PAID')}
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                        selectedFilter === 'PAID'
+                          ? 'bg-emerald-600 text-white shadow-sm'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
+                      }`}
+                      id="filter-tab-paid"
+                    >
+                      Paid
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFilter('REJECTED')}
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                        selectedFilter === 'REJECTED'
+                          ? 'bg-red-600 text-white shadow-sm'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
+                      }`}
+                      id="filter-tab-rejected"
+                    >
+                      Rejected
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
+
+            {/* Video Items List / Loading / Empty State */}
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-16 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50">
+                <RefreshCw className="h-8 w-8 animate-spin text-amber-500 mb-3" />
+                <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+                  Loading your video submissions...
+                </p>
+              </div>
+            ) : videos.length === 0 ? (
+              /* Explicit No Video Uploaded Empty State */
+              <div className="rounded-3xl border border-dashed border-zinc-300 dark:border-zinc-800 p-12 sm:p-16 text-center bg-zinc-50/50 dark:bg-zinc-950/50">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-400 mb-4">
+                  <Video className="h-8 w-8" />
+                </div>
+                <h3 className="text-lg font-bold text-zinc-900 dark:text-white">
+                  No video uploaded
+                </h3>
+                <p className="mt-1 text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 max-w-md mx-auto">
+                  You haven&apos;t uploaded any videos yet. Start uploading your video content to track real-time moderation, quality verification, and earn rewards.
+                </p>
+                <div className="mt-6">
+                  <Link
+                    href="/dashboard/videos/upload"
+                    className="inline-flex items-center gap-2 rounded-xl bg-zinc-900 dark:bg-white px-6 py-3 text-xs font-bold text-white dark:text-zinc-900 shadow-md transition-all hover:bg-zinc-800 dark:hover:bg-zinc-100 hover:scale-[1.02]"
+                    id="dashboard-empty-upload-btn"
+                  >
+                    <Upload className="h-4 w-4" />
+                    <span>Upload Your First Video</span>
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredVideos.map((video) => {
+                  const isRejected = video.status === 'REJECTED';
+                  const isInReview = video.status === 'UNDER_REVIEW';
+                  const isProcessing = video.status === 'PROCESSING' || video.status === 'UPLOADING';
+                  const isPaid = video.status === 'PAID' || video.status === 'SELECTED';
+
+                  return (
+                    <div
+                      key={video.id}
+                      className="group rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-6 shadow-sm transition-all hover:border-zinc-400 dark:hover:border-zinc-700"
+                    >
+                      <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                        {/* Left: Video Preview & Metadata */}
+                        <div className="flex items-start gap-4">
+                          {/* Video Thumbnail Placeholder */}
+                          <div
+                            className={`relative flex h-24 w-36 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${video.thumbnailBg} border border-zinc-700/50 shadow-inner group-hover:scale-102 transition-transform`}
+                          >
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-md">
+                              <Play className="h-4 w-4 fill-white ml-0.5" />
+                            </div>
+                            <span className="absolute bottom-2 right-2 rounded-md bg-black/80 px-1.5 py-0.5 text-[10px] font-mono font-medium text-white">
+                              {video.duration}
+                            </span>
+                          </div>
+
+                          {/* Details */}
+                          <div>
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <h3 className="text-base font-bold text-zinc-900 dark:text-white group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors">
+                                {video.title}
+                              </h3>
+                              {/* Status Badge */}
+                              <span
+                                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-xs font-bold ${
+                                  isPaid
+                                    ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
+                                    : isInReview
+                                    ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
+                                    : isProcessing
+                                    ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
+                                    : 'bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
+                                }`}
+                              >
+                                {isProcessing && <RefreshCw className="h-3 w-3 animate-spin" />}
+                                {isInReview && <Clock className="h-3 w-3" />}
+                                {isPaid && <CheckCircle2 className="h-3 w-3" />}
+                                {isRejected && <AlertCircle className="h-3 w-3" />}
+                                <span>{video.statusLabel}</span>
+                              </span>
+                            </div>
+
+                            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-2">
+                              <span>{video.fileName}</span>
+                              <span>•</span>
+                              <span>{video.fileSize}</span>
+                              <span>•</span>
+                              <span>Uploaded on {video.uploadedAt}</span>
+                            </p>
+
+                            {/* Rejection Notice Banner if Rejected */}
+                            {isRejected && video.rejectionReason && (
+                              <div className="mt-3 rounded-xl bg-red-50 dark:bg-red-950/40 p-3 border border-red-200 dark:border-red-900/50 text-xs text-red-700 dark:text-red-300">
+                                <span className="font-bold">Reason: </span>
+                                {video.rejectionReason}
+                              </div>
+                            )}
+
+                            {/* Reward Badge */}
+                            {video.rewardAmount && !isRejected && (
+                              <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-900/50">
+                                <DollarSign className="h-3.5 w-3.5" />
+                                <span>Reward Target: {video.rewardAmount}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Right: Actions */}
+                        <div className="flex items-center gap-2 shrink-0 self-end lg:self-start">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedVideo(video)}
+                            className="flex items-center gap-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-2 text-xs font-bold text-zinc-900 dark:text-white shadow-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                            id={`video-details-btn-${video.id}`}
+                          >
+                            <Eye className="h-3.5 w-3.5 text-zinc-500" />
+                            <span>Status Details</span>
+                          </button>
+
+                          {isPaid && (
+                            <Link
+                              href="/dashboard/earnings"
+                              className="flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 text-xs font-bold shadow-sm transition-colors"
+                              id={`video-earnings-btn-${video.id}`}
+                            >
+                              <Wallet className="h-3.5 w-3.5" />
+                              <span>View Earning</span>
+                            </Link>
+                          )}
+
+                          {isRejected && (
+                            <Link
+                              href="/dashboard/videos/upload"
+                              className="flex items-center gap-1.5 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-4 py-2 text-xs font-bold shadow-sm hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-colors"
+                            >
+                              <Upload className="h-3.5 w-3.5" />
+                              <span>Re-upload</span>
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Horizontal 4-Step Progress Tracker */}
+                      <div className="mt-6 pt-5 border-t border-zinc-200 dark:border-zinc-900">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                          {video.steps.map((step, idx) => {
+                            const isCompleted = step.state === 'completed';
+                            const isCurrent = step.state === 'current';
+                            const isStepRejected = step.state === 'rejected';
+
+                            return (
+                              <div
+                                key={idx}
+                                className={`flex items-start gap-3 rounded-xl p-3 border transition-colors ${
+                                  isCompleted
+                                    ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200/60 dark:border-emerald-900/30'
+                                    : isCurrent
+                                    ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200/60 dark:border-amber-900/30'
+                                    : isStepRejected
+                                    ? 'bg-red-50/50 dark:bg-red-950/20 border-red-200/60 dark:border-red-900/30'
+                                    : 'bg-zinc-100/50 dark:bg-zinc-900/40 border-zinc-200/40 dark:border-zinc-800/40'
+                                }`}
+                              >
+                                <div
+                                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                                    isCompleted
+                                      ? 'bg-emerald-600 text-white'
+                                      : isCurrent
+                                      ? 'bg-amber-600 text-white'
+                                      : isStepRejected
+                                      ? 'bg-red-600 text-white'
+                                      : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-500'
+                                  }`}
+                                >
+                                  {isCompleted ? (
+                                    <CheckCircle2 className="h-3.5 w-3.5" />
+                                  ) : isCurrent ? (
+                                    <Clock className="h-3.5 w-3.5" />
+                                  ) : isStepRejected ? (
+                                    <X className="h-3.5 w-3.5" />
+                                  ) : (
+                                    <span>{idx + 1}</span>
+                                  )}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <p
+                                    className={`text-xs font-bold truncate ${
+                                      isCompleted
+                                        ? 'text-emerald-900 dark:text-emerald-300'
+                                        : isCurrent
+                                        ? 'text-amber-900 dark:text-amber-300'
+                                        : isStepRejected
+                                        ? 'text-red-900 dark:text-red-300'
+                                        : 'text-zinc-500 dark:text-zinc-400'
+                                    }`}
+                                  >
+                                    {step.title}
+                                  </p>
+                                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-1">
+                                    {step.description}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {filteredVideos.length === 0 && (
+                  <div className="rounded-3xl border border-dashed border-zinc-300 dark:border-zinc-800 p-12 text-center">
+                    <Video className="mx-auto h-12 w-12 text-zinc-400" />
+                    <h3 className="mt-4 text-base font-bold text-zinc-900 dark:text-white">
+                      No matching videos found
+                    </h3>
+                    <p className="mt-1 text-xs text-zinc-500">
+                      Try adjusting your search query or filter selection.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </main>

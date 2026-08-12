@@ -85,7 +85,7 @@ export class AuthController {
 
     this.setSessionCookie(res, sessionToken);
 
-    res.redirect(`${env.FRONTEND_URL}/`);
+    res.redirect(`${env.FRONTEND_URL}/dashboard`);
   }
 
   // ================= Google =================

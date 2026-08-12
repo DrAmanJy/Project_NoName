@@ -1,15 +1,12 @@
-import type { Metadata } from 'next';
+'use client';
+
+import { RoleGuard } from '@/components/auth/role-guard';
 import { EarningsView } from '@/components/dashboard/earnings-view';
 
-export const metadata: Metadata = {
-  title: 'Earnings & Submissions | Synax',
-  description: 'Track expected earnings and view video submission status.',
-  robots: {
-    index: false,
-    follow: false,
-  },
-};
-
 export default function EarningsPage() {
-  return <EarningsView />;
+  return (
+    <RoleGuard allowedRoles={['user', 'employee', 'admin']} fallbackUrl="/">
+      <EarningsView />
+    </RoleGuard>
+  );
 }

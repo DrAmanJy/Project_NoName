@@ -11,7 +11,7 @@ export function Navbar() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, role } = useAuth();
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -63,17 +63,19 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden items-center gap-8 md:flex">
-            {navLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.href}
-                className="text-sm font-medium text-zinc-600 dark:text-zinc-400 transition-colors hover:text-zinc-900 dark:hover:text-white"
-              >
-                {link.name}
-              </a>
-            ))}
-          </nav>
+          {!isAuthenticated && (
+            <nav className="hidden items-center gap-8 md:flex">
+              {navLinks.map((link) => (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  className="text-sm font-medium text-zinc-600 dark:text-zinc-400 transition-colors hover:text-zinc-900 dark:hover:text-white"
+                >
+                  {link.name}
+                </a>
+              ))}
+            </nav>
+          )}
 
           {/* Actions */}
           <div className="hidden items-center gap-3 md:flex">
@@ -103,6 +105,14 @@ export function Navbar() {
                   </div>
                   <span>{user.name}</span>
                 </Link>
+                {(role === 'admin' || role === 'employee') && (
+                  <Link
+                    href="/admin/employees"
+                    className="rounded-full bg-purple-100 dark:bg-purple-950/60 px-3 py-1 text-xs font-bold text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 hover:bg-purple-200 dark:hover:bg-purple-900 transition-colors"
+                  >
+                    {role === 'admin' ? 'Admin Portal' : 'Staff Portal'}
+                  </Link>
+                )}
                 <button
                   type="button"
                   onClick={logout}
@@ -158,16 +168,17 @@ export function Navbar() {
         {mobileMenuOpen && (
           <div className="border-b border-zinc-200 dark:border-zinc-900 bg-white dark:bg-black px-4 py-6 md:hidden">
             <div className="flex flex-col gap-4">
-              {navLinks.map((link) => (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="py-1.5 text-base font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white"
-                >
-                  {link.name}
-                </a>
-              ))}
+              {!isAuthenticated &&
+                navLinks.map((link) => (
+                  <a
+                    key={link.name}
+                    href={link.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="py-1.5 text-base font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white"
+                  >
+                    {link.name}
+                  </a>
+                ))}
               <div className="mt-4 flex flex-col gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-900">
                 {isAuthenticated && user ? (
                   <div className="flex flex-col gap-2">
@@ -188,6 +199,15 @@ export function Navbar() {
                         <span className="text-xs font-normal text-zinc-500">{user.email || 'Creator'}</span>
                       </div>
                     </Link>
+                    {(role === 'admin' || role === 'employee') && (
+                      <Link
+                        href="/admin/employees"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="w-full text-center rounded-xl bg-purple-100 dark:bg-purple-950/60 p-2.5 text-xs font-bold text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800"
+                      >
+                        {role === 'admin' ? 'Admin Portal' : 'Staff Portal'}
+                      </Link>
+                    )}
                     <button
                       type="button"
                       onClick={() => {
