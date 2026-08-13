@@ -11,8 +11,6 @@ import {
   Loader2,
   X,
   Check,
-  UserPlus,
-  Mail,
   User as UserIcon,
   ShieldAlert,
 } from 'lucide-react';
@@ -74,7 +72,7 @@ export function EmployeeManagementConsole() {
     return employees.filter((emp) => {
       const matchesSearch =
         !searchQuery.trim() ||
-        emp.name.toLowerCase().includes(searchQuery.toLowerCase().trim()) ||
+        (emp.name?.toLowerCase() || '').includes(searchQuery.toLowerCase().trim()) ||
         (emp.email && emp.email.toLowerCase().includes(searchQuery.toLowerCase().trim()));
 
       return matchesSearch;
@@ -96,7 +94,7 @@ export function EmployeeManagementConsole() {
   const handleOpenEditModal = (employee: ExtendedUser) => {
     setEditingEmployee(employee);
     setFormData({
-      name: employee.name,
+      name: employee.name || '',
       email: employee.email || '',
       role: employee.role,
       avatarUrl: employee.avatarUrl || '',
@@ -113,7 +111,6 @@ export function EmployeeManagementConsole() {
 
     try {
       const updatedRes = await adminApi.employees.update(editingEmployee.id, {
-        name: formData.name,
         role: formData.role,
       });
 
@@ -271,7 +268,7 @@ export function EmployeeManagementConsole() {
                 {filteredEmployees.map((emp) => {
                   const avatarSrc =
                     emp.avatarUrl ||
-                    `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(emp.name)}`;
+                    `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(emp.name || 'User')}`;
                   const formattedDate = new Date(emp.createdAt).toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
@@ -292,7 +289,7 @@ export function EmployeeManagementConsole() {
                               alt={emp.name}
                               className="h-full w-full object-cover"
                               onError={(e) => {
-                                (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(emp.name)}`;
+                                (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(emp.name || 'User')}`;
                               }}
                             />
                           </div>
@@ -402,9 +399,9 @@ export function EmployeeManagementConsole() {
                 <input
                   type="text"
                   required
+                  disabled
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
+                  className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900/60 px-3.5 py-2.5 text-xs text-zinc-500 dark:text-zinc-400 cursor-not-allowed select-none opacity-75 focus:outline-none"
                 />
               </div>
 

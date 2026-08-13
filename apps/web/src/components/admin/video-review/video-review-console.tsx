@@ -26,7 +26,7 @@ import { staffApi } from '@/lib/api-client';
 
 export interface AdminVideoUser {
   id: string;
-  name: string;
+  name?: string;
   email?: string;
   avatarUrl?: string | null;
   isActive?: boolean;

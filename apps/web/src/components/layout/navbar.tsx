@@ -117,12 +117,12 @@ export function Navbar() {
                 >
                   <div className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[10px] font-bold overflow-hidden ring-2 ring-zinc-300 dark:ring-zinc-700 group-hover:ring-amber-500 transition-all">
                     {user.avatarUrl ? (
-                      <img src={user.avatarUrl} alt={user.name} className="h-6 w-6 rounded-full object-cover" />
+                      <img src={user.avatarUrl} alt={user.name || 'User'} className="h-6 w-6 rounded-full object-cover" />
                     ) : (
-                      user.name.charAt(0).toUpperCase()
+                      (user.name || 'U').charAt(0).toUpperCase()
                     )}
                   </div>
-                  <span>{user.name}</span>
+                  <span>{user.name || 'User'}</span>
                   <ChevronDown className={`h-3.5 w-3.5 text-zinc-400 transition-transform duration-200 ${isProfileMenuOpen ? 'rotate-180 text-zinc-900 dark:text-white' : ''}`} />
                 </button>
 
@@ -132,13 +132,13 @@ export function Navbar() {
                     <div className="flex items-center gap-3 pb-3 border-b border-zinc-100 dark:border-zinc-800/80">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-sm font-bold shadow-md">
                         {user.avatarUrl ? (
-                          <img src={user.avatarUrl} alt={user.name} className="h-10 w-10 rounded-full object-cover" />
+                          <img src={user.avatarUrl} alt={user.name || 'User'} className="h-10 w-10 rounded-full object-cover" />
                         ) : (
-                          user.name.charAt(0).toUpperCase()
+                          (user.name || 'U').charAt(0).toUpperCase()
                         )}
                       </div>
                       <div className="flex flex-col min-w-0">
-                        <span className="text-sm font-bold text-zinc-900 dark:text-white truncate">{user.name}</span>
+                        <span className="text-sm font-semibold text-zinc-900 dark:text-white">{user.name || 'User'}</span>
                         <span className="text-xs text-zinc-500 dark:text-zinc-400 truncate">{user.email || 'Creator Account'}</span>
                         <span className="mt-1.5 inline-flex w-fit items-center rounded-md bg-zinc-100 dark:bg-zinc-900 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800">
                           {role}
@@ -269,13 +269,13 @@ export function Navbar() {
                     >
                       <div className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-xs font-bold overflow-hidden">
                         {user.avatarUrl ? (
-                          <img src={user.avatarUrl} alt={user.name} className="h-7 w-7 rounded-full object-cover" />
+                          <img src={user.avatarUrl} alt={user.name || 'User'} className="h-7 w-7 rounded-full object-cover" />
                         ) : (
-                          user.name.charAt(0).toUpperCase()
+                          (user.name || 'U').charAt(0).toUpperCase()
                         )}
                       </div>
                       <div className="flex flex-col">
-                        <span>{user.name}</span>
+                        <span>{user.name || 'User'}</span>
                         <span className="text-xs font-normal text-zinc-500">{user.email || 'Creator'}</span>
                       </div>
                     </Link>

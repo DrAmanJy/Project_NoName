@@ -69,7 +69,7 @@ export function EarningsView() {
 
       if (submissionsRes && Array.isArray(submissionsRes.data)) {
         submissionsRes.data.forEach((item) => {
-          const amount = item.rewardAmount || 25; // Default expected earning if null
+          const amount = (item.status === 'paid' || item.status === 'approved' ? item.earning : item.expectedEarning) / 100 || 25; // Default expected earning if null
           if (item.status === 'paid' || item.status === 'approved' || item.status === 'payment_pending') {
             calcPaid += amount;
           } else if (item.status !== 'rejected') {
@@ -149,7 +149,7 @@ export function EarningsView() {
             }),
             status,
             statusText,
-            estimatedReward: item.rewardAmount != null ? `$${item.rewardAmount.toFixed(2)}` : '$25.00',
+            estimatedReward: `₹${((item.status === 'paid' || item.status === 'approved' ? item.earning : item.expectedEarning) / 100).toFixed(2)}`,
             steps,
           };
         });

@@ -1,7 +1,6 @@
 import type { ApiClient } from './client.js';
 import type {
   EmployeeListResponse,
-  CreateEmployeeRequest,
   UpdateEmployeeRequest,
   User,
 } from '@repo/contracts';
@@ -15,7 +14,6 @@ export function createAdminApi(client: ApiClient) {
         if (role) query.append('role', role);
         return client.get<EmployeeListResponse>(`/admin/employees?${query}`);
       },
-      create: (data: CreateEmployeeRequest) => client.post<User>(`/admin/employees`, data),
       update: (id: string, data: UpdateEmployeeRequest) => client.patch<User>(`/admin/employees/${id}`, data),
     }
   };

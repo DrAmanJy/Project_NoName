@@ -1,0 +1,41 @@
+• turbo 2.10.9
+
+   • Packages in scope: web
+   • Running typecheck in 1 packages
+   • Remote caching disabled
+
+@repo/contracts:build: cache hit, replaying logs 07097d1d830a66ed
+@repo/contracts:build: $ tsc
+web:typecheck: cache miss, executing 5be281e3764afa22
+web:typecheck: $ next typegen && tsc --noEmit
+web:typecheck: Generating route types...
+web:typecheck: ✓ Types generated successfully
+web:typecheck: src/components/admin/employees/employee-management-console.tsx(77,9): error TS18048: 'emp.name' is possibly 'undefined'.
+web:typecheck: src/components/admin/employees/employee-management-console.tsx(99,7): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+web:typecheck:   Type 'undefined' is not assignable to type 'string'.
+web:typecheck: src/components/admin/employees/employee-management-console.tsx(116,9): error TS2353: Object literal may only specify known properties, and 'name' does not exist in type '{ isActive?: boolean | undefined; role?: "user" | "employee" | "admin" | undefined; }'.
+web:typecheck: src/components/admin/employees/employee-management-console.tsx(274,91): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string | number | boolean'.
+web:typecheck:   Type 'undefined' is not assignable to type 'string | number | boolean'.
+web:typecheck: src/components/admin/employees/employee-management-console.tsx(295,140): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string | number | boolean'.
+web:typecheck:   Type 'undefined' is not assignable to type 'string | number | boolean'.
+web:typecheck: src/components/admin/video-review/video-review-console.tsx(122,15): error TS2322: Type '{ id: string; createdAt: string; status: "PROCESSING" | "UNDER_REVIEW" | "SELECTED" | "REJECTED" | "PAID"; rejectionReason: string | null; reviewedAt: string | null; reviewedBy: AdminVideoUser | null; ... 18 more ...; earning: number; }[]' is not assignable to type 'AdminVideoItem[]'.
+web:typecheck:   Type '{ id: string; createdAt: string; status: "PROCESSING" | "UNDER_REVIEW" | "SELECTED" | "REJECTED" | "PAID"; rejectionReason: string | null; reviewedAt: string | null; reviewedBy: AdminVideoUser | null; ... 18 more ...; earning: number; }' is not assignable to type 'AdminVideoItem'.
+web:typecheck:     The types of 'user.name' are incompatible between these types.
+web:typecheck:       Type 'string | undefined' is not assignable to type 'string'.
+web:typecheck:         Type 'undefined' is not assignable to type 'string'.
+web:typecheck: src/components/dashboard/earnings-view.tsx(72,31): error TS2339: Property 'rewardAmount' does not exist on type '{ status: "rejected" | "draft" | "in_review" | "approved" | "payment_pending" | "paid"; id: string; createdAt: string; timeline: { status: "completed" | "pending" | "rejected" | "current"; key: "video_uploaded" | ... 1 more ... | "payment"; message?: string | undefined; completedAt?: string | undefined; }[]; expecte...'.
+web:typecheck: src/components/dashboard/earnings-view.tsx(152,35): error TS2339: Property 'rewardAmount' does not exist on type '{ status: "rejected" | "draft" | "in_review" | "approved" | "payment_pending" | "paid"; id: string; createdAt: string; timeline: { status: "completed" | "pending" | "rejected" | "current"; key: "video_uploaded" | ... 1 more ... | "payment"; message?: string | undefined; completedAt?: string | undefined; }[]; expecte...'.
+web:typecheck: src/components/dashboard/earnings-view.tsx(152,67): error TS2339: Property 'rewardAmount' does not exist on type '{ status: "rejected" | "draft" | "in_review" | "approved" | "payment_pending" | "paid"; id: string; createdAt: string; timeline: { status: "completed" | "pending" | "rejected" | "current"; key: "video_uploaded" | ... 1 more ... | "payment"; message?: string | undefined; completedAt?: string | undefined; }[]; expecte...'.
+web:typecheck: src/components/layout/navbar.tsx(122,23): error TS18048: 'user.name' is possibly 'undefined'.
+web:typecheck: src/components/layout/navbar.tsx(137,27): error TS18048: 'user.name' is possibly 'undefined'.
+web:typecheck: src/components/layout/navbar.tsx(274,27): error TS18048: 'user.name' is possibly 'undefined'.
+web:typecheck: ../../packages/api-client/src/admin.ts(4,3): error TS2724: '"@repo/contracts"' has no exported member named 'CreateEmployeeRequest'. Did you mean 'UpdateEmployeeRequest'?
+web:typecheck: [ELIFECYCLE] Command failed with exit code 2.
+web#typecheck:  ERROR  command (/home/aman/Projects/Project_NoName/apps/web) /home/aman/.local/share/pnpm/store/v11/links/@pnpm/exe/11.20.0/c9cfd00847b74638d64c2ca74032103e96db61c9b9e1adbc8d736c5de478743a/bin/pnpm run typecheck exited (2)
+
+ Tasks:    1 successful, 2 total
+Cached:    1 cached, 2 total
+  Time:    11.389s 
+Failed:    web#typecheck
+
+ ERROR  run failed: command  exited (2)
