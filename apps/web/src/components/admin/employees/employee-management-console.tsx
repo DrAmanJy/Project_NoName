@@ -206,10 +206,6 @@ export function EmployeeManagementConsole() {
       {/* Header Bar */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-zinc-200 dark:border-zinc-800 pb-6">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-600 dark:text-blue-400 border border-blue-500/20 mb-2">
-            <Users className="h-3.5 w-3.5" />
-            <span>Staff Roster Management</span>
-          </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
             Employee Directory
           </h1>

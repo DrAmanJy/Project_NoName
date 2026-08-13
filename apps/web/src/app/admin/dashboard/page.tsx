@@ -1,15 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { RoleGuard } from '@/components/auth/role-guard';
 import { VideoReviewConsole } from '@/components/admin/video-review/video-review-console';
 import { EmployeeManagementConsole } from '@/components/admin/employees/employee-management-console';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
 import { Video, Users, ShieldCheck } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<'videos' | 'employees'>('videos');
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+
+  // Force active tab to videos if an employee somehow has 'employees' selected
+  useEffect(() => {
+    if (user && !isAdmin && activeTab === 'employees') {
+      setActiveTab('videos');
+    }
+  }, [user, isAdmin, activeTab]);
 
   return (
     <RoleGuard allowedRoles={['admin', 'employee']} fallbackUrl="/dashboard">
@@ -51,19 +61,21 @@ export default function AdminDashboardPage() {
                 <span>Videos Moderation</span>
               </button>
 
-              <button
-                type="button"
-                onClick={() => setActiveTab('employees')}
-                className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold transition-all duration-200 ${
-                  activeTab === 'employees'
-                    ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-md scale-[1.01]'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
-                }`}
-                id="admin-tab-employees-btn"
-              >
-                <Users className="h-4 w-4 text-blue-500" />
-                <span>Employee Directory</span>
-              </button>
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('employees')}
+                  className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold transition-all duration-200 ${
+                    activeTab === 'employees'
+                      ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-md scale-[1.01]'
+                      : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                  }`}
+                  id="admin-tab-employees-btn"
+                >
+                  <Users className="h-4 w-4 text-blue-500" />
+                  <span>Employee Directory</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -73,9 +85,11 @@ export default function AdminDashboardPage() {
           {activeTab === 'videos' ? (
             <VideoReviewConsole showNavbar={false} showHeaderBanner={false} />
           ) : (
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-              <EmployeeManagementConsole />
-            </div>
+            isAdmin ? (
+              <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <EmployeeManagementConsole />
+              </div>
+            ) : null
           )}
         </main>
 
