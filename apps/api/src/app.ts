@@ -34,7 +34,9 @@ export function createApp() {
 
   // Ensure DB connection for serverless environments (Vercel)
   app.use((req, res, next) => {
-    connectToDatabase().then(() => next()).catch(next);
+    connectToDatabase()
+      .then(() => next())
+      .catch(next);
   });
 
   // Trust the reverse proxy (e.g., Nginx, Cloudflare) for secure cookies and rate limiting
@@ -46,7 +48,8 @@ export function createApp() {
   const allowedOrigins = Array.from(new Set([env.FRONTEND_URL, env.CORS_ORIGIN]));
   app.use(
     cors({
-      origin: allowedOrigins,
+      // origin: allowedOrigins,
+      origin: true,
       credentials: true,
     }),
   );
