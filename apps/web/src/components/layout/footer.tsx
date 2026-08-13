@@ -9,7 +9,7 @@ export function Footer() {
           {/* Brand Info */}
           <div className="md:col-span-5">
             <Link href="/" className="flex items-center gap-2.5">
-              <img src="/synex_logo.png" alt="Synex Logo" className="h-8 w-auto object-contain" />
+              <img src="/synex_logo.png" alt="Synex Logo" className="h-12 w-auto object-contain" />
               <span className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">
                 Synex<span className="text-zinc-500">.</span>
               </span>

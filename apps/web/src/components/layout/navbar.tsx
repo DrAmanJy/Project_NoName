@@ -73,7 +73,7 @@ export function Navbar() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
           {/* Brand Logo */}
           <Link href="/" className="group flex items-center gap-2.5 transition-transform hover:scale-102">
-            <img src="/synex_logo.png" alt="Synex Logo" className="h-8 w-auto object-contain transition-transform group-hover:scale-105" />
+            <img src="/synex_logo.png" alt="Synex Logo" className="h-12 w-auto object-contain transition-transform group-hover:scale-105" />
             <span className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">
               Synex<span className="text-zinc-500">.</span>
             </span>
