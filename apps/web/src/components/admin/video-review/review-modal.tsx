@@ -18,14 +18,14 @@ export interface ReviewModalProps {
   onClose: () => void;
   onConfirm: (data: {
     action: ReviewActionType;
-    rewardAmount?: number;
+    earning?: number;
     rejectionReason?: string;
     feedbackNotes?: string;
   }) => Promise<void> | void;
   action: ReviewActionType;
   videoTitle: string;
   videoId: string;
-  defaultReward?: number;
+  expectedEarning: number;
 }
 
 const REJECTION_REASON_PRESETS = [
@@ -50,10 +50,10 @@ export function ReviewModal({
   action,
   videoTitle,
   videoId,
-  defaultReward = 25.0,
+  expectedEarning,
 }: ReviewModalProps) {
   const isApprove = action === 'APPROVE';
-  const [rewardAmount, setRewardAmount] = useState<number>(defaultReward);
+  const [earningInput, setEarningInput] = useState<string>('');
   const [rejectionReason, setRejectionReason] = useState<string>(
     REJECTION_REASON_PRESETS[0] ?? 'Script Mismatch & Missing Key Phrases'
   );
@@ -84,9 +84,10 @@ export function ReviewModal({
           .filter(Boolean)
           .join(' • ');
 
+        const earningPaise = Math.round((parseFloat(earningInput) || 0) * 100);
         await onConfirm({
           action: 'APPROVE',
-          rewardAmount: rewardAmount,
+          earning: earningPaise,
           feedbackNotes: combinedNotes || 'Approved by admin review.',
         });
       } else {
@@ -163,23 +164,36 @@ export function ReviewModal({
             /* APPROVAL FORM */
             <>
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
-                  Reward Payout Amount ($)
+                <label className="mb-2 block text-xs font-bold tracking-wider text-zinc-500 uppercase dark:text-zinc-400">
+                  Expected Earning
+                </label>
+                <div className="relative mb-4 flex items-center">
+                  <input
+                    type="text"
+                    value={`₹${(expectedEarning / 100).toFixed(2)}`}
+                    readOnly
+                    className="h-11 w-full rounded-2xl border border-zinc-200 bg-zinc-100 pr-4 pl-4 text-sm font-bold text-zinc-600 outline-none dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-400"
+                  />
+                </div>
+
+                <label className="mb-2 block text-xs font-bold tracking-wider text-zinc-500 uppercase dark:text-zinc-400">
+                  Actual Earning (₹)
                 </label>
                 <div className="relative flex items-center">
-                  <DollarSign className="absolute left-3.5 h-4 w-4 text-emerald-500 pointer-events-none" />
+                  <DollarSign className="pointer-events-none absolute left-3.5 h-4 w-4 text-emerald-500" />
                   <input
                     type="number"
                     step="0.01"
                     min="0"
-                    value={rewardAmount}
-                    onChange={(e) => setRewardAmount(parseFloat(e.target.value) || 0)}
+                    max={expectedEarning / 100}
+                    value={earningInput}
+                    onChange={(e) => setEarningInput(e.target.value)}
                     required
-                    className="h-11 w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 pl-10 pr-4 text-sm font-bold text-zinc-900 dark:text-white outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
+                    className="h-11 w-full rounded-2xl border border-zinc-200 bg-white pr-4 pl-10 text-sm font-bold text-zinc-900 transition-all outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
                   />
                 </div>
                 <p className="mt-1.5 text-[11px] text-zinc-500">
-                  This reward will be allocated directly to the creator&apos;s wallet balance.
+                  This reward will be allocated directly to the creator&apos;s wallet balance. Max: ₹{(expectedEarning / 100).toFixed(2)}.
                 </p>
               </div>
 
@@ -292,7 +306,7 @@ export function ReviewModal({
                 {isSubmitting
                   ? 'Updating Status...'
                   : isApprove
-                    ? `Approve & Pay $${rewardAmount.toFixed(2)}`
+                    ? `Approve & Pay ₹${(parseFloat(earningInput) || 0).toFixed(2)}`
                     : 'Confirm Rejection'}
               </span>
             </button>

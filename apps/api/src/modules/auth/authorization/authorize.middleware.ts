@@ -1,5 +1,4 @@
 import type { Request, Response, NextFunction } from 'express';
-import { User } from '../models/user.model.js';
 import type { Permission } from './permissions.js';
 import { ROLE_PERMISSIONS } from './roles.js';
 
@@ -11,13 +10,7 @@ export const authorize = (permission: Permission) => {
         return;
       }
 
-      const user = await User.findById(req.auth.userId).lean();
-      if (!user) {
-        res.status(401).json({ success: false, error: 'Unauthorized' });
-        return;
-      }
-
-      const role = user.role || 'user';
+      const role = req.auth.role as keyof typeof ROLE_PERMISSIONS || 'user';
       const allowedPermissions = ROLE_PERMISSIONS[role] || [];
 
       if (!allowedPermissions.includes(permission)) {

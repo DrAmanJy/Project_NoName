@@ -4,6 +4,7 @@ export const PERMISSIONS = [
   'submission:read',
   'submission:update',
   'submission:review',
+  'submission:transition_any',
   'video:upload:own',
   'video:read',
   'video:verify',

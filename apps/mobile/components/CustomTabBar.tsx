@@ -3,10 +3,12 @@ import { View, Text, TouchableOpacity, StyleSheet, Animated, Platform } from 're
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { FontAwesome5 } from '@expo/vector-icons';
 
+
 export function CustomTabBar({ state, descriptors: _descriptors, navigation }: BottomTabBarProps) {
+  
   return (
     <View style={styles.tabBarContainer}>
-      <View style={styles.tabBar}>
+      <View style={[styles.tabBar, { paddingBottom: 15 }]}>
         {state.routes.map((route, index) => {
           const isFocused = state.index === index;
 
@@ -38,9 +40,9 @@ export function CustomTabBar({ state, descriptors: _descriptors, navigation }: B
           } else if (route.name === 'videos') {
             iconName = 'plus';
             displayLabel = '';
-          } else if (route.name === 'earnings') {
-            iconName = 'ellipsis-h';
-            displayLabel = 'Status';
+          } else if (route.name === 'submissions') {
+            iconName = 'list-alt';
+            displayLabel = 'My Submissions';
           }
 
           const isCenter = route.name === 'videos';
@@ -96,7 +98,7 @@ function TabBarButton({ isFocused, isCenter, iconName, label, onPress, onLongPre
     }).start();
   };
 
-  const color = isFocused ? '#934d28' : '#9c9c9c';
+  const color = isFocused ? '#ffffff' : '#888888';
 
   if (isCenter) {
     return (
@@ -109,7 +111,7 @@ function TabBarButton({ isFocused, isCenter, iconName, label, onPress, onLongPre
         style={styles.centerButtonContainer}
       >
         <Animated.View style={[styles.centerButton, { transform: [{ scale }] }]}>
-          <FontAwesome5 name={iconName} size={22} color="#ffffff" />
+          <FontAwesome5 name={iconName} size={20} color="#111111" />
         </Animated.View>
       </TouchableOpacity>
     );
@@ -135,24 +137,23 @@ function TabBarButton({ isFocused, isCenter, iconName, label, onPress, onLongPre
 const styles = StyleSheet.create({
   tabBarContainer: {
     position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    backgroundColor: '#fffdf9',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
+    bottom: Platform.OS === 'ios' ? 30 : 20,
+    alignSelf: 'center',
+    width: '90%',
+    backgroundColor: 'rgba(20, 20, 20, 0.85)',
+    borderRadius: 40,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
     elevation: 15,
+    overflow: 'visible',
   },
   tabBar: {
     flexDirection: 'row',
-    width: '100%',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 30,
-    paddingBottom: Platform.OS === 'ios' ? 25 : 15,
+    paddingHorizontal: 20,
     paddingTop: 15,
   },
   tabButton: {
@@ -175,17 +176,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   centerButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 22,
-    backgroundColor: '#934d28', // Brown matching screenshot
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#ffffff', // White button on dark bar
     justifyContent: 'center',
     alignItems: 'center',
     position: 'absolute',
-    top: -45, // Moved up
-    shadowColor: '#934d28',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
+    top: -28, // Floats exactly halfway above the bar
+    shadowColor: '#ffffff',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
     shadowRadius: 10,
     elevation: 8,
   },

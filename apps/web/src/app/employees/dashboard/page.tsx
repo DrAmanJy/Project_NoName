@@ -106,8 +106,8 @@ export default function EmployeeDashboardPage() {
               day: 'numeric',
               year: 'numeric',
             }),
-            rewardAmount: (item as any).rewardAmount != null ? `$${Number((item as any).rewardAmount).toFixed(2)}` : undefined,
-            videoUrl: (item as any).video?.previewUrl,
+            rewardAmount: item.earning != null ? `₹${(item.earning / 100).toFixed(2)}` : undefined,
+            videoUrl: item.video?.previewUrl ?? undefined,
             steps: mappedSteps,
           };
         });

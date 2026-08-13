@@ -8,6 +8,7 @@ declare global {
       auth?: {
         userId: string;
         sessionId: string;
+        role: string;
       };
       authError?: string;
     }
@@ -43,6 +44,7 @@ export const optionalAuth = async (req: Request, res: Response, next: NextFuncti
     req.auth = {
       userId: validatedSession.userId,
       sessionId: validatedSession.session._id.toString(),
+      role: validatedSession.role,
     };
     next();
   } catch (error) {

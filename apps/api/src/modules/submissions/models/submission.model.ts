@@ -3,10 +3,17 @@ import mongoose, { Schema, type Document, type Types } from 'mongoose';
 export interface ISubmission extends Document {
   userId: Types.ObjectId;
   status: 'draft' | 'in_review' | 'approved' | 'rejected' | 'payment_pending' | 'paid';
+  expectedEarning: number;
+  earning: number;
   idempotencyKey?: string;
   reviewedBy?: Types.ObjectId;
   reviewedAt?: Date;
   rejectionReason?: string;
+  timeline: {
+    status: 'draft' | 'in_review' | 'approved' | 'rejected' | 'payment_pending' | 'paid';
+    timestamp: Date;
+    userId?: Types.ObjectId;
+  }[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,6 +32,17 @@ const SubmissionSchema = new Schema<ISubmission>(
       required: true,
       index: true,
     },
+    expectedEarning: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    earning: {
+      type: Number,
+      required: true,
+      default: 0,
+      min: 0,
+    },
     idempotencyKey: {
       type: String,
     },
@@ -38,6 +56,13 @@ const SubmissionSchema = new Schema<ISubmission>(
     rejectionReason: {
       type: String,
     },
+    timeline: [
+      {
+        status: { type: String, required: true },
+        timestamp: { type: Date, required: true, default: Date.now },
+        userId: { type: Schema.Types.ObjectId, ref: 'User' },
+      }
+    ],
   },
   {
     timestamps: true,

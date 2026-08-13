@@ -34,7 +34,6 @@ export class BackendAuthService implements AuthService {
     }
 
     const redirectUri = AuthSession.makeRedirectUri({
-      scheme: 'noname',
       path: 'auth/callback',
     });
 

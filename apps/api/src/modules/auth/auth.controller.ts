@@ -9,6 +9,7 @@ import { appleProvider } from './oauth/apple/apple.provider.js';
 import { User, type IUser } from './models/user.model.js';
 import { OAuthAccount } from './models/oauth-account.model.js';
 import { MobileAuthHandoff } from './models/mobile-handoff.model.js';
+
 import { sessionService } from './session/session.service.js';
 import type { User as ContractUser } from '@repo/contracts';
 import { MobileHandoffExchangeRequestSchema } from '@repo/contracts';
@@ -18,7 +19,7 @@ export class AuthController {
     res.cookie(env.AUTH_COOKIE_NAME, token, {
       httpOnly: true,
       secure: env.NODE_ENV === 'production',
-      sameSite: 'none',
+      sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
       path: '/',
       maxAge: env.AUTH_SESSION_TTL_DAYS * 24 * 60 * 60 * 1000,
     });
@@ -49,13 +50,31 @@ export class AuthController {
         res.status(403).json({ success: false, error: 'User account is inactive' });
         return;
       }
+
+      // Update OAuth identity fields
+      user.name = name || user.name;
+      if (avatarUrl) user.avatarUrl = avatarUrl;
+      await user.save();
     } else {
-      user = await User.create({
-        name: name || 'User',
-        email,
-        avatarUrl,
-        isActive: true,
-      });
+      // Find existing user by email to prevent duplicates
+      if (email) {
+        user = await User.findOne({ email: email.toLowerCase() });
+      }
+
+      if (user) {
+        // Update OAuth identity fields
+        user.name = name || user.name;
+        if (avatarUrl) user.avatarUrl = avatarUrl;
+        await user.save();
+      } else {
+        user = await User.create({
+          name: name || 'User',
+          email,
+          avatarUrl,
+          isActive: true,
+          role: 'user',
+        });
+      }
 
       oauthAccount = await OAuthAccount.create({
         userId: user._id,
@@ -353,7 +372,7 @@ export class AuthController {
         return;
       }
 
-      const user = await User.findById(req.auth.userId).lean();
+      const user = await User.findById(req.auth.userId).select('_id name email avatarUrl isActive role createdAt updatedAt').lean();
       if (!user) {
         res.status(401).json({ success: false, error: 'User not found' });
         return;
@@ -386,7 +405,7 @@ export class AuthController {
       res.clearCookie(env.AUTH_COOKIE_NAME, {
         httpOnly: true,
         secure: env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
         path: '/',
       });
       res.status(200).json({ success: true });
@@ -403,7 +422,7 @@ export class AuthController {
       res.clearCookie(env.AUTH_COOKIE_NAME, {
         httpOnly: true,
         secure: env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
         path: '/',
       });
       res.status(200).json({ success: true });

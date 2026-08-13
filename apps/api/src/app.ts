@@ -34,17 +34,21 @@ export function createApp() {
 
   // Ensure DB connection for serverless environments (Vercel)
   app.use((req, res, next) => {
-    connectToDatabase().then(() => next()).catch(next);
+    connectToDatabase()
+      .then(() => next())
+      .catch(next);
   });
 
   // Trust the reverse proxy (e.g., Nginx, Cloudflare) for secure cookies and rate limiting
   app.set('trust proxy', 1);
 
   // Security
-  // Cast helmet to RequestHandler to bypass TS2349 when moduleResolution is nodenext on Vercel
+  // Cast helmet to RequestHandler to bypass TS2349 when  moduleResolution is nodenext on Vercel
   app.use((helmet as unknown as () => RequestHandler)());
+
   app.use(
     cors({
+      // origin: allowedOrigins,
       origin: true,
       credentials: true,
     }),
@@ -52,7 +56,7 @@ export function createApp() {
   app.use(
     rateLimit({
       windowMs: 15 * 60 * 1000,
-      max: 100,
+      max: 300,
       standardHeaders: true,
       legacyHeaders: false,
     }),

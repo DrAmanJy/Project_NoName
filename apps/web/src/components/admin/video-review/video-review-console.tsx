@@ -59,6 +59,8 @@ export interface AdminVideoItem {
   timeline?: unknown[];
   user?: AdminVideoUser | null;
   verification?: VideoVerificationStatus | null;
+  expectedEarning: number;
+  earning: number;
   video?: AdminVideoInfo | null;
 
   // Formatted display properties for UI components
@@ -75,7 +77,6 @@ export interface AdminVideoItem {
   createdAtFormatted: string;
   createdAtRaw: string;
   previewUrl?: string;
-  rewardAmount?: number;
   reviewNotes?: string;
 }
 
@@ -176,9 +177,8 @@ export function VideoReviewConsole({
             createdAtRaw: rawDateStr,
             previewUrl: sub.video?.previewUrl || undefined,
             verification: (sub.verification as VideoVerificationStatus | null) || null,
-            rewardAmount: (rawStatus === 'paid' || rawStatus === 'approved' || rawStatus === 'PAID' || rawStatus === 'SELECTED') && (sub as any).rewardAmount != null
-              ? Number((sub as any).rewardAmount)
-              : undefined,
+            expectedEarning: sub.expectedEarning ?? 0,
+            earning: sub.earning ?? 0,
           };
         });
         setVideos(mapped);
@@ -263,7 +263,7 @@ export function VideoReviewConsole({
   const metrics = useMemo(() => {
     const pending = videos.filter((v) => v.status === 'UNDER_REVIEW').length;
     const selected = videos.filter((v) => v.status === 'SELECTED' || v.status === 'PAID');
-    const totalPaid = selected.reduce((sum, v) => sum + (v.rewardAmount || 25), 0);
+    const totalPaid = selected.reduce((sum, v) => sum + (v.earning || 0), 0) / 100;
     const rejected = videos.filter((v) => v.status === 'REJECTED').length;
     const totalSubmissions = videos.length;
 
@@ -289,7 +289,7 @@ export function VideoReviewConsole({
 
   const handleConfirmReview = async (data: {
     action: ReviewActionType;
-    rewardAmount?: number;
+    earning?: number;
     rejectionReason?: string;
     feedbackNotes?: string;
   }) => {
@@ -306,6 +306,7 @@ export function VideoReviewConsole({
       await staffApi.submissions.updateStatus(modalState.videoId, {
         status: nextStatus,
         rejectionReason: data.rejectionReason || data.feedbackNotes || (data.action === 'REJECT' ? 'Rejected by administrator' : undefined),
+        earning: data.earning,
       });
 
       setVideos((prev) =>
@@ -315,7 +316,7 @@ export function VideoReviewConsole({
               return {
                 ...v,
                 status: 'SELECTED',
-                rewardAmount: data.rewardAmount || 35.0,
+                earning: data.earning || 0,
                 reviewNotes: data.feedbackNotes,
                 reviewedAt: nowFormatted,
               };
@@ -404,7 +405,7 @@ export function VideoReviewConsole({
               </div>
               <div className="mt-2 flex items-baseline gap-2">
                 <span className="text-3xl font-extrabold tracking-tight text-emerald-500">
-                  ${metrics.totalPaid.toFixed(2)}
+                  ₹{metrics.totalPaid.toFixed(2)}
                 </span>
                 <span className="text-xs font-medium text-zinc-400">
                   ({metrics.selectedCount} approved)
@@ -681,11 +682,11 @@ export function VideoReviewConsole({
                         <button
                           type="button"
                           onClick={() => handleOpenReviewModal('APPROVE')}
-                          className="inline-flex items-center gap-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 text-xs font-bold shadow-lg shadow-emerald-950/30 transition-all hover:shadow-xl hover:scale-[1.02] active:scale-95"
+                          className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-950/30 transition-all hover:scale-[1.02] hover:bg-emerald-500 hover:shadow-xl active:scale-95"
                         >
                           <CheckCircle2 className="h-4 w-4" />
                           <span>
-                            Approve & Grant ${selectedVideo.rewardAmount || '25.00'}
+                            Approve & Grant ₹{((selectedVideo.expectedEarning || 0) / 100).toFixed(2)}
                           </span>
                         </button>
                       </div>
@@ -728,7 +729,7 @@ export function VideoReviewConsole({
         action={modalState.action}
         videoId={modalState.videoId}
         videoTitle={modalState.videoTitle}
-        defaultReward={selectedVideo?.rewardAmount || 25.0}
+        expectedEarning={selectedVideo?.expectedEarning || 0}
       />
     </>
   );

@@ -1,13 +1,13 @@
 import { Tabs, Redirect } from 'expo-router';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
-import { FontAwesome5 } from '@expo/vector-icons';
+import { View, Text, Image } from 'react-native';
+
 import { useAuth } from '../../features/auth/auth-provider';
 import { LoadingScreen } from '../../components/LoadingScreen';
 import { CustomTabBar } from '../../components/CustomTabBar';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
 export default function TabsLayout() {
-  const { status, user, signOut } = useAuth();
+  const { status, user } = useAuth();
 
   if (status === 'loading') {
     return <LoadingScreen />;
@@ -21,33 +21,7 @@ export default function TabsLayout() {
     <Tabs
       tabBar={(props) => <CustomTabBar {...(props as unknown as BottomTabBarProps)} />}
       screenOptions={{
-        headerShown: true,
-        headerStyle: {
-          backgroundColor: '#ffffff',
-          elevation: 0,
-          shadowOpacity: 0,
-          borderBottomWidth: 1,
-          borderBottomColor: '#f5efe6',
-        },
-        headerRight: () => (
-          <TouchableOpacity 
-            onPress={() => signOut()} 
-            style={{ 
-              marginRight: 20, 
-              width: 40, 
-              height: 40, 
-              borderRadius: 20, 
-              backgroundColor: '#fffdf9', 
-              justifyContent: 'center', 
-              alignItems: 'center', 
-              borderWidth: 1, 
-              borderColor: '#f5efe6' 
-            }} 
-            activeOpacity={0.8}
-          >
-            <FontAwesome5 name="sign-out-alt" size={14} color="#7c3f1b" />
-          </TouchableOpacity>
-        ),
+        headerShown: false,
       }}
     >
       <Tabs.Screen
@@ -60,7 +34,7 @@ export default function TabsLayout() {
               {user?.avatarUrl ? (
                 <Image 
                   source={{ uri: user.avatarUrl }} 
-                  style={{ width: 32, height: 32, borderRadius: 16, marginRight: 10, backgroundColor: '#f5efe6' }} 
+                  style={{ width: 32, height: 32, borderRadius: 16, marginRight: 10, backgroundColor: '#eaeaea' }} 
                 />
               ) : null}
               <Text style={{ fontSize: 22, fontWeight: '900', color: '#111', letterSpacing: -0.5 }}>
@@ -79,10 +53,11 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="earnings"
+        name="submissions"
         options={{
-          title: 'Earnings',
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>💰</Text>,
+          title: 'Submissions',
+          headerShown: false,
+          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>📋</Text>,
         }}
       />
     </Tabs>

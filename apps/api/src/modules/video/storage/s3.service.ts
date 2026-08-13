@@ -22,7 +22,10 @@ export class S3Service {
       region: 'auto',
       endpoint,
       forcePathStyle: true,
-      requestHandler: new NodeHttpHandler(),
+      requestHandler: new NodeHttpHandler({
+        connectionTimeout: 5000,
+        requestTimeout: 15000,
+      }),
       credentials: {
         accessKeyId: env.R2_ACCESS_KEY_ID.trim(),
         secretAccessKey: env.R2_SECRET_ACCESS_KEY.trim(),

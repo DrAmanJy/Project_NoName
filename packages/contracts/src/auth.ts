@@ -7,7 +7,7 @@ export type Role = z.infer<typeof RoleSchema>;
 
 export const UserSchema = z.object({
   id: z.string(),
-  name: z.string().min(1).max(100),
+  name: z.string().min(1).max(100).optional(),
   email: z.string().email().optional(),
   avatarUrl: z.string().url().optional(),
   isActive: z.boolean(),
@@ -24,15 +24,8 @@ export const EmployeeListResponseSchema = z.object({
 });
 export type EmployeeListResponse = z.infer<typeof EmployeeListResponseSchema>;
 
-export const CreateEmployeeRequestSchema = z.object({
-  name: z.string().min(1).max(100),
-  email: z.string().email(),
-  role: z.enum(['employee', 'admin']),
-});
-export type CreateEmployeeRequest = z.infer<typeof CreateEmployeeRequestSchema>;
 
 export const UpdateEmployeeRequestSchema = z.object({
-  name: z.string().min(1).max(100).optional(),
   isActive: z.boolean().optional(),
   role: z.enum(['user', 'employee', 'admin']).optional(),
 });

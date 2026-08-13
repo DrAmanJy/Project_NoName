@@ -63,7 +63,6 @@ export function DashboardView() {
     setIsLoading(true);
     try {
       const res = await submissionsApi.list(1, 50).catch(() => null);
-      console.log(res, "user videos --------");
       if (res && Array.isArray(res.data) && res.data.length > 0) {
         setVideos(res.data as UploadedVideoItem[]);
       } else {
