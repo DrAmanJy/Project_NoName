@@ -559,8 +559,7 @@ export function EarningsView() {
                       </div>
 
                       {/* Card Footer Actions */}
-                      <div className="mt-6 flex items-center justify-between border-t border-zinc-200 dark:border-zinc-900 pt-4 text-xs font-semibold">
-                        <span className="text-zinc-400">ID: {item.id}</span>
+                      <div className="mt-6 flex items-center justify-end border-t border-zinc-200 dark:border-zinc-900 pt-4 text-xs font-semibold">
                         <Link
                           href="/dashboard"
                           className="inline-flex items-center gap-1 text-zinc-900 dark:text-white hover:underline"
