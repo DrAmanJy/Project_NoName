@@ -121,7 +121,7 @@ export const StaffSubmissionDetailResponseSchema = StaffSubmissionResponseSchema
 export type StaffSubmissionDetailResponse = z.infer<typeof StaffSubmissionDetailResponseSchema>;
 
 export const StaffSubmissionListResponseSchema = z.object({
-  data: z.array(StaffSubmissionResponseSchema),
+  data: z.array(StaffSubmissionDetailResponseSchema),
   page: z.number().int().min(1),
   limit: z.number().int().min(1),
   total: z.number().int().min(0),

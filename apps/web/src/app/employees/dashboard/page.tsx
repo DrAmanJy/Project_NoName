@@ -113,7 +113,7 @@ export default function EmployeeDashboardPage() {
               year: 'numeric',
             }),
             rewardAmount: item.earning != null ? `₹${(item.earning / 100).toFixed(2)}` : undefined,
-            videoUrl: item.video?.previewUrl,
+            videoUrl: item.video?.previewUrl ?? undefined,
             steps: mappedSteps,
           };
         });
