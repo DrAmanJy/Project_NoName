@@ -40,6 +40,7 @@ const COUNTRIES = [
 export function VideoUploader() {
   const [file, setFile] = useState<File | null>(null);
   const [country, setCountry] = useState<string>('United States');
+  const [duration, setDuration] = useState<number | undefined>(undefined);
   const [isDragging, setIsDragging] = useState<boolean>(false);
 
   const [uploadManager, setUploadManager] = useState<VideoUploadManager | null>(null);
@@ -62,6 +63,22 @@ export function VideoUploader() {
     }
     setFile(selectedFile);
     setError(null);
+    setDuration(undefined);
+
+    // Extract video duration in the browser
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.onloadedmetadata = () => {
+      window.URL.revokeObjectURL(video.src);
+      // Ensure the duration is a positive number to pass Zod validation
+      if (video.duration > 0) {
+        setDuration(video.duration);
+      }
+    };
+    video.onerror = () => {
+      window.URL.revokeObjectURL(video.src);
+    };
+    video.src = URL.createObjectURL(selectedFile);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,6 +123,7 @@ export function VideoUploader() {
           fileSize: file.size,
           totalParts,
           country,
+          durationSeconds: duration,
         },
         idempotencyKey,
       );
