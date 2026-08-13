@@ -96,6 +96,9 @@ export class SubmissionsController {
           if (existingSubmission) {
             const existingUpload = await VideoUpload.findOne({ submissionId: existingSubmission._id }).sort({ createdAt: -1 });
             if (existingUpload) {
+              // Abort the newly created R2 multipart upload to prevent dangling resources
+              await s3Service.abortMultipartUpload(objectKey, multipartUploadId).catch(console.error);
+              
               res.json({
                 submissionId: existingSubmission._id.toString(),
                 uploadId: existingUpload.uploadId,
