@@ -43,7 +43,7 @@ export function createApp() {
   app.set('trust proxy', 1);
 
   // Security
-  // Cast helmet to RequestHandler to bypass TS2349 when moduleResolution is nodenext on Vercel
+  // Cast helmet to RequestHandler to bypass TS2349 when  moduleResolution is nodenext on Vercel
   app.use((helmet as unknown as () => RequestHandler)());
 
   app.use(
