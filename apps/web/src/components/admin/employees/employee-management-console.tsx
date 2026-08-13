@@ -426,7 +426,7 @@ export function EmployeeManagementConsole() {
                   onChange={(e) => setFormData({ ...formData, role: e.target.value as Role })}
                   className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
                 >
-                  <option value="employee">Employee (Staff)</option>
+                  <option value="employee">Employee (Read, Update & Review Submissions)</option>
                   <option value="admin">Admin (Administrator)</option>
                   <option value="user">User (Standard Account)</option>
                 </select>

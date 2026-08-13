@@ -146,39 +146,6 @@ export function Navbar() {
                       </div>
                     </div>
 
-                    {/* Navigation Items */}
-                    <div className="py-2.5 space-y-1 border-b border-zinc-100 dark:border-zinc-800/80">
-                      {role === 'user' && (
-                        <>
-                          <Link
-                            href="/dashboard"
-                            onClick={() => setIsProfileMenuOpen(false)}
-                            className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white transition-colors"
-                          >
-                            <LayoutDashboard className="h-4 w-4 text-zinc-500" />
-                            <span>Dashboard</span>
-                          </Link>
-                          <Link
-                            href="/dashboard/earnings"
-                            onClick={() => setIsProfileMenuOpen(false)}
-                            className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white transition-colors"
-                          >
-                            <Wallet className="h-4 w-4 text-emerald-500" />
-                            <span>My Earnings</span>
-                          </Link>
-                        </>
-                      )}
-                      {(role === 'admin' || role === 'employee') && (
-                        <Link
-                          href={role === 'admin' ? '/admin/dashboard' : '/employees/dashboard'}
-                          onClick={() => setIsProfileMenuOpen(false)}
-                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/50 transition-colors"
-                        >
-                          <ShieldCheck className="h-4 w-4" />
-                          <span>{role === 'admin' ? 'Admin Portal' : 'Staff Portal'}</span>
-                        </Link>
-                      )}
-                    </div>
 
                     {/* Dedicated Logout Action Button */}
                     <div className="pt-2">

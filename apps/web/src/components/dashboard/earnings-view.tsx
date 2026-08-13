@@ -141,7 +141,9 @@ export function EarningsView() {
           return {
             id: item.id,
             fileName: `submission_${item.id.slice(-6)}.mp4`,
-            fileSize: '120 MB',
+            fileSize: item.video?.sizeBytes && item.video.sizeBytes > 0 
+              ? `${(item.video.sizeBytes / (1024 * 1024)).toFixed(1)} MB` 
+              : 'N/A',
             date: new Date(item.createdAt).toLocaleDateString('en-US', {
               month: 'short',
               day: 'numeric',
@@ -149,7 +151,7 @@ export function EarningsView() {
             }),
             status,
             statusText,
-            estimatedReward: `₹${((item.status === 'paid' || item.status === 'approved' ? item.earning : item.expectedEarning) / 100).toFixed(2)}`,
+            estimatedReward: `$${((item.status === 'paid' || item.status === 'approved' ? item.earning : item.expectedEarning) / 100).toFixed(2)}`,
             steps,
           };
         });
@@ -202,10 +204,6 @@ export function EarningsView() {
           {/* Top Page Header Banner */}
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-zinc-200/80 dark:border-zinc-800/80 pb-6">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-900/80 px-3.5 py-1 text-xs font-semibold text-zinc-900 dark:text-zinc-300 mb-2 border border-zinc-200 dark:border-zinc-800 backdrop-blur-md shadow-inner">
-                <TrendingUp className="h-3.5 w-3.5 text-emerald-500 animate-pulse" />
-                <span>Creator Earnings & Payout Status</span>
-              </div>
               <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
                 Earnings & Submissions
               </h1>
@@ -223,14 +221,6 @@ export function EarningsView() {
                 <Upload className="h-4 w-4" />
                 <span>Upload New Video</span>
               </Link>
-              <button
-                type="button"
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 shadow-sm hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors"
-                aria-label="Settings"
-                id="web-earnings-settings-btn"
-              >
-                <Settings className="h-5 w-5" />
-              </button>
             </div>
           </div>
 

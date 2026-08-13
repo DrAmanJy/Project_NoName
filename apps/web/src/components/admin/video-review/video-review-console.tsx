@@ -15,6 +15,7 @@ import {
   RefreshCw,
   Loader2,
   ChevronDown,
+  Play,
 } from 'lucide-react';
 import { type VideoStatus, type VideoVerificationStatus } from '@repo/contracts';
 import { VideoPlayer } from './video-player';
@@ -287,6 +288,30 @@ export function VideoReviewConsole({
     });
   };
 
+  const handleStartReview = async () => {
+    if (!selectedVideo || selectedVideo.status !== 'PROCESSING') return;
+    try {
+      await staffApi.submissions.updateStatus(selectedVideo.id, {
+        status: 'in_review',
+      });
+      
+      setVideos((prev) =>
+        prev.map((v) =>
+          v.id === selectedVideo.id ? { ...v, status: 'UNDER_REVIEW' } : v
+        )
+      );
+      // Ensure we update the selected video state as well to re-render the UI correctly
+      const newVideo = { ...selectedVideo, status: 'UNDER_REVIEW' as const };
+      
+      // Update selected video object reference but we cannot directly mutate selectedVideo
+      // Wait, we need to find how selectedVideo is set. It uses selectedVideoId!
+      // If we just trigger re-render, selectedVideo is derived from videos array.
+      // So setVideos is enough! We don't need setSelectedVideo because it doesn't exist.
+    } catch (error) {
+      console.error('Failed to start review:', error);
+    }
+  };
+
   const handleConfirmReview = async (data: {
     action: ReviewActionType;
     earning?: number;
@@ -405,7 +430,7 @@ export function VideoReviewConsole({
               </div>
               <div className="mt-2 flex items-baseline gap-2">
                 <span className="text-3xl font-extrabold tracking-tight text-emerald-500">
-                  ₹{metrics.totalPaid.toFixed(2)}
+                  ${metrics.totalPaid.toFixed(2)}
                 </span>
                 <span className="text-xs font-medium text-zinc-400">
                   ({metrics.selectedCount} approved)
@@ -665,6 +690,17 @@ export function VideoReviewConsole({
                       <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-5 py-2.5 text-xs font-bold text-emerald-500">
                         <CheckCircle2 className="h-4 w-4" />
                         <span>Submission Approved ({selectedVideo.status})</span>
+                      </div>
+                    ) : selectedVideo.status === 'PROCESSING' ? (
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={handleStartReview}
+                          className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-blue-950/30 transition-all hover:scale-[1.02] hover:bg-blue-500 hover:shadow-xl active:scale-95"
+                        >
+                          <Play className="h-4 w-4" />
+                          <span>Start Review Process</span>
+                        </button>
                       </div>
                     ) : (
                       <div className="flex items-center gap-3">
