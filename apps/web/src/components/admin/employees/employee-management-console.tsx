@@ -490,7 +490,7 @@ export function EmployeeManagementConsole() {
                   <input
                     type="email"
                     required
-                    placeholder="e.g. alex@trueservices.com"
+                    placeholder="e.g. alex@synex.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 pl-10 pr-3.5 py-2.5 text-xs text-zinc-900 dark:text-white focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"

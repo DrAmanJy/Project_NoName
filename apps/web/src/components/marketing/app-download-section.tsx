@@ -27,7 +27,7 @@ export function AppDownloadSection() {
               </div>
 
               <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white sm:text-5xl leading-tight">
-                Create & earn on the go with the True Services app
+                Create & earn on the go with the Synex app
               </h2>
 
               <p className="mt-4 text-base text-zinc-600 dark:text-zinc-300 sm:text-lg leading-relaxed max-w-xl">
@@ -97,7 +97,7 @@ export function AppDownloadSection() {
                 </div>
                 <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Scan to Install</h3>
                 <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
-                  Point your phone camera at the QR code below to download the official True Services app.
+                  Point your phone camera at the QR code below to download the official Synex app.
                 </p>
 
                 {/* Simulated QR Code display */}
