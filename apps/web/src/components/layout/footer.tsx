@@ -24,33 +24,13 @@ export function Footer() {
           </div>
 
           {/* Nav Links */}
-          <div className="md:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-8">
-            <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-white">Platform</h3>
-              <ul className="mt-4 flex flex-col gap-2.5 text-sm text-zinc-600 dark:text-zinc-400">
-                <li><a href="#about" className="hover:text-zinc-900 dark:hover:text-white">About Synex</a></li>
-                <li><a href="#how-it-works" className="hover:text-zinc-900 dark:hover:text-white">How It Works</a></li>
-                <li><a href="#upload" className="hover:text-zinc-900 dark:hover:text-white">Upload Video</a></li>
-                <li><a href="#testimonials" className="hover:text-zinc-900 dark:hover:text-white">Creator Reviews</a></li>
-              </ul>
-            </div>
-
+          <div className="md:col-span-7 flex md:justify-end">
             <div>
               <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-white">Apps & Mobile</h3>
               <ul className="mt-4 flex flex-col gap-2.5 text-sm text-zinc-600 dark:text-zinc-400">
                 <li><a href="#download" className="hover:text-zinc-900 dark:hover:text-white">iOS App Store</a></li>
                 <li><a href="#download" className="hover:text-zinc-900 dark:hover:text-white">Google Play Store</a></li>
                 <li><a href="#download" className="hover:text-zinc-900 dark:hover:text-white">Scan QR Code</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-white">Support & Legal</h3>
-              <ul className="mt-4 flex flex-col gap-2.5 text-sm text-zinc-600 dark:text-zinc-400">
-                <li><a href="#contact" className="hover:text-zinc-900 dark:hover:text-white">Help & Contact</a></li>
-                <li><Link href="#" className="hover:text-zinc-900 dark:hover:text-white">Privacy Policy</Link></li>
-                <li><Link href="#" className="hover:text-zinc-900 dark:hover:text-white">Terms of Service</Link></li>
-                <li><Link href="#" className="hover:text-zinc-900 dark:hover:text-white">Trust & Security</Link></li>
               </ul>
             </div>
           </div>
