@@ -58,7 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className="flex min-h-full flex-col bg-white dark:bg-black text-zinc-900 dark:text-zinc-50">
+      <body className="flex min-h-full flex-col bg-[#FEFEFE] dark:bg-black text-zinc-900 dark:text-zinc-50">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

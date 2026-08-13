@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Users,
-  UserCheck,
   Shield,
   Search,
   Edit2,
@@ -29,7 +28,6 @@ export function EmployeeManagementConsole() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [roleFilter, setRoleFilter] = useState<string>('ALL');
-  const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
@@ -42,13 +40,11 @@ export function EmployeeManagementConsole() {
     email: string;
     role: Role;
     avatarUrl: string;
-    isActive: boolean;
   }>({
     name: '',
     email: '',
     role: 'employee',
     avatarUrl: '',
-    isActive: true,
   });
 
   const [formError, setFormError] = useState<string | null>(null);
@@ -89,23 +85,17 @@ export function EmployeeManagementConsole() {
         (roleFilter === 'EMPLOYEE' && emp.role === 'employee') ||
         (roleFilter === 'USER' && emp.role === 'user');
 
-      const matchesStatus =
-        statusFilter === 'ALL' ||
-        (statusFilter === 'ACTIVE' && emp.isActive) ||
-        (statusFilter === 'INACTIVE' && !emp.isActive);
-
-      return matchesSearch && matchesRole && matchesStatus;
+      return matchesSearch && matchesRole;
     });
-  }, [employees, searchQuery, roleFilter, statusFilter]);
+  }, [employees, searchQuery, roleFilter]);
 
   // KPI Metrics
   const metrics = useMemo(() => {
     const total = employees.length;
-    const active = employees.filter((e) => e.isActive).length;
     const admins = employees.filter((e) => e.role === 'admin').length;
     const staff = employees.filter((e) => e.role === 'employee').length;
 
-    return { total, active, admins, staff };
+    return { total, admins, staff };
   }, [employees]);
 
   // Handlers for Add
@@ -115,7 +105,6 @@ export function EmployeeManagementConsole() {
       email: '',
       role: 'employee',
       avatarUrl: '',
-      isActive: true,
     });
     setFormError(null);
     setIsAddModalOpen(true);
@@ -161,7 +150,6 @@ export function EmployeeManagementConsole() {
       email: employee.email || '',
       role: employee.role,
       avatarUrl: employee.avatarUrl || '',
-      isActive: employee.isActive,
     });
     setFormError(null);
   };
@@ -177,7 +165,6 @@ export function EmployeeManagementConsole() {
       const updatedRes = await adminApi.employees.update(editingEmployee.id, {
         name: formData.name,
         role: formData.role,
-        isActive: formData.isActive,
       });
 
       setEmployees((prev) =>
@@ -186,7 +173,6 @@ export function EmployeeManagementConsole() {
             return {
               ...emp,
               ...updatedRes,
-              email: formData.email,
               avatarUrl: formData.avatarUrl.trim() || emp.avatarUrl,
             };
           }
@@ -210,7 +196,7 @@ export function EmployeeManagementConsole() {
     setIsSubmitting(true);
     try {
       await adminApi.employees.update(deletingEmployee.id, {
-        isActive: false,
+        role: 'user',
       });
 
       setEmployees((prev) => prev.filter((emp) => emp.id !== deletingEmployee.id));
@@ -261,8 +247,8 @@ export function EmployeeManagementConsole() {
         </div>
       </div>
 
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* KPI Cards Grid (3 Columns) */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-3xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/40 p-5 backdrop-blur-xl transition-all hover:border-zinc-300 dark:hover:border-zinc-700">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
@@ -274,19 +260,6 @@ export function EmployeeManagementConsole() {
           </div>
           <p className="mt-3 text-3xl font-extrabold text-zinc-900 dark:text-white">{metrics.total}</p>
           <span className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Team members registered</span>
-        </div>
-
-        <div className="rounded-3xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/40 p-5 backdrop-blur-xl transition-all hover:border-zinc-300 dark:hover:border-zinc-700">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-              Active Accounts
-            </span>
-            <div className="rounded-2xl bg-emerald-500/10 p-2 text-emerald-500">
-              <UserCheck className="h-5 w-5" />
-            </div>
-          </div>
-          <p className="mt-3 text-3xl font-extrabold text-zinc-900 dark:text-white">{metrics.active}</p>
-          <span className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Granted active access</span>
         </div>
 
         <div className="rounded-3xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/40 p-5 backdrop-blur-xl transition-all hover:border-zinc-300 dark:hover:border-zinc-700">
@@ -330,7 +303,7 @@ export function EmployeeManagementConsole() {
           />
         </div>
 
-        {/* Filters */}
+        {/* Role Filters */}
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-1 rounded-2xl bg-white dark:bg-zinc-900 p-1 border border-zinc-200 dark:border-zinc-800">
             {['ALL', 'ADMIN', 'EMPLOYEE'].map((r) => (
@@ -345,23 +318,6 @@ export function EmployeeManagementConsole() {
                 }`}
               >
                 {r === 'ALL' ? 'All Roles' : r === 'ADMIN' ? 'Admins' : 'Staff'}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-1 rounded-2xl bg-white dark:bg-zinc-900 p-1 border border-zinc-200 dark:border-zinc-800">
-            {['ALL', 'ACTIVE', 'INACTIVE'].map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setStatusFilter(s)}
-                className={`rounded-xl px-3 py-1 text-[11px] font-bold transition-all ${
-                  statusFilter === s
-                    ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-sm'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
-                }`}
-              >
-                {s === 'ALL' ? 'All Status' : s === 'ACTIVE' ? 'Active' : 'Inactive'}
               </button>
             ))}
           </div>
@@ -391,7 +347,6 @@ export function EmployeeManagementConsole() {
                   <th className="px-6 py-4">Employee</th>
                   <th className="px-6 py-4">Email</th>
                   <th className="px-6 py-4">Role</th>
-                  <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4">Joined Date</th>
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
@@ -429,7 +384,6 @@ export function EmployeeManagementConsole() {
                             <span className="font-bold text-zinc-900 dark:text-white block">
                               {emp.name}
                             </span>
-                            <span className="text-[11px] text-zinc-400 font-mono">ID: {emp.id}</span>
                           </div>
                         </div>
                       </td>
@@ -448,20 +402,6 @@ export function EmployeeManagementConsole() {
                           <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-500/10 px-3 py-1 text-[11px] font-bold text-purple-600 dark:text-purple-400 border border-purple-500/20">
                             <UserIcon className="h-3 w-3" />
                             Employee
-                          </span>
-                        )}
-                      </td>
-
-                      <td className="px-6 py-4">
-                        {emp.isActive ? (
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-bold text-emerald-500 border border-emerald-500/20">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            Active
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-red-500/10 px-2.5 py-0.5 text-[11px] font-bold text-red-500 border border-red-500/20">
-                            <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-                            Inactive
                           </span>
                         )}
                       </td>
@@ -651,14 +591,13 @@ export function EmployeeManagementConsole() {
 
               <div>
                 <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1">
-                  Email Address
+                  Email Address <span className="text-[10px] font-normal text-zinc-400 font-sans">(Read-only)</span>
                 </label>
                 <input
                   type="email"
-                  required
+                  disabled
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
+                  className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900/60 px-3.5 py-2.5 text-xs text-zinc-500 dark:text-zinc-400 cursor-not-allowed select-none opacity-75 focus:outline-none"
                 />
               </div>
 
@@ -687,19 +626,6 @@ export function EmployeeManagementConsole() {
                   value={formData.avatarUrl}
                   onChange={(e) => setFormData({ ...formData, avatarUrl: e.target.value })}
                   className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
-                />
-              </div>
-
-              <div className="flex items-center justify-between rounded-2xl border border-zinc-200 dark:border-zinc-800 p-3 bg-zinc-50/50 dark:bg-zinc-900/50">
-                <div>
-                  <span className="block text-xs font-bold text-zinc-900 dark:text-white">Account Active Status</span>
-                  <span className="text-[11px] text-zinc-500">Allow user to sign in and perform moderation actions</span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={formData.isActive}
-                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                  className="h-4 w-4 rounded accent-zinc-900 dark:accent-white"
                 />
               </div>
 

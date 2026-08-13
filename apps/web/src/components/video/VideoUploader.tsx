@@ -16,6 +16,7 @@ import {
   Globe,
 } from 'lucide-react';
 import { VideoUploadManager } from '@repo/api-client';
+import { AllowedVideoContentTypeSchema } from '@repo/contracts';
 import { WebUploadSource } from '@/features/video/web-upload-source';
 import { apiClient, submissionsApi } from '@/lib/api-client';
 
@@ -50,10 +51,9 @@ export function VideoUploader() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024; // 100 MB limit
-  const ALLOWED_MIME_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'];
 
   const handleFileSelection = (selectedFile: File) => {
-    if (!ALLOWED_MIME_TYPES.includes(selectedFile.type)) {
+    if (!AllowedVideoContentTypeSchema.safeParse(selectedFile.type).success) {
       setError('Please select a supported video file (.mp4, .mov, or .webm).');
       return;
     }
@@ -116,10 +116,13 @@ export function VideoUploader() {
       const idempotencyKey = crypto.randomUUID();
       const totalParts = Math.ceil(file.size / (8 * 1024 * 1024));
 
+      const parsedType = AllowedVideoContentTypeSchema.safeParse(file.type);
+      const contentType = parsedType.success ? parsedType.data : 'video/mp4';
+
       const response = await submissionsApi.create(
         {
           fileName: file.name,
-          contentType: file.type as any,
+          contentType,
           fileSize: file.size,
           totalParts,
           country,

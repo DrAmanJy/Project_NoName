@@ -6,7 +6,6 @@ import {
   XCircle,
   Clock,
   ShieldCheck,
-  AlertTriangle,
   Search,
   ArrowUpDown,
   FileX2,
@@ -15,6 +14,7 @@ import {
   ChevronRight,
   RefreshCw,
   Loader2,
+  ChevronDown,
 } from 'lucide-react';
 import { type VideoStatus, type VideoVerificationStatus } from '@repo/contracts';
 import { VideoPlayer } from './video-player';
@@ -24,11 +24,46 @@ import { Footer } from '@/components/layout/footer';
 import { VideoMetadata } from './video-metadata';
 import { staffApi } from '@/lib/api-client';
 
+export interface AdminVideoUser {
+  id: string;
+  name: string;
+  email?: string;
+  avatarUrl?: string | null;
+  isActive?: boolean;
+  role?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface AdminVideoInfo {
+  id: string;
+  originalFilename: string;
+  previewUrl?: string | null;
+  mimeType: string;
+  sizeBytes: number;
+  durationSeconds?: number | null;
+  height?: number | null;
+  width?: number | null;
+  thumbnailUrl?: string | null;
+  uploadStatus?: string;
+  uploadedAt?: string | null;
+}
+
 export interface AdminVideoItem {
   id: string;
+  createdAt: string;
+  status: VideoStatus;
+  rejectionReason?: string | null;
+  reviewedAt?: string | null;
+  reviewedBy?: AdminVideoUser | null;
+  timeline?: unknown[];
+  user?: AdminVideoUser | null;
+  verification?: VideoVerificationStatus | null;
+  video?: AdminVideoInfo | null;
+
+  // Formatted display properties for UI components
   title: string;
   description?: string;
-  status: VideoStatus;
   userId: string;
   userName: string;
   userEmail: string;
@@ -40,43 +75,66 @@ export interface AdminVideoItem {
   createdAtFormatted: string;
   createdAtRaw: string;
   previewUrl?: string;
-  verification: VideoVerificationStatus;
   rewardAmount?: number;
   reviewNotes?: string;
-  reviewedAt?: string;
 }
 
-export function VideoReviewConsole() {
+function formatDuration(seconds?: number | null): string {
+  if (seconds === undefined || seconds === null || isNaN(seconds) || seconds <= 0) {
+    return '--:--';
+  }
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+export interface VideoReviewConsoleProps {
+  showNavbar?: boolean;
+  showHeaderBanner?: boolean;
+}
+
+export function VideoReviewConsole({
+  showNavbar = true,
+  showHeaderBanner = true,
+}: VideoReviewConsoleProps = {}) {
   const [videos, setVideos] = useState<AdminVideoItem[]>([]);
   const [selectedVideoId, setSelectedVideoId] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'size' | 'ai_risk'>('newest');
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'size'>('newest');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [_error, setError] = useState<string | null>(null);
+
+  const handleVideoDurationLoaded = useCallback((videoId: string, durationSeconds: number) => {
+    const formatted = formatDuration(durationSeconds);
+    setVideos((prev) =>
+      prev.map((v) => (v.id === videoId ? { ...v, durationFormatted: formatted } : v))
+    );
+  }, []);
 
   const fetchAdminSubmissions = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
       const res = await staffApi.submissions.list(1, 50);
-      console.log(res);
       if (res && res.data) {
         const mapped: AdminVideoItem[] = res.data.map((sub) => {
+          const rawStatus = String(sub.status || 'in_review');
           let mappedStatus: VideoStatus = 'UNDER_REVIEW';
-          if (sub.status === 'approved' || sub.status === 'payment_pending') {
+          if (rawStatus === 'approved' || rawStatus === 'payment_pending' || rawStatus === 'SELECTED') {
             mappedStatus = 'SELECTED';
-          } else if (sub.status === 'paid') {
+          } else if (rawStatus === 'paid' || rawStatus === 'PAID') {
             mappedStatus = 'PAID';
-          } else if (sub.status === 'rejected') {
+          } else if (rawStatus === 'rejected' || rawStatus === 'REJECTED') {
             mappedStatus = 'REJECTED';
-          } else if (sub.status === 'draft') {
+          } else if (rawStatus === 'draft' || rawStatus === 'PROCESSING') {
             mappedStatus = 'PROCESSING';
           } else {
             mappedStatus = 'UNDER_REVIEW';
           }
 
-          const rawDate = sub.createdAt ? new Date(sub.createdAt) : new Date();
+          const rawDateStr = sub.createdAt ? String(sub.createdAt) : new Date().toISOString();
+          const rawDate = new Date(rawDateStr);
           const formattedDate = rawDate.toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
@@ -85,44 +143,42 @@ export function VideoReviewConsole() {
             minute: '2-digit',
           });
 
+          const sizeBytes = sub.video?.sizeBytes || 0;
+          const fileSizeFormatted = sizeBytes > 0
+            ? `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`
+            : 'N/A';
+
+          const durationFormatted = formatDuration(sub.video?.durationSeconds);
+
+          const subId = String(sub.id || '');
+
           return {
-            id: sub.id,
-            title: `Submission #${sub.id.slice(-6)}`,
-            description: `Video submission uploaded by ${sub.user?.name || 'Creator'}.`,
+            id: subId,
+            createdAt: rawDateStr,
             status: mappedStatus,
+            rejectionReason: (sub.rejectionReason as string | null) || null,
+            reviewedAt: (sub.reviewedAt as string | null) || null,
+            reviewedBy: (sub.reviewedBy as AdminVideoUser | null) || null,
+            timeline: (sub.timeline as unknown[]) || [],
+            user: sub.user || null,
+            video: sub.video || null,
+            title: `Submission #${subId.slice(-6)}`,
+            description: `Video submission uploaded by ${sub.user?.name || 'Creator'}.`,
             userId: sub.user?.id || 'usr_unknown',
             userName: sub.user?.name || 'Creator User',
             userEmail: sub.user?.email || 'creator@example.com',
-            fileKey: `uploads/${sub.id}.mp4`,
-            fileSizeFormatted: '45.0 MB',
-            fileSizeRaw: 47185920,
-            mimeType: 'video/mp4',
-            durationFormatted: '0:45',
+            fileKey: sub.video?.originalFilename || `uploads/${subId}.mp4`,
+            fileSizeFormatted,
+            fileSizeRaw: sizeBytes,
+            mimeType: sub.video?.mimeType || 'video/mp4',
+            durationFormatted,
             createdAtFormatted: formattedDate,
-            createdAtRaw: sub.createdAt || new Date().toISOString(),
-            verification: {
-              status: sub.status === 'rejected' ? 'fail' : 'pass',
-              script: {
-                status: sub.status === 'rejected' ? 'fail' : 'pass',
-                transcript: `Verification transcript for submission ${sub.id}.`,
-                confidence: 0.96,
-                missingSegments: [],
-                extraContent: [],
-              },
-              document: {
-                status: 'pass',
-                documentType: 'passport',
-                heldByPerson: true,
-                confidence: 0.95,
-                evidence: ['ID verification matched user account'],
-              },
-              authenticity: {
-                status: 'likely_real',
-                confidence: 0.98,
-                signals: ['Human liveness confirmed'],
-              },
-            },
-            rewardAmount: sub.status === 'paid' || sub.status === 'approved' ? 35.0 : undefined,
+            createdAtRaw: rawDateStr,
+            previewUrl: sub.video?.previewUrl || undefined,
+            verification: (sub.verification as VideoVerificationStatus | null) || null,
+            rewardAmount: (rawStatus === 'paid' || rawStatus === 'approved' || rawStatus === 'PAID' || rawStatus === 'SELECTED') && (sub as any).rewardAmount != null
+              ? Number((sub as any).rewardAmount)
+              : undefined,
           };
         });
         setVideos(mapped);
@@ -190,11 +246,6 @@ export function VideoReviewConsole() {
         if (sortBy === 'size') {
           return b.fileSizeRaw - a.fileSizeRaw;
         }
-        if (sortBy === 'ai_risk') {
-          const riskA = a.verification.status === 'fail' ? 2 : a.verification.status === 'uncertain' ? 1 : 0;
-          const riskB = b.verification.status === 'fail' ? 2 : b.verification.status === 'uncertain' ? 1 : 0;
-          return riskB - riskA;
-        }
         return 0;
       });
   }, [videos, statusFilter, searchQuery, sortBy]);
@@ -214,17 +265,20 @@ export function VideoReviewConsole() {
     const selected = videos.filter((v) => v.status === 'SELECTED' || v.status === 'PAID');
     const totalPaid = selected.reduce((sum, v) => sum + (v.rewardAmount || 25), 0);
     const rejected = videos.filter((v) => v.status === 'REJECTED').length;
-    const aiFlagged = videos.filter(
-      (v) =>
-        v.verification.status === 'fail' ||
-        v.verification.authenticity.status === 'likely_ai_generated'
-    ).length;
+    const totalSubmissions = videos.length;
 
-    return { pending, selectedCount: selected.length, totalPaid, rejected, aiFlagged };
+    return { pending, selectedCount: selected.length, totalPaid, rejected, totalSubmissions };
   }, [videos]);
 
   const handleOpenReviewModal = (action: ReviewActionType) => {
-    if (!selectedVideo) return;
+    if (
+      !selectedVideo ||
+      selectedVideo.status === 'REJECTED' ||
+      selectedVideo.status === 'SELECTED' ||
+      selectedVideo.status === 'PAID'
+    ) {
+      return;
+    }
     setModalState({
       isOpen: true,
       action: action,
@@ -284,40 +338,37 @@ export function VideoReviewConsole() {
     }
   };
 
-  return (
-    <div className="flex min-h-screen flex-col bg-white dark:bg-black text-zinc-900 dark:text-zinc-50 transition-colors duration-300">
-      <Navbar />
-
-      <main className="flex-1 py-8 lg:py-10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Header Banner */}
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-zinc-200 dark:border-zinc-800 pb-6">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-900 px-3 py-1 text-xs font-semibold text-zinc-900 dark:text-zinc-300 mb-2 border border-zinc-200 dark:border-zinc-800">
-                <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-                <span>Internal Admin Console</span>
-              </div>
-              <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
-                Video Moderation & Verification
-              </h1>
-              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                Review creator submissions, inspect video & document quality, approve rewards, or issue rejection feedback.
-              </p>
+  const consoleBody = (
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      {showHeaderBanner && (
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-zinc-200 dark:border-zinc-800 pb-6">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-900 px-3 py-1 text-xs font-semibold text-zinc-900 dark:text-zinc-300 mb-2 border border-zinc-200 dark:border-zinc-800">
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+              <span>Internal Admin Console</span>
             </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => fetchAdminSubmissions()}
-                disabled={isLoading}
-                className="inline-flex items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-900 px-4 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all disabled:opacity-50"
-                id="admin-refresh-queue-btn"
-              >
-                <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-                <span>{isLoading ? 'Loading...' : 'Refresh Queue'}</span>
-              </button>
-            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
+              Video Moderation & Verification
+            </h1>
+            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+              Review creator submissions, inspect video & document quality, approve rewards, or issue rejection feedback.
+            </p>
           </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => fetchAdminSubmissions()}
+              disabled={isLoading}
+              className="inline-flex items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-900 px-4 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all disabled:opacity-50"
+              id="admin-refresh-queue-btn"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+              <span>{isLoading ? 'Loading...' : 'Refresh Queue'}</span>
+            </button>
+          </div>
+        </div>
+      )}
 
           {/* Metric Overview Cards (4 Columns) */}
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -381,22 +432,22 @@ export function VideoReviewConsole() {
               </div>
             </div>
 
-            {/* Quality Check Flags */}
+            {/* Total Submissions */}
             <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-5 shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
-                  REVIEW FLAGS
+                  TOTAL SUBMISSIONS
                 </span>
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                  <AlertTriangle className="h-5 w-5" />
+                  <ShieldCheck className="h-5 w-5" />
                 </div>
               </div>
               <div className="mt-2 flex items-baseline gap-2">
                 <span className="text-3xl font-extrabold tracking-tight text-purple-400">
-                  {metrics.aiFlagged}
+                  {metrics.totalSubmissions}
                 </span>
                 <span className="text-xs font-medium text-purple-400">
-                  issues flagged
+                  total received
                 </span>
               </div>
             </div>
@@ -412,7 +463,7 @@ export function VideoReviewConsole() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by title, creator name, email or ID..."
-                className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 pl-10 pr-4 text-xs text-zinc-900 dark:text-white outline-none focus:border-zinc-900 dark:focus:border-white transition-all"
+                className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-[#FEFEFE] dark:bg-zinc-950 pl-10 pr-4 text-xs text-zinc-900 dark:text-white outline-none focus:border-zinc-900 dark:focus:border-white transition-all"
                 id="admin-search-input"
               />
             </div>
@@ -420,7 +471,7 @@ export function VideoReviewConsole() {
             {/* Filters & Sorting */}
             <div className="flex flex-wrap items-center gap-2">
               {/* Filter Tabs */}
-              <div className="flex items-center gap-1 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-1">
+              <div className="flex items-center gap-1 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-[#FEFEFE] dark:bg-zinc-950 p-1">
                 {[
                   { id: 'ALL', label: 'All Queue' },
                   { id: 'UNDER_REVIEW', label: 'In Review' },
@@ -442,20 +493,34 @@ export function VideoReviewConsole() {
               </div>
 
               {/* Sort By Dropdown */}
-              <div className="flex items-center gap-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-xs font-semibold text-zinc-600 dark:text-zinc-300">
-                <ArrowUpDown className="h-3.5 w-3.5 text-zinc-400" />
-                <select
-                  value={sortBy}
-                  onChange={(e) =>
-                    setSortBy(e.target.value as 'newest' | 'oldest' | 'size' | 'ai_risk')
-                  }
-                  className="bg-transparent outline-none cursor-pointer text-xs"
-                >
-                  <option value="newest">Newest First</option>
-                  <option value="oldest">Oldest First</option>
-                  <option value="ai_risk">AI Risk Score</option>
-                  <option value="size">File Size</option>
-                </select>
+              <div className="flex items-center gap-2">
+                {!showHeaderBanner && (
+                  <button
+                    type="button"
+                    onClick={() => fetchAdminSubmissions()}
+                    disabled={isLoading}
+                    className="inline-flex items-center gap-2 rounded-2xl bg-[#FEFEFE] dark:bg-zinc-950 px-3.5 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all disabled:opacity-50"
+                    id="admin-refresh-queue-btn-inline"
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+                    <span>Refresh</span>
+                  </button>
+                )}
+                <div className="relative flex items-center gap-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-[#FEFEFE] dark:bg-zinc-950 px-3 py-2 text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all">
+                  <ArrowUpDown className="h-3.5 w-3.5 text-zinc-400" />
+                  <select
+                    value={sortBy}
+                    onChange={(e) =>
+                      setSortBy(e.target.value as 'newest' | 'oldest' | 'size')
+                    }
+                    className="appearance-none bg-transparent outline-none cursor-pointer text-xs pr-6"
+                  >
+                    <option value="newest" className="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">Newest First</option>
+                    <option value="oldest" className="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">Oldest First</option>
+                    <option value="size" className="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">File Size</option>
+                  </select>
+                  <ChevronDown className="absolute right-2.5 h-3 w-3 text-zinc-400 pointer-events-none" />
+                </div>
               </div>
             </div>
           </div>
@@ -463,9 +528,9 @@ export function VideoReviewConsole() {
           {/* DUAL PANE WORKSPACE */}
           <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12">
             {/* LEFT PANE: Video Queue List (5 Cols) */}
-            <div className="lg:col-span-5 flex flex-col gap-3 max-h-[820px] overflow-y-auto pr-1">
+            <div className="lg:col-span-5 flex flex-col gap-3 max-h-[820px] overflow-y-auto pr-2 custom-scrollbar">
               <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-zinc-400 px-1">
-                <span>Pending Videos ({filteredVideos.length})</span>
+                <span>Videos ({filteredVideos.length})</span>
                 <span>Select to inspect</span>
               </div>
 
@@ -479,8 +544,6 @@ export function VideoReviewConsole() {
                   const isSelected = item.id === selectedVideo?.id;
                   const isApproved = item.status === 'SELECTED' || item.status === 'PAID';
                   const isRejected = item.status === 'REJECTED';
-
-                  const aiStatus = item.verification.status;
 
                   return (
                     <button
@@ -514,23 +577,6 @@ export function VideoReviewConsole() {
                                   ? 'REJECTED'
                                   : 'IN REVIEW'}
                             </span>
-
-                            {/* AI Signal Badge */}
-                            {aiStatus === 'pass' && (
-                              <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 border border-emerald-500/20">
-                                AI Pass
-                              </span>
-                            )}
-                            {aiStatus === 'fail' && (
-                              <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-400 border border-red-500/20">
-                                AI Flagged
-                              </span>
-                            )}
-                            {aiStatus === 'uncertain' && (
-                              <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-400 border border-amber-500/20">
-                                AI Check Needed
-                              </span>
-                            )}
                           </div>
 
                           <h3 className="mt-2 text-sm font-bold text-zinc-900 dark:text-white truncate">
@@ -584,13 +630,14 @@ export function VideoReviewConsole() {
                     src={selectedVideo.previewUrl}
                     title={selectedVideo.title}
                     durationFormatted={selectedVideo.durationFormatted}
+                    onDurationLoaded={(dur) => handleVideoDurationLoaded(selectedVideo.id, dur)}
                   />
 
                   {/* Submission Details & Creator Meta Grid */}
                   <VideoMetadata selectedVideo={selectedVideo} />
 
                   {/* ACTION CENTER TOOLBAR (Approve vs Reject) */}
-                  <div className="sticky bottom-4 z-30 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-xl p-4 shadow-2xl flex items-center justify-between gap-4">
+                  <div className="sticky bottom-4 z-30 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-[#FEFEFE]/90 dark:bg-zinc-950/90 backdrop-blur-xl p-4 shadow-2xl flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                       <div
                         className={`h-3 w-3 rounded-full ${selectedVideo.status === 'SELECTED'
@@ -608,29 +655,41 @@ export function VideoReviewConsole() {
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      {/* Reject Button */}
-                      <button
-                        type="button"
-                        onClick={() => handleOpenReviewModal('REJECT')}
-                        className="inline-flex items-center gap-2 rounded-full bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white border border-red-500/20 px-5 py-2.5 text-xs font-bold transition-all hover:shadow-lg active:scale-95"
-                      >
+                    {selectedVideo.status === 'REJECTED' ? (
+                      <div className="inline-flex items-center gap-2 rounded-full bg-red-500/10 border border-red-500/20 px-5 py-2.5 text-xs font-bold text-red-500">
                         <XCircle className="h-4 w-4" />
-                        <span>Reject Video</span>
-                      </button>
-
-                      {/* Approve Button */}
-                      <button
-                        type="button"
-                        onClick={() => handleOpenReviewModal('APPROVE')}
-                        className="inline-flex items-center gap-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 text-xs font-bold shadow-lg shadow-emerald-950/30 transition-all hover:shadow-xl hover:scale-[1.02] active:scale-95"
-                      >
+                        <span>Submission Rejected</span>
+                      </div>
+                    ) : selectedVideo.status === 'SELECTED' || selectedVideo.status === 'PAID' ? (
+                      <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-5 py-2.5 text-xs font-bold text-emerald-500">
                         <CheckCircle2 className="h-4 w-4" />
-                        <span>
-                          Approve & Grant ${selectedVideo.rewardAmount || '25.00'}
-                        </span>
-                      </button>
-                    </div>
+                        <span>Submission Approved ({selectedVideo.status})</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        {/* Reject Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleOpenReviewModal('REJECT')}
+                          className="inline-flex items-center gap-2 rounded-full bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white border border-red-500/20 px-5 py-2.5 text-xs font-bold transition-all hover:shadow-lg active:scale-95"
+                        >
+                          <XCircle className="h-4 w-4" />
+                          <span>Reject Video</span>
+                        </button>
+
+                        {/* Approve Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleOpenReviewModal('APPROVE')}
+                          className="inline-flex items-center gap-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 text-xs font-bold shadow-lg shadow-emerald-950/30 transition-all hover:shadow-xl hover:scale-[1.02] active:scale-95"
+                        >
+                          <CheckCircle2 className="h-4 w-4" />
+                          <span>
+                            Approve & Grant ${selectedVideo.rewardAmount || '25.00'}
+                          </span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </>
               ) : (
@@ -646,8 +705,20 @@ export function VideoReviewConsole() {
               )}
             </div>
           </div>
+    </div>
+  );
+
+  return (
+    <>
+      {showNavbar ? (
+        <div className="flex min-h-screen flex-col bg-[#FEFEFE] dark:bg-black text-zinc-900 dark:text-zinc-50 transition-colors duration-300">
+          <Navbar />
+          <main className="flex-1 py-8 lg:py-10">{consoleBody}</main>
+          <Footer />
         </div>
-      </main>
+      ) : (
+        consoleBody
+      )}
 
       {/* Approve / Reject Modal Dialog */}
       <ReviewModal
@@ -659,8 +730,6 @@ export function VideoReviewConsole() {
         videoTitle={modalState.videoTitle}
         defaultReward={selectedVideo?.rewardAmount || 25.0}
       />
-
-      <Footer />
-    </div>
+    </>
   );
 }

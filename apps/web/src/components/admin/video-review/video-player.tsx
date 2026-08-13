@@ -17,13 +17,15 @@ interface VideoPlayerProps {
   poster?: string;
   title: string;
   durationFormatted?: string;
+  onDurationLoaded?: (durationSeconds: number) => void;
 }
 
 export function VideoPlayer({
   src,
   poster,
   title,
-  durationFormatted = '0:45',
+  durationFormatted = '--:--',
+  onDurationLoaded,
 }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -35,11 +37,21 @@ export function VideoPlayer({
   const [showControls, setShowControls] = useState<boolean>(true);
   const [videoError, setVideoError] = useState<boolean>(false);
 
+  const handleLoadedMetadata = () => {
+    if (!videoRef.current) return;
+    const dur = videoRef.current.duration;
+    if (dur && !isNaN(dur) && isFinite(dur)) {
+      setDuration(dur);
+      onDurationLoaded?.(dur);
+    }
+  };
+
   useEffect(() => {
     // Reset state on src change
     setIsPlaying(false);
     setProgress(0);
     setCurrentTime(0);
+    setDuration(0);
     setVideoError(false);
     if (videoRef.current) {
       videoRef.current.currentTime = 0;
@@ -63,10 +75,17 @@ export function VideoPlayer({
   const handleTimeUpdate = () => {
     if (!videoRef.current) return;
     const curr = videoRef.current.currentTime;
-    const dur = videoRef.current.duration || 1;
+    const dur = videoRef.current.duration;
     setCurrentTime(curr);
-    setDuration(dur);
-    setProgress((curr / dur) * 100);
+    if (isFinite(dur) && dur > 0) {
+      setDuration(dur);
+      setProgress((curr / dur) * 100);
+      if (onDurationLoaded && (!duration || duration === 0)) {
+        onDurationLoaded(dur);
+      }
+    } else {
+      setProgress(0);
+    }
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -130,6 +149,7 @@ export function VideoPlayer({
             ref={videoRef}
             src={src}
             poster={poster}
+            onLoadedMetadata={handleLoadedMetadata}
             onTimeUpdate={handleTimeUpdate}
             onEnded={() => setIsPlaying(false)}
             onError={() => setVideoError(true)}

@@ -8,6 +8,7 @@ import {
   DollarSign,
   ShieldAlert,
   Send,
+  Loader2,
 } from 'lucide-react';
 
 export type ReviewActionType = 'APPROVE' | 'REJECT';
@@ -20,7 +21,7 @@ export interface ReviewModalProps {
     rewardAmount?: number;
     rejectionReason?: string;
     feedbackNotes?: string;
-  }) => void;
+  }) => Promise<void> | void;
   action: ReviewActionType;
   videoTitle: string;
   videoId: string;
@@ -58,6 +59,7 @@ export function ReviewModal({
   );
   const [feedbackNotes, setFeedbackNotes] = useState<string>('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   if (!isOpen) return null;
 
@@ -69,28 +71,36 @@ export function ReviewModal({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
-    if (isApprove) {
-      const combinedNotes = [
-        ...selectedTags,
-        feedbackNotes.trim(),
-      ]
-        .filter(Boolean)
-        .join(' • ');
+    try {
+      if (isApprove) {
+        const combinedNotes = [
+          ...selectedTags,
+          feedbackNotes.trim(),
+        ]
+          .filter(Boolean)
+          .join(' • ');
 
-      onConfirm({
-        action: 'APPROVE',
-        rewardAmount: rewardAmount,
-        feedbackNotes: combinedNotes || 'Approved by admin review.',
-      });
-    } else {
-      onConfirm({
-        action: 'REJECT',
-        rejectionReason: rejectionReason,
-        feedbackNotes: feedbackNotes.trim() || rejectionReason,
-      });
+        await onConfirm({
+          action: 'APPROVE',
+          rewardAmount: rewardAmount,
+          feedbackNotes: combinedNotes || 'Approved by admin review.',
+        });
+      } else {
+        await onConfirm({
+          action: 'REJECT',
+          rejectionReason: rejectionReason,
+          feedbackNotes: feedbackNotes.trim() || rejectionReason,
+        });
+      }
+    } catch (error) {
+      console.error('Submission error:', error);
+      alert('An error occurred while submitting the review. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -132,7 +142,8 @@ export function ReviewModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white transition-colors"
+            disabled={isSubmitting}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:pointer-events-none"
           >
             <X className="h-4 w-4" />
           </button>
@@ -258,23 +269,31 @@ export function ReviewModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full px-5 py-2.5 text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
+              disabled={isSubmitting}
+              className="rounded-full px-5 py-2.5 text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className={`inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-xs font-bold text-white shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] ${
+              disabled={isSubmitting}
+              className={`inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-xs font-bold text-white shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none ${
                 isApprove
                   ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-950/40'
                   : 'bg-red-600 hover:bg-red-500 shadow-red-950/40'
               }`}
             >
-              <Send className="h-3.5 w-3.5" />
+              {isSubmitting ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Send className="h-3.5 w-3.5" />
+              )}
               <span>
-                {isApprove
-                  ? `Approve & Pay $${rewardAmount.toFixed(2)}`
-                  : 'Confirm Rejection'}
+                {isSubmitting
+                  ? 'Updating Status...'
+                  : isApprove
+                    ? `Approve & Pay $${rewardAmount.toFixed(2)}`
+                    : 'Confirm Rejection'}
               </span>
             </button>
           </div>

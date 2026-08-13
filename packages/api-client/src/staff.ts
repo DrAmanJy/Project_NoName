@@ -14,7 +14,7 @@ export function createStaffApi(client: ApiClient) {
         return client.get<StaffSubmissionListResponse>(`/staff/submissions?${query}`);
       },
       get: (id: string) => client.get<StaffSubmissionDetailResponse>(`/staff/submissions/${id}`),
-      updateStatus: (id: string, data: UpdateSubmissionStatusRequest) => client.patch<void>(`/staff/submissions/${id}`, data),
+      updateStatus: (id: string, data: UpdateSubmissionStatusRequest) => client.patch<void>(`/staff/submissions/${id}/status`, data),
     }
   };
 }

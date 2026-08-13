@@ -159,7 +159,7 @@ export function HeroSection() {
         </p>
       </div>
 
-      <div ref={arrowRef} className="absolute bottom-10 z-20 text-zinc-500 dark:text-white/70">
+      <div ref={arrowRef} className="absolute bottom-10 z-20 text-zinc-500 dark:text-white/70 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer">
         <ChevronDown className="w-10 h-10" />
       </div>
     </section>

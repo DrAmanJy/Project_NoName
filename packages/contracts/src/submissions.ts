@@ -58,6 +58,7 @@ export const SubmissionResponseSchema = z.object({
   createdAt: z.string().datetime(),
   video: VideoMetadataSchema.nullable().optional(),
   verification: UserSafeVerificationSchema.nullable().optional(),
+  rewardAmount: z.number().nullable().optional(),
 });
 
 export type SubmissionResponse = z.infer<typeof SubmissionResponseSchema>;
@@ -77,6 +78,8 @@ export const AllowedVideoContentTypeSchema = z.enum([
   'video/webm',
   'video/x-m4v',
 ]);
+
+export type AllowedVideoContentType = z.infer<typeof AllowedVideoContentTypeSchema>;
 
 export const CreateSubmissionRequestSchema = z.object({
   fileName: z.string().min(1).max(255),
@@ -108,14 +111,6 @@ export const StaffSubmissionResponseSchema = SubmissionResponseSchema.extend({
 });
 export type StaffSubmissionResponse = z.infer<typeof StaffSubmissionResponseSchema>;
 
-export const StaffSubmissionListResponseSchema = z.object({
-  data: z.array(StaffSubmissionResponseSchema),
-  page: z.number().int().min(1),
-  limit: z.number().int().min(1),
-  total: z.number().int().min(0),
-});
-export type StaffSubmissionListResponse = z.infer<typeof StaffSubmissionListResponseSchema>;
-
 export const StaffSubmissionDetailResponseSchema = StaffSubmissionResponseSchema.extend({
   verification: VideoVerificationStatusSchema.nullable().optional(),
   reviewedBy: UserSchema.nullable().optional(),
@@ -123,6 +118,14 @@ export const StaffSubmissionDetailResponseSchema = StaffSubmissionResponseSchema
   rejectionReason: z.string().nullable().optional(),
 });
 export type StaffSubmissionDetailResponse = z.infer<typeof StaffSubmissionDetailResponseSchema>;
+
+export const StaffSubmissionListResponseSchema = z.object({
+  data: z.array(StaffSubmissionDetailResponseSchema),
+  page: z.number().int().min(1),
+  limit: z.number().int().min(1),
+  total: z.number().int().min(0),
+});
+export type StaffSubmissionListResponse = z.infer<typeof StaffSubmissionListResponseSchema>;
 
 export const UpdateSubmissionStatusRequestSchema = z.object({
   status: SubmissionStatusSchema,
