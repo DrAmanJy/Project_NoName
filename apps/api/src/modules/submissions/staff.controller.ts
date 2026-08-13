@@ -52,7 +52,7 @@ export class StaffSubmissionsController {
 
       const submissionIds = submissions.map(s => s._id);
       const videos = await VideoUpload.find({ submissionId: { $in: submissionIds } })
-        .select('_id submissionId originalFileName contentType fileSize durationSeconds width height status completedAt')
+        .select('_id submissionId originalFileName contentType fileSize durationSeconds width height status completedAt objectKey')
         .lean();
       const videoIds = videos.map(v => v._id);
       const verifications = await VideoVerification.find({ videoUploadId: { $in: videoIds } })
@@ -65,8 +65,12 @@ export class StaffSubmissionsController {
       const data = await Promise.all(submissions.map(async (sub) => {
         const video = videosBySubId.get(sub._id.toString());
         let verification = null;
+        let previewUrl: string | null = null;
         if (video) {
           verification = verificationsByVidId.get(video._id.toString()) || null;
+          if (video.status === 'uploaded' || video.status === 'processing' || video.status === 'verified') {
+            previewUrl = await s3Service.getSignedDownloadUrl(video.objectKey, 900).catch(() => null);
+          }
         }
 
         const userObj = sub.userId as unknown as { _id: mongoose.Types.ObjectId; name: string; email: string; avatarUrl?: string; isActive: boolean; role: string; createdAt: Date; updatedAt: Date };
@@ -105,6 +109,7 @@ export class StaffSubmissionsController {
             height: video.height || null,
             uploadStatus: video.status,
             uploadedAt: video.completedAt ? video.completedAt.toISOString() : null,
+            previewUrl,
           } : null,
           reviewedBy: reviewerObj ? {
             id: reviewerObj._id.toString(),
