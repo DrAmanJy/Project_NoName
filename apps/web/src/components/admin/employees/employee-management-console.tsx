@@ -29,7 +29,6 @@ export function EmployeeManagementConsole() {
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Modals state
-  const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [editingEmployee, setEditingEmployee] = useState<ExtendedUser | null>(null);
   const [deletingEmployee, setDeletingEmployee] = useState<ExtendedUser | null>(null);
 
@@ -42,7 +41,7 @@ export function EmployeeManagementConsole() {
   }>({
     name: '',
     email: '',
-    role: 'employee',
+    role: 'user',
     avatarUrl: '',
   });
 
@@ -91,49 +90,7 @@ export function EmployeeManagementConsole() {
     return { total, admins, staff };
   }, [employees]);
 
-  // Handlers for Add
-  const handleOpenAddModal = () => {
-    setFormData({
-      name: '',
-      email: '',
-      role: 'employee',
-      avatarUrl: '',
-    });
-    setFormError(null);
-    setIsAddModalOpen(true);
-  };
 
-  const handleCreateEmployee = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name.trim() || !formData.email.trim()) {
-      setFormError('Please provide both name and email.');
-      return;
-    }
-
-    setIsSubmitting(true);
-    setFormError(null);
-
-    try {
-      const res = await adminApi.employees.create({
-        name: formData.name,
-        email: formData.email,
-        role: formData.role === 'user' ? 'employee' : formData.role,
-      });
-
-      const createdUser: ExtendedUser = {
-        ...res,
-        avatarUrl: formData.avatarUrl.trim() || res.avatarUrl,
-      };
-
-      setEmployees((prev) => [createdUser, ...prev]);
-      setIsAddModalOpen(false);
-    } catch (err: unknown) {
-      console.error(err);
-      setFormError('Failed to create employee account. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   // Handlers for Edit
   const handleOpenEditModal = (employee: ExtendedUser) => {
@@ -223,15 +180,6 @@ export function EmployeeManagementConsole() {
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
             <span>Sync Roster</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleOpenAddModal}
-            className="inline-flex items-center gap-2 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-5 py-2 text-xs font-bold shadow-lg hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-all"
-          >
-            <UserPlus className="h-4 w-4" />
-            <span>Add Employee</span>
           </button>
         </div>
       </div>
@@ -361,15 +309,25 @@ export function EmployeeManagementConsole() {
                       </td>
 
                       <td className="px-6 py-4">
-                        {emp.role === 'admin' ? (
+                        {emp.role === 'admin' && (
                           <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1 text-[11px] font-bold text-amber-600 dark:text-amber-400 border border-amber-500/20">
                             <Shield className="h-3 w-3" />
                             Administrator
                           </span>
-                        ) : (
+                        )}
+
+                        {emp.role === 'employee' && (
                           <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-500/10 px-3 py-1 text-[11px] font-bold text-purple-600 dark:text-purple-400 border border-purple-500/20">
                             <UserIcon className="h-3 w-3" />
                             Employee
+                          </span>
+                        )}
+
+
+                        {emp.role === 'user' && (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-500/10 px-3 py-1 text-[11px] font-bold text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                            <UserIcon className="h-3 w-3" />
+                            User
                           </span>
                         )}
                       </td>
@@ -406,114 +364,7 @@ export function EmployeeManagementConsole() {
         )}
       </div>
 
-      {/* CREATE EMPLOYEE MODAL */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
-          <div className="w-full max-w-md rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 shadow-2xl transition-all">
-            <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-4">
-              <div className="flex items-center gap-2">
-                <div className="rounded-xl bg-blue-500/10 p-2 text-blue-500">
-                  <UserPlus className="h-5 w-5" />
-                </div>
-                <h3 className="text-base font-bold text-zinc-900 dark:text-white">
-                  Add New Employee
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsAddModalOpen(false)}
-                className="rounded-xl p-1.5 text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
 
-            <form onSubmit={handleCreateEmployee} className="mt-4 space-y-4">
-              {formError && (
-                <div className="rounded-2xl bg-red-50 dark:bg-red-950/40 p-3 text-xs font-semibold text-red-600 border border-red-200 dark:border-red-900/50">
-                  {formError}
-                </div>
-              )}
-
-              <div>
-                <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Alex Rivera"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-                  <input
-                    type="email"
-                    required
-                    placeholder="e.g. alex@synex.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 pl-10 pr-3.5 py-2.5 text-xs text-zinc-900 dark:text-white focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1">
-                  Role Permission
-                </label>
-                <select
-                  value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value as Role })}
-                  className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
-                >
-                  <option value="employee">Employee (Review Staff)</option>
-                  <option value="admin">Admin (Full Administrative Access)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1">
-                  Avatar Image URL (Optional)
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://images.unsplash.com/..."
-                  value={formData.avatarUrl}
-                  onChange={(e) => setFormData({ ...formData, avatarUrl: e.target.value })}
-                  className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
-                />
-              </div>
-
-              <div className="pt-2 flex justify-end gap-3 border-t border-zinc-200 dark:border-zinc-800">
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="rounded-full px-4 py-2 text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="inline-flex items-center gap-2 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-5 py-2 text-xs font-bold hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-all disabled:opacity-50"
-                >
-                  {isSubmitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
-                  <span>Create Employee</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* EDIT EMPLOYEE MODAL */}
       {editingEmployee && (
@@ -583,6 +434,8 @@ export function EmployeeManagementConsole() {
                   <option value="user">User (Standard Account)</option>
                 </select>
               </div>
+
+
 
               <div>
                 <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1">
