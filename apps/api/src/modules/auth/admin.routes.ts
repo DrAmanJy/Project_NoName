@@ -12,12 +12,7 @@ adminRoutes.get(
   adminController.listEmployees
 );
 
-adminRoutes.post(
-  '/employees',
-  requireAuth,
-  authorize('employee:create'),
-  adminController.createEmployee
-);
+
 
 adminRoutes.patch(
   '/employees/:id',

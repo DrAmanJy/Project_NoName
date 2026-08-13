@@ -9,6 +9,7 @@ import { appleProvider } from './oauth/apple/apple.provider.js';
 import { User, type IUser } from './models/user.model.js';
 import { OAuthAccount } from './models/oauth-account.model.js';
 import { MobileAuthHandoff } from './models/mobile-handoff.model.js';
+
 import { sessionService } from './session/session.service.js';
 import type { User as ContractUser } from '@repo/contracts';
 import { MobileHandoffExchangeRequestSchema } from '@repo/contracts';
@@ -49,13 +50,31 @@ export class AuthController {
         res.status(403).json({ success: false, error: 'User account is inactive' });
         return;
       }
+
+      // Update OAuth identity fields
+      user.name = name || user.name;
+      if (avatarUrl) user.avatarUrl = avatarUrl;
+      await user.save();
     } else {
-      user = await User.create({
-        name: name || 'User',
-        email,
-        avatarUrl,
-        isActive: true,
-      });
+      // Find existing user by email to prevent duplicates
+      if (email) {
+        user = await User.findOne({ email: email.toLowerCase() });
+      }
+
+      if (user) {
+        // Update OAuth identity fields
+        user.name = name || user.name;
+        if (avatarUrl) user.avatarUrl = avatarUrl;
+        await user.save();
+      } else {
+        user = await User.create({
+          name: name || 'User',
+          email,
+          avatarUrl,
+          isActive: true,
+          role: 'user',
+        });
+      }
 
       oauthAccount = await OAuthAccount.create({
         userId: user._id,

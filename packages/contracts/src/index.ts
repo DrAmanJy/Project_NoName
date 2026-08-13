@@ -4,7 +4,6 @@ export {
   AuthResponseSchema,
   MobileHandoffExchangeRequestSchema,
   EmployeeListResponseSchema,
-  CreateEmployeeRequestSchema,
   UpdateEmployeeRequestSchema,
 } from './auth.js';
 export type { 
@@ -13,7 +12,6 @@ export type {
   AuthResponse, 
   MobileHandoffExchangeRequest,
   EmployeeListResponse,
-  CreateEmployeeRequest,
   UpdateEmployeeRequest,
 } from './auth.js';
 
