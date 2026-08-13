@@ -4,7 +4,7 @@ import MarketingHomePage from '@/app/(marketing)/page';
 
 export const metadata: Metadata = {
   title: 'Login',
-  description: 'Sign in to your True Services account.',
+  description: 'Sign in to your Synex account.',
   robots: {
     index: false,
     follow: false,

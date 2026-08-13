@@ -32,19 +32,24 @@ interface VideoProgressStep {
 }
 
 interface UploadedVideoItem {
+  createdAt: string;
+  earning: number;
+  expectedEarning: number;
   id: string;
-  title: string;
-  fileName: string;
-  fileSize: string;
-  duration: string;
-  uploadedAt: string;
-  status: VideoStatus;
-  statusLabel: string;
-  rewardAmount?: string;
-  thumbnailBg: string;
-  videoUrl?: string;
-  steps: VideoProgressStep[];
-  rejectionReason?: string;
+  status: string;
+  timeline: any[];
+  video?: {
+    durationSeconds: number | null;
+    height: number | null;
+    id: string;
+    mimeType: string;
+    originalFilename: string;
+    previewUrl: string | null;
+    sizeBytes: number;
+    uploadStatus: string;
+    uploadedAt: string | null;
+    width: number | null;
+  } | null;
 }
 
 export function DashboardView() {
@@ -59,76 +64,7 @@ export function DashboardView() {
     try {
       const res = await submissionsApi.list(1, 50).catch(() => null);
       if (res && Array.isArray(res.data) && res.data.length > 0) {
-        const mapped: UploadedVideoItem[] = res.data.map((item) => {
-          let status: VideoStatus = 'UNDER_REVIEW';
-          let statusLabel = 'In Review';
-          if (item.status === 'approved' || item.status === 'paid') {
-            status = 'PAID';
-            statusLabel = 'Approved & Paid';
-          } else if (item.status === 'rejected') {
-            status = 'REJECTED';
-            statusLabel = 'Rejected';
-          } else if (item.status === 'draft') {
-            status = 'PROCESSING';
-            statusLabel = 'Processing';
-          }
-
-          const steps: VideoProgressStep[] =
-            item.timeline && item.timeline.length > 0
-              ? item.timeline.map((step) => ({
-                  title:
-                    step.key === 'video_uploaded'
-                      ? 'Video Uploaded'
-                      : step.key === 'under_review'
-                      ? 'Quality & Guideline Review'
-                      : 'Payout Approval',
-                  description: step.message || 'Timeline step status updated',
-                  state: step.status as VideoProgressStep['state'],
-                  timestamp: step.completedAt ? new Date(step.completedAt).toLocaleString() : undefined,
-                }))
-              : [
-                  {
-                    title: 'Video Uploaded',
-                    description: 'S3 chunk upload verified',
-                    state: 'completed',
-                    timestamp: new Date(item.createdAt).toLocaleString(),
-                  },
-                  {
-                    title: 'Quality & Guideline Review',
-                    description: 'Checking content against guidelines',
-                    state: item.status === 'in_review' ? 'current' : item.status === 'rejected' ? 'rejected' : 'completed',
-                  },
-                  {
-                    title: 'Payout Approval',
-                    description: 'Reward disbursement to wallet',
-                    state: item.status === 'paid' ? 'completed' : 'pending',
-                  },
-                ];
-
-          const formattedDate = new Date(item.createdAt).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-          });
-
-          const rawItem = item as unknown as { videoUrl?: string; url?: string };
-
-          return {
-            id: item.id,
-            title: `Submission - ${formattedDate}`,
-            fileName: `submission_${item.id.slice(-6)}.mp4`,
-            fileSize: '120.0 MB',
-            duration: '03:30',
-            uploadedAt: formattedDate,
-            status,
-            statusLabel,
-            rewardAmount: item.status === 'paid' || item.status === 'approved' ? '$50.00' : '$0.00',
-            thumbnailBg: 'from-amber-600/30 to-zinc-900',
-            videoUrl: rawItem.videoUrl || rawItem.url || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-            steps,
-          };
-        });
-        setVideos(mapped);
+        setVideos(res.data as UploadedVideoItem[]);
       } else {
         setVideos([]);
       }
@@ -146,27 +82,81 @@ export function DashboardView() {
   const filteredVideos = videos.filter((video) => {
     const matchesFilter =
       selectedFilter === 'ALL' ||
-      (selectedFilter === 'PROCESSING' && (video.status === 'PROCESSING' || video.status === 'UPLOADING')) ||
-      (selectedFilter === 'IN_REVIEW' && video.status === 'UNDER_REVIEW') ||
-      (selectedFilter === 'PAID' && (video.status === 'PAID' || video.status === 'SELECTED')) ||
-      (selectedFilter === 'REJECTED' && video.status === 'REJECTED');
+      (selectedFilter === 'PROCESSING' && (video.status === 'draft' || video.status === 'uploading' || video.status === 'PROCESSING')) ||
+      (selectedFilter === 'IN_REVIEW' && (video.status === 'in_review' || video.status === 'UNDER_REVIEW')) ||
+      (selectedFilter === 'PAID' && (video.status === 'paid' || video.status === 'approved' || video.status === 'PAID')) ||
+      (selectedFilter === 'REJECTED' && (video.status === 'rejected' || video.status === 'REJECTED'));
+
+    const formattedDate = new Date(video.createdAt).toLocaleDateString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+    });
+    const title = `Submission - ${formattedDate}`;
+    const fileName = video.video?.originalFilename || `submission_${video.id.slice(-6)}.mp4`;
 
     const matchesSearch =
-      video.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      video.fileName.toLowerCase().includes(searchQuery.toLowerCase());
+      title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      fileName.toLowerCase().includes(searchQuery.toLowerCase());
 
     return matchesFilter && matchesSearch;
   });
 
   const totalVideos = videos.length;
-  const inReviewCount = videos.filter((v) => v.status === 'UNDER_REVIEW' || v.status === 'PROCESSING').length;
-  const paidCount = videos.filter((v) => v.status === 'PAID' || v.status === 'SELECTED').length;
+  const inReviewCount = videos.filter((v) => v.status === 'UNDER_REVIEW' || v.status === 'PROCESSING' || v.status === 'in_review' || v.status === 'draft').length;
+  const paidCount = videos.filter((v) => v.status === 'PAID' || v.status === 'SELECTED' || v.status === 'paid' || v.status === 'approved').length;
   const totalEarnedAmount = videos
-    .filter((v) => v.status === 'PAID' || v.status === 'SELECTED')
-    .reduce((acc, v) => acc + (parseFloat(v.rewardAmount?.replace('$', '') || '0') || 50), 0);
+    .filter((v) => v.status === 'PAID' || v.status === 'SELECTED' || v.status === 'paid' || v.status === 'approved')
+    .reduce((acc, v) => acc + (v.earning || 50), 0);
   const pendingEarnedAmount = videos
-    .filter((v) => v.status === 'UNDER_REVIEW' || v.status === 'PROCESSING')
-    .reduce((acc, _v) => acc + 35.0, 0);
+    .filter((v) => v.status === 'UNDER_REVIEW' || v.status === 'PROCESSING' || v.status === 'in_review' || v.status === 'draft')
+    .reduce((acc, v) => acc + (v.expectedEarning || 35), 0);
+
+  const getDerivedVideoData = (video: UploadedVideoItem) => {
+    const isRejected = video.status === 'REJECTED' || video.status === 'rejected';
+    const isInReview = video.status === 'UNDER_REVIEW' || video.status === 'in_review';
+    const isProcessing = video.status === 'PROCESSING' || video.status === 'UPLOADING' || video.status === 'draft' || video.status === 'uploading';
+    const isPaid = video.status === 'PAID' || video.status === 'SELECTED' || video.status === 'paid' || video.status === 'approved';
+
+    let statusLabel = 'In Review';
+    if (isPaid) statusLabel = 'Approved & Paid';
+    else if (isRejected) statusLabel = 'Rejected';
+    else if (isProcessing) statusLabel = 'Processing';
+
+    const formattedDate = new Date(video.createdAt).toLocaleDateString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+    });
+    const title = `Submission - ${formattedDate}`;
+    const fileName = video.video?.originalFilename || `submission_${video.id.slice(-6)}.mp4`;
+    const fileSize = video.video?.sizeBytes ? `${(video.video.sizeBytes / (1024 * 1024)).toFixed(1)} MB` : '0 MB';
+    
+    const durationSeconds = video.video?.durationSeconds || 0;
+    const duration = `${Math.floor(durationSeconds / 60).toString().padStart(2, '0')}:${Math.floor(durationSeconds % 60).toString().padStart(2, '0')}`;
+    const uploadedAt = formattedDate;
+
+    const rewardAmount = (video.status === 'paid' || video.status === 'approved' || video.status === 'PAID' || video.status === 'SELECTED') 
+      ? `$${(video.earning || 50).toFixed(2)}` 
+      : `$${(video.expectedEarning || 0).toFixed(2)}`;
+    const thumbnailBg = 'from-amber-600/30 to-zinc-900';
+    const videoUrl = video.video?.previewUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
+    
+    type VideoProgressStep = { title: string; description: string; state: 'completed' | 'current' | 'pending' | 'rejected'; timestamp?: string };
+
+    const steps: VideoProgressStep[] = video.timeline && video.timeline.length > 0
+      ? video.timeline.map((step) => ({
+          title: step.key === 'video_uploaded' ? 'Video Uploaded' : step.key === 'under_review' ? 'Quality & Guideline Review' : 'Payout Approval',
+          description: step.message || 'Timeline step status updated',
+          state: step.status as VideoProgressStep['state'],
+          timestamp: step.completedAt ? new Date(step.completedAt).toLocaleString() : undefined,
+        }))
+      : [
+          { title: 'Video Uploaded', description: 'S3 chunk upload verified', state: 'completed', timestamp: new Date(video.createdAt).toLocaleString() },
+          { title: 'Quality & Guideline Review', description: 'Checking content against guidelines', state: isInReview ? 'current' : isRejected ? 'rejected' : 'completed' },
+          { title: 'Payout Approval', description: 'Reward disbursement to wallet', state: isPaid ? 'completed' : 'pending' },
+        ];
+
+    return { isRejected, isInReview, isProcessing, isPaid, statusLabel, title, fileName, fileSize, duration, uploadedAt, rewardAmount, thumbnailBg, videoUrl, steps, rejectionReason: undefined };
+  };
+
+  const selectedDerivedVideo = selectedVideo ? { ...selectedVideo, ...getDerivedVideoData(selectedVideo) } : null;
 
   return (
     <div className="relative flex min-h-screen flex-col bg-white dark:bg-black text-zinc-900 dark:text-zinc-50 transition-colors duration-300 overflow-hidden">
@@ -427,11 +417,10 @@ export function DashboardView() {
               </div>
             ) : (
               <div className="space-y-4">
-                {filteredVideos.map((video) => {
-                  const isRejected = video.status === 'REJECTED';
-                  const isInReview = video.status === 'UNDER_REVIEW';
-                  const isProcessing = video.status === 'PROCESSING' || video.status === 'UPLOADING';
-                  const isPaid = video.status === 'PAID' || video.status === 'SELECTED';
+                {filteredVideos.map((rawVideo) => {
+                  const derived = getDerivedVideoData(rawVideo);
+                  const video = { ...rawVideo, ...derived };
+                  const { isRejected, isInReview, isProcessing, isPaid } = derived;
 
                   return (
                     <div
@@ -638,7 +627,9 @@ export function DashboardView() {
       </main>
 
       {/* Video Details & Audit Log Modal */}
-      {selectedVideo && (
+      {selectedDerivedVideo && (() => {
+        const selectedVideo = selectedDerivedVideo;
+        return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="w-full max-w-2xl rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 shadow-2xl overflow-hidden">
             <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-900 pb-4">
@@ -755,7 +746,8 @@ export function DashboardView() {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       <Footer />
     </div>

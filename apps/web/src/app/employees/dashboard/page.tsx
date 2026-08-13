@@ -11,14 +11,10 @@ import {
   RefreshCw,
   X,
   Zap,
-  Users,
   Eye,
   Filter,
-  UserCheck,
-  UserX,
 } from 'lucide-react';
-import { staffApi, adminApi } from '@/lib/api-client';
-import type { User } from '@repo/contracts';
+import { staffApi } from '@/lib/api-client';
 import { RoleGuard } from '@/components/auth/role-guard';
 
 interface VideoProgressStep {
@@ -44,9 +40,7 @@ interface UserVideoSubmissionItem {
 }
 
 export default function EmployeeDashboardPage() {
-  const [activeTab, setActiveTab] = useState<'video-progress' | 'employees'>('video-progress');
   const [videoSubmissions, setVideoSubmissions] = useState<UserVideoSubmissionItem[]>([]);
-  const [employees, setEmployees] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('ALL');
@@ -122,13 +116,7 @@ export default function EmployeeDashboardPage() {
         setVideoSubmissions([]);
       }
 
-      // 2. Fetch employee list from admin API
-      const employeesRes = await adminApi.employees.list(1, 50).catch(() => null);
-      if (employeesRes && Array.isArray(employeesRes.users)) {
-        setEmployees(employeesRes.users);
-      } else {
-        setEmployees([]);
-      }
+
     } catch {
       setVideoSubmissions([]);
     } finally {
@@ -187,40 +175,10 @@ export default function EmployeeDashboardPage() {
               </p>
             </div>
 
-            {/* Tab Switcher Pills */}
-            <div className="flex items-center gap-2 rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/80 dark:bg-zinc-950/80 p-1.5 shadow-sm backdrop-blur-md">
-              <button
-                type="button"
-                onClick={() => setActiveTab('video-progress')}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all duration-300 ${
-                  activeTab === 'video-progress'
-                    ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-md ring-1 ring-zinc-700/50'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/60 dark:hover:bg-zinc-900'
-                }`}
-                id="admin-tab-video-progress"
-              >
-                <Video className="h-4 w-4" />
-                <span>User Video Progress</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('employees')}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all duration-300 ${
-                  activeTab === 'employees'
-                    ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-md ring-1 ring-zinc-700/50'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/60 dark:hover:bg-zinc-900'
-                }`}
-                id="admin-tab-employees"
-              >
-                <Users className="h-4 w-4" />
-                <span>Manage Employees ({employees.length})</span>
-              </button>
-            </div>
           </div>
 
-          {/* Tab 1: User Video Progress Monitor */}
-          {activeTab === 'video-progress' && (
-            <div className="mt-8 space-y-8 animate-in fade-in duration-300">
+          {/* User Video Progress Monitor */}
+          <div className="mt-8 space-y-8 animate-in fade-in duration-300">
               {/* KPI Cards Grid */}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {/* Card 1: Total User Submissions */}
@@ -497,80 +455,6 @@ export default function EmployeeDashboardPage() {
               </div>
             )}
           </div>
-        )}
-
-        {/* Tab 2: Employee Roster Management */}
-        {activeTab === 'employees' && (
-          <div className="mt-8 space-y-6 animate-in fade-in duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-zinc-900 dark:text-white">
-                  Staff & Employee Directory
-                </h2>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Manage active employees and administrative team permissions.
-                </p>
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 overflow-hidden shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wider">
-                    <tr>
-                      <th className="py-3.5 px-6">Employee Name</th>
-                      <th className="py-3.5 px-6">Email Address</th>
-                      <th className="py-3.5 px-6">Role</th>
-                      <th className="py-3.5 px-6">Status</th>
-                      <th className="py-3.5 px-6">Joined Date</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800 text-zinc-900 dark:text-white">
-                    {employees.map((emp) => (
-                      <tr key={emp.id} className="hover:bg-zinc-100/50 dark:hover:bg-zinc-900/50 transition-colors">
-                        <td className="py-4 px-6 font-bold flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 flex items-center justify-center text-xs font-bold">
-                            {emp.name.charAt(0)}
-                          </div>
-                          <span>{emp.name}</span>
-                        </td>
-                        <td className="py-4 px-6 text-zinc-600 dark:text-zinc-400">{emp.email}</td>
-                        <td className="py-4 px-6">
-                          <span
-                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                              emp.role === 'admin'
-                                ? 'bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800'
-                                : 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
-                            }`}
-                          >
-                            {emp.role.toUpperCase()}
-                          </span>
-                        </td>
-                        <td className="py-4 px-6">
-                          <span
-                            className={`inline-flex items-center gap-1.5 text-xs font-semibold ${
-                              emp.isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'
-                            }`}
-                          >
-                            {emp.isActive ? <UserCheck className="h-3.5 w-3.5" /> : <UserX className="h-3.5 w-3.5" />}
-                            <span>{emp.isActive ? 'Active' : 'Deactivated'}</span>
-                          </span>
-                        </td>
-                        <td className="py-4 px-6 text-zinc-500">
-                          {new Date(emp.createdAt).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                          })}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Video Audit Detail Modal */}
         {selectedSubmission && (

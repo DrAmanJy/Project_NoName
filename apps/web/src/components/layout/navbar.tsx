@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Video, Menu, X, ArrowRight, Sun, Moon, ChevronDown, LogOut, LayoutDashboard, Wallet, ShieldCheck } from 'lucide-react';
+import { Menu, X, ArrowRight, Sun, Moon, ChevronDown, LogOut, LayoutDashboard, Wallet, ShieldCheck } from 'lucide-react';
 import { LoginModal } from '@/components/auth/login-modal';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -73,11 +73,9 @@ export function Navbar() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
           {/* Brand Logo */}
           <Link href="/" className="group flex items-center gap-2.5 transition-transform hover:scale-102">
-            <div className="flex h-10 w-10 items-centeruser justify-center rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-md">
-              <Video className="h-5 w-5 transition-transform group-hover:rotate-6" />
-            </div>
+            <img src="/synex_logo.png" alt="Synex Logo" className="h-12 w-auto object-contain transition-transform group-hover:scale-105" />
             <span className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">
-              True Services<span className="text-zinc-500">.</span>
+              Synex<span className="text-zinc-500">.</span>
             </span>
           </Link>
 
@@ -150,22 +148,26 @@ export function Navbar() {
 
                     {/* Navigation Items */}
                     <div className="py-2.5 space-y-1 border-b border-zinc-100 dark:border-zinc-800/80">
-                      <Link
-                        href="/dashboard"
-                        onClick={() => setIsProfileMenuOpen(false)}
-                        className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white transition-colors"
-                      >
-                        <LayoutDashboard className="h-4 w-4 text-zinc-500" />
-                        <span>Dashboard</span>
-                      </Link>
-                      <Link
-                        href="/dashboard/earnings"
-                        onClick={() => setIsProfileMenuOpen(false)}
-                        className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white transition-colors"
-                      >
-                        <Wallet className="h-4 w-4 text-emerald-500" />
-                        <span>My Earnings</span>
-                      </Link>
+                      {role === 'user' && (
+                        <>
+                          <Link
+                            href="/dashboard"
+                            onClick={() => setIsProfileMenuOpen(false)}
+                            className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                          >
+                            <LayoutDashboard className="h-4 w-4 text-zinc-500" />
+                            <span>Dashboard</span>
+                          </Link>
+                          <Link
+                            href="/dashboard/earnings"
+                            onClick={() => setIsProfileMenuOpen(false)}
+                            className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                          >
+                            <Wallet className="h-4 w-4 text-emerald-500" />
+                            <span>My Earnings</span>
+                          </Link>
+                        </>
+                      )}
                       {(role === 'admin' || role === 'employee') && (
                         <Link
                           href={role === 'admin' ? '/admin/dashboard' : '/employees/dashboard'}
@@ -312,13 +314,15 @@ export function Navbar() {
                     Login
                   </button>
                 )}
-                <Link
-                  href={isAuthenticated ? '/dashboard' : '#upload'}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center rounded-full bg-zinc-900 dark:bg-white py-2.5 text-sm font-semibold text-white dark:text-zinc-900 shadow-md"
-                >
-                  {isAuthenticated ? 'Go to Dashboard' : 'Get Started'}
-                </Link>
+                {(!isAuthenticated || role === 'user') && (
+                  <Link
+                    href={isAuthenticated ? '/dashboard' : '#upload'}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full text-center rounded-full bg-zinc-900 dark:bg-white py-2.5 text-sm font-semibold text-white dark:text-zinc-900 shadow-md"
+                  >
+                    {isAuthenticated ? 'Go to Dashboard' : 'Get Started'}
+                  </Link>
+                )}
               </div>
             </div>
           </div>

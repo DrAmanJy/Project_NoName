@@ -27,7 +27,6 @@ export function EmployeeManagementConsole() {
   const [employees, setEmployees] = useState<ExtendedUser[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [roleFilter, setRoleFilter] = useState<string>('ALL');
 
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
@@ -79,15 +78,9 @@ export function EmployeeManagementConsole() {
         emp.name.toLowerCase().includes(searchQuery.toLowerCase().trim()) ||
         (emp.email && emp.email.toLowerCase().includes(searchQuery.toLowerCase().trim()));
 
-      const matchesRole =
-        roleFilter === 'ALL' ||
-        (roleFilter === 'ADMIN' && emp.role === 'admin') ||
-        (roleFilter === 'EMPLOYEE' && emp.role === 'employee') ||
-        (roleFilter === 'USER' && emp.role === 'user');
-
-      return matchesSearch && matchesRole;
+      return matchesSearch;
     });
-  }, [employees, searchQuery, roleFilter]);
+  }, [employees, searchQuery]);
 
   // KPI Metrics
   const metrics = useMemo(() => {
@@ -213,10 +206,6 @@ export function EmployeeManagementConsole() {
       {/* Header Bar */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-zinc-200 dark:border-zinc-800 pb-6">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-600 dark:text-blue-400 border border-blue-500/20 mb-2">
-            <Users className="h-3.5 w-3.5" />
-            <span>Staff Roster Management</span>
-          </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
             Employee Directory
           </h1>
@@ -289,10 +278,9 @@ export function EmployeeManagementConsole() {
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-950 p-4">
-        {/* Search */}
-        <div className="relative flex-1">
+      {/* Search Bar */}
+      <div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-950 p-4">
+        <div className="relative w-full">
           <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
           <input
             type="text"
@@ -301,26 +289,6 @@ export function EmployeeManagementConsole() {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 pl-10 pr-4 py-2 text-xs font-medium text-zinc-900 dark:text-white placeholder-zinc-400 focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none transition-all"
           />
-        </div>
-
-        {/* Role Filters */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1 rounded-2xl bg-white dark:bg-zinc-900 p-1 border border-zinc-200 dark:border-zinc-800">
-            {['ALL', 'ADMIN', 'EMPLOYEE'].map((r) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => setRoleFilter(r)}
-                className={`rounded-xl px-3 py-1 text-[11px] font-bold transition-all ${
-                  roleFilter === r
-                    ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-sm'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
-                }`}
-              >
-                {r === 'ALL' ? 'All Roles' : r === 'ADMIN' ? 'Admins' : 'Staff'}
-              </button>
-            ))}
-          </div>
         </div>
       </div>
 
@@ -490,7 +458,7 @@ export function EmployeeManagementConsole() {
                   <input
                     type="email"
                     required
-                    placeholder="e.g. alex@trueservices.com"
+                    placeholder="e.g. alex@synex.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 pl-10 pr-3.5 py-2.5 text-xs text-zinc-900 dark:text-white focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
