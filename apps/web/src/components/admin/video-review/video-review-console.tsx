@@ -79,7 +79,24 @@ export interface AdminVideoItem {
   reviewNotes?: string;
 }
 
-export function VideoReviewConsole() {
+function formatDuration(seconds?: number | null): string {
+  if (seconds === undefined || seconds === null || isNaN(seconds) || seconds <= 0) {
+    return '--:--';
+  }
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+export interface VideoReviewConsoleProps {
+  showNavbar?: boolean;
+  showHeaderBanner?: boolean;
+}
+
+export function VideoReviewConsole({
+  showNavbar = true,
+  showHeaderBanner = true,
+}: VideoReviewConsoleProps = {}) {
   const [videos, setVideos] = useState<AdminVideoItem[]>([]);
   const [selectedVideoId, setSelectedVideoId] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -87,6 +104,13 @@ export function VideoReviewConsole() {
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'size' | 'ai_risk'>('newest');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [_error, setError] = useState<string | null>(null);
+
+  const handleVideoDurationLoaded = useCallback((videoId: string, durationSeconds: number) => {
+    const formatted = formatDuration(durationSeconds);
+    setVideos((prev) =>
+      prev.map((v) => (v.id === videoId ? { ...v, durationFormatted: formatted } : v))
+    );
+  }, []);
 
   const fetchAdminSubmissions = useCallback(async () => {
     setIsLoading(true);
@@ -245,8 +269,8 @@ export function VideoReviewConsole() {
           return b.fileSizeRaw - a.fileSizeRaw;
         }
         if (sortBy === 'ai_risk') {
-          const riskA = a.verification.status === 'fail' ? 2 : a.verification.status === 'uncertain' ? 1 : 0;
-          const riskB = b.verification.status === 'fail' ? 2 : b.verification.status === 'uncertain' ? 1 : 0;
+          const riskA = a.verification?.status === 'fail' ? 2 : a.verification?.status === 'uncertain' ? 1 : 0;
+          const riskB = b.verification?.status === 'fail' ? 2 : b.verification?.status === 'uncertain' ? 1 : 0;
           return riskB - riskA;
         }
         return 0;
@@ -270,15 +294,22 @@ export function VideoReviewConsole() {
     const rejected = videos.filter((v) => v.status === 'REJECTED').length;
     const aiFlagged = videos.filter(
       (v) =>
-        v.verification.status === 'fail' ||
-        v.verification.authenticity.status === 'likely_ai_generated'
+        v.verification?.status === 'fail' ||
+        v.verification?.authenticity?.status === 'likely_ai_generated'
     ).length;
 
     return { pending, selectedCount: selected.length, totalPaid, rejected, aiFlagged };
   }, [videos]);
 
   const handleOpenReviewModal = (action: ReviewActionType) => {
-    if (!selectedVideo) return;
+    if (
+      !selectedVideo ||
+      selectedVideo.status === 'REJECTED' ||
+      selectedVideo.status === 'SELECTED' ||
+      selectedVideo.status === 'PAID'
+    ) {
+      return;
+    }
     setModalState({
       isOpen: true,
       action: action,
@@ -338,40 +369,37 @@ export function VideoReviewConsole() {
     }
   };
 
-  return (
-    <div className="flex min-h-screen flex-col bg-white dark:bg-black text-zinc-900 dark:text-zinc-50 transition-colors duration-300">
-      <Navbar />
-
-      <main className="flex-1 py-8 lg:py-10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Header Banner */}
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-zinc-200 dark:border-zinc-800 pb-6">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-900 px-3 py-1 text-xs font-semibold text-zinc-900 dark:text-zinc-300 mb-2 border border-zinc-200 dark:border-zinc-800">
-                <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-                <span>Internal Admin Console</span>
-              </div>
-              <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
-                Video Moderation & Verification
-              </h1>
-              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                Review creator submissions, inspect video & document quality, approve rewards, or issue rejection feedback.
-              </p>
+  const consoleBody = (
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      {showHeaderBanner && (
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-zinc-200 dark:border-zinc-800 pb-6">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-900 px-3 py-1 text-xs font-semibold text-zinc-900 dark:text-zinc-300 mb-2 border border-zinc-200 dark:border-zinc-800">
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+              <span>Internal Admin Console</span>
             </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => fetchAdminSubmissions()}
-                disabled={isLoading}
-                className="inline-flex items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-900 px-4 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all disabled:opacity-50"
-                id="admin-refresh-queue-btn"
-              >
-                <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-                <span>{isLoading ? 'Loading...' : 'Refresh Queue'}</span>
-              </button>
-            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
+              Video Moderation & Verification
+            </h1>
+            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+              Review creator submissions, inspect video & document quality, approve rewards, or issue rejection feedback.
+            </p>
           </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => fetchAdminSubmissions()}
+              disabled={isLoading}
+              className="inline-flex items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-900 px-4 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all disabled:opacity-50"
+              id="admin-refresh-queue-btn"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+              <span>{isLoading ? 'Loading...' : 'Refresh Queue'}</span>
+            </button>
+          </div>
+        </div>
+      )}
 
           {/* Metric Overview Cards (4 Columns) */}
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -466,7 +494,7 @@ export function VideoReviewConsole() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by title, creator name, email or ID..."
-                className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 pl-10 pr-4 text-xs text-zinc-900 dark:text-white outline-none focus:border-zinc-900 dark:focus:border-white transition-all"
+                className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-[#FEFEFE] dark:bg-zinc-950 pl-10 pr-4 text-xs text-zinc-900 dark:text-white outline-none focus:border-zinc-900 dark:focus:border-white transition-all"
                 id="admin-search-input"
               />
             </div>
@@ -474,7 +502,7 @@ export function VideoReviewConsole() {
             {/* Filters & Sorting */}
             <div className="flex flex-wrap items-center gap-2">
               {/* Filter Tabs */}
-              <div className="flex items-center gap-1 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-1">
+              <div className="flex items-center gap-1 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-[#FEFEFE] dark:bg-zinc-950 p-1">
                 {[
                   { id: 'ALL', label: 'All Queue' },
                   { id: 'UNDER_REVIEW', label: 'In Review' },
@@ -496,20 +524,34 @@ export function VideoReviewConsole() {
               </div>
 
               {/* Sort By Dropdown */}
-              <div className="flex items-center gap-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-xs font-semibold text-zinc-600 dark:text-zinc-300">
-                <ArrowUpDown className="h-3.5 w-3.5 text-zinc-400" />
-                <select
-                  value={sortBy}
-                  onChange={(e) =>
-                    setSortBy(e.target.value as 'newest' | 'oldest' | 'size' | 'ai_risk')
-                  }
-                  className="bg-transparent outline-none cursor-pointer text-xs"
-                >
-                  <option value="newest">Newest First</option>
-                  <option value="oldest">Oldest First</option>
-                  <option value="ai_risk">AI Risk Score</option>
-                  <option value="size">File Size</option>
-                </select>
+              <div className="flex items-center gap-2">
+                {!showHeaderBanner && (
+                  <button
+                    type="button"
+                    onClick={() => fetchAdminSubmissions()}
+                    disabled={isLoading}
+                    className="inline-flex items-center gap-2 rounded-2xl bg-[#FEFEFE] dark:bg-zinc-950 px-3.5 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all disabled:opacity-50"
+                    id="admin-refresh-queue-btn-inline"
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+                    <span>Refresh</span>
+                  </button>
+                )}
+                <div className="flex items-center gap-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-[#FEFEFE] dark:bg-zinc-950 px-3 py-2 text-xs font-semibold text-zinc-600 dark:text-zinc-300">
+                  <ArrowUpDown className="h-3.5 w-3.5 text-zinc-400" />
+                  <select
+                    value={sortBy}
+                    onChange={(e) =>
+                      setSortBy(e.target.value as 'newest' | 'oldest' | 'size' | 'ai_risk')
+                    }
+                    className="bg-transparent outline-none cursor-pointer text-xs"
+                  >
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="ai_risk">AI Risk Score</option>
+                    <option value="size">File Size</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -517,7 +559,7 @@ export function VideoReviewConsole() {
           {/* DUAL PANE WORKSPACE */}
           <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12">
             {/* LEFT PANE: Video Queue List (5 Cols) */}
-            <div className="lg:col-span-5 flex flex-col gap-3 max-h-[820px] overflow-y-auto pr-1">
+            <div className="lg:col-span-5 flex flex-col gap-3 max-h-[820px] overflow-y-auto pr-2 custom-scrollbar">
               <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-zinc-400 px-1">
                 <span>Pending Videos ({filteredVideos.length})</span>
                 <span>Select to inspect</span>
@@ -534,7 +576,7 @@ export function VideoReviewConsole() {
                   const isApproved = item.status === 'SELECTED' || item.status === 'PAID';
                   const isRejected = item.status === 'REJECTED';
 
-                  const aiStatus = item.verification.status;
+                  const aiStatus = item.verification?.status;
 
                   return (
                     <button
@@ -638,13 +680,14 @@ export function VideoReviewConsole() {
                     src={selectedVideo.previewUrl}
                     title={selectedVideo.title}
                     durationFormatted={selectedVideo.durationFormatted}
+                    onDurationLoaded={(dur) => handleVideoDurationLoaded(selectedVideo.id, dur)}
                   />
 
                   {/* Submission Details & Creator Meta Grid */}
                   <VideoMetadata selectedVideo={selectedVideo} />
 
                   {/* ACTION CENTER TOOLBAR (Approve vs Reject) */}
-                  <div className="sticky bottom-4 z-30 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-xl p-4 shadow-2xl flex items-center justify-between gap-4">
+                  <div className="sticky bottom-4 z-30 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-[#FEFEFE]/90 dark:bg-zinc-950/90 backdrop-blur-xl p-4 shadow-2xl flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                       <div
                         className={`h-3 w-3 rounded-full ${selectedVideo.status === 'SELECTED'
@@ -662,29 +705,41 @@ export function VideoReviewConsole() {
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      {/* Reject Button */}
-                      <button
-                        type="button"
-                        onClick={() => handleOpenReviewModal('REJECT')}
-                        className="inline-flex items-center gap-2 rounded-full bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white border border-red-500/20 px-5 py-2.5 text-xs font-bold transition-all hover:shadow-lg active:scale-95"
-                      >
+                    {selectedVideo.status === 'REJECTED' ? (
+                      <div className="inline-flex items-center gap-2 rounded-full bg-red-500/10 border border-red-500/20 px-5 py-2.5 text-xs font-bold text-red-500">
                         <XCircle className="h-4 w-4" />
-                        <span>Reject Video</span>
-                      </button>
-
-                      {/* Approve Button */}
-                      <button
-                        type="button"
-                        onClick={() => handleOpenReviewModal('APPROVE')}
-                        className="inline-flex items-center gap-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 text-xs font-bold shadow-lg shadow-emerald-950/30 transition-all hover:shadow-xl hover:scale-[1.02] active:scale-95"
-                      >
+                        <span>Submission Rejected</span>
+                      </div>
+                    ) : selectedVideo.status === 'SELECTED' || selectedVideo.status === 'PAID' ? (
+                      <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-5 py-2.5 text-xs font-bold text-emerald-500">
                         <CheckCircle2 className="h-4 w-4" />
-                        <span>
-                          Approve & Grant ${selectedVideo.rewardAmount || '25.00'}
-                        </span>
-                      </button>
-                    </div>
+                        <span>Submission Approved ({selectedVideo.status})</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        {/* Reject Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleOpenReviewModal('REJECT')}
+                          className="inline-flex items-center gap-2 rounded-full bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white border border-red-500/20 px-5 py-2.5 text-xs font-bold transition-all hover:shadow-lg active:scale-95"
+                        >
+                          <XCircle className="h-4 w-4" />
+                          <span>Reject Video</span>
+                        </button>
+
+                        {/* Approve Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleOpenReviewModal('APPROVE')}
+                          className="inline-flex items-center gap-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 text-xs font-bold shadow-lg shadow-emerald-950/30 transition-all hover:shadow-xl hover:scale-[1.02] active:scale-95"
+                        >
+                          <CheckCircle2 className="h-4 w-4" />
+                          <span>
+                            Approve & Grant ${selectedVideo.rewardAmount || '25.00'}
+                          </span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </>
               ) : (
@@ -700,8 +755,20 @@ export function VideoReviewConsole() {
               )}
             </div>
           </div>
+    </div>
+  );
+
+  return (
+    <>
+      {showNavbar ? (
+        <div className="flex min-h-screen flex-col bg-[#FEFEFE] dark:bg-black text-zinc-900 dark:text-zinc-50 transition-colors duration-300">
+          <Navbar />
+          <main className="flex-1 py-8 lg:py-10">{consoleBody}</main>
+          <Footer />
         </div>
-      </main>
+      ) : (
+        consoleBody
+      )}
 
       {/* Approve / Reject Modal Dialog */}
       <ReviewModal
@@ -713,8 +780,6 @@ export function VideoReviewConsole() {
         videoTitle={modalState.videoTitle}
         defaultReward={selectedVideo?.rewardAmount || 25.0}
       />
-
-      <Footer />
-    </div>
+    </>
   );
 }

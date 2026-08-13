@@ -16,6 +16,7 @@ import {
   Globe,
 } from 'lucide-react';
 import { VideoUploadManager } from '@repo/api-client';
+import { AllowedVideoContentTypeSchema } from '@repo/contracts';
 import { WebUploadSource } from '@/features/video/web-upload-source';
 import { apiClient, submissionsApi } from '@/lib/api-client';
 
@@ -116,10 +117,13 @@ export function VideoUploader() {
       const idempotencyKey = crypto.randomUUID();
       const totalParts = Math.ceil(file.size / (8 * 1024 * 1024));
 
+      const parsedType = AllowedVideoContentTypeSchema.safeParse(file.type);
+      const contentType = parsedType.success ? parsedType.data : 'video/mp4';
+
       const response = await submissionsApi.create(
         {
           fileName: file.name,
-          contentType: file.type,
+          contentType,
           fileSize: file.size,
           totalParts,
           country,

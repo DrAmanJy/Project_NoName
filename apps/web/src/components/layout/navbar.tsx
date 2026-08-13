@@ -168,7 +168,7 @@ export function Navbar() {
                       </Link>
                       {(role === 'admin' || role === 'employee') && (
                         <Link
-                          href="/admin/employees"
+                          href={role === 'admin' ? '/admin/dashboard' : '/employee/dashboard'}
                           onClick={() => setIsProfileMenuOpen(false)}
                           className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/50 transition-colors"
                         >
@@ -279,7 +279,7 @@ export function Navbar() {
                     </Link>
                     {(role === 'admin' || role === 'employee') && (
                       <Link
-                        href="/admin/employees"
+                        href={role === 'admin' ? '/admin/dashboard' : '/employees/dashboard'}
                         onClick={() => setMobileMenuOpen(false)}
                         className="w-full text-center rounded-xl bg-purple-100 dark:bg-purple-950/60 p-2.5 text-xs font-bold text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800"
                       >

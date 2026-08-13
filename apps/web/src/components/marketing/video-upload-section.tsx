@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Upload, Film, CheckCircle2, AlertCircle, Sparkles, Lock, LogIn } from 'lucide-react';
 import { VideoUploadManager } from '@repo/api-client';
+import { AllowedVideoContentTypeSchema } from '@repo/contracts';
 import { WebUploadSource } from '@/features/video/web-upload-source';
 import { apiClient, submissionsApi } from '@/lib/api-client';
 import { useAuth } from '@/hooks/use-auth';
@@ -84,10 +85,13 @@ export function VideoUploadSection() {
       const idempotencyKey = crypto.randomUUID();
       const totalParts = Math.ceil(file.size / (8 * 1024 * 1024));
 
+      const parsedType = AllowedVideoContentTypeSchema.safeParse(file.type);
+      const contentType = parsedType.success ? parsedType.data : 'video/mp4';
+
       const response = await submissionsApi.create(
         {
           fileName: file.name,
-          contentType: file.type || 'video/mp4',
+          contentType,
           fileSize: file.size,
           totalParts,
           country: country,

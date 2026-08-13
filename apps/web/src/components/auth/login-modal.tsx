@@ -15,14 +15,20 @@ interface LoginModalProps {
 
 export function LoginModal({ isOpen = true, onClose }: LoginModalProps) {
   const router = useRouter();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, role } = useAuth();
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen && isAuthenticated && !isLoading) {
-      router.push('/dashboard');
+      if (role === 'employee') {
+        router.push('/employee/dashboard');
+      } else if (role === 'admin') {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/dashboard');
+      }
     }
-  }, [isOpen, isAuthenticated, isLoading, router]);
+  }, [isOpen, isAuthenticated, isLoading, role, router]);
 
   const backdropRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);

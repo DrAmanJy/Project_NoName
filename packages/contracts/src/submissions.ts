@@ -78,6 +78,8 @@ export const AllowedVideoContentTypeSchema = z.enum([
   'video/x-m4v',
 ]);
 
+export type AllowedVideoContentType = z.infer<typeof AllowedVideoContentTypeSchema>;
+
 export const CreateSubmissionRequestSchema = z.object({
   fileName: z.string().min(1).max(255),
   contentType: AllowedVideoContentTypeSchema,

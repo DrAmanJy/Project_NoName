@@ -17,13 +17,15 @@ interface VideoPlayerProps {
   poster?: string;
   title: string;
   durationFormatted?: string;
+  onDurationLoaded?: (durationSeconds: number) => void;
 }
 
 export function VideoPlayer({
   src,
   poster,
   title,
-  durationFormatted = '0:45',
+  durationFormatted = '--:--',
+  onDurationLoaded,
 }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -34,6 +36,15 @@ export function VideoPlayer({
   const [playbackRate, setPlaybackRate] = useState<number>(1);
   const [showControls, setShowControls] = useState<boolean>(true);
   const [videoError, setVideoError] = useState<boolean>(false);
+
+  const handleLoadedMetadata = () => {
+    if (!videoRef.current) return;
+    const dur = videoRef.current.duration;
+    if (dur && !isNaN(dur) && isFinite(dur)) {
+      setDuration(dur);
+      onDurationLoaded?.(dur);
+    }
+  };
 
   useEffect(() => {
     // Reset state on src change
@@ -67,6 +78,9 @@ export function VideoPlayer({
     setCurrentTime(curr);
     setDuration(dur);
     setProgress((curr / dur) * 100);
+    if (dur > 0 && onDurationLoaded && (!duration || duration === 0)) {
+      onDurationLoaded(dur);
+    }
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -130,6 +144,7 @@ export function VideoPlayer({
             ref={videoRef}
             src={src}
             poster={poster}
+            onLoadedMetadata={handleLoadedMetadata}
             onTimeUpdate={handleTimeUpdate}
             onEnded={() => setIsPlaying(false)}
             onError={() => setVideoError(true)}
