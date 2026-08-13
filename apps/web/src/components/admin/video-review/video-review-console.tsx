@@ -6,7 +6,6 @@ import {
   XCircle,
   Clock,
   ShieldCheck,
-  AlertTriangle,
   Search,
   ArrowUpDown,
   FileX2,
@@ -15,6 +14,7 @@ import {
   ChevronRight,
   RefreshCw,
   Loader2,
+  ChevronDown,
 } from 'lucide-react';
 import { type VideoStatus, type VideoVerificationStatus } from '@repo/contracts';
 import { VideoPlayer } from './video-player';
@@ -27,7 +27,7 @@ import { staffApi } from '@/lib/api-client';
 export interface AdminVideoUser {
   id: string;
   name: string;
-  email: string;
+  email?: string;
   avatarUrl?: string | null;
   isActive?: boolean;
   role?: string;
@@ -46,7 +46,7 @@ export interface AdminVideoInfo {
   width?: number | null;
   thumbnailUrl?: string | null;
   uploadStatus?: string;
-  uploadedAt?: string;
+  uploadedAt?: string | null;
 }
 
 export interface AdminVideoItem {
@@ -58,7 +58,7 @@ export interface AdminVideoItem {
   reviewedBy?: AdminVideoUser | null;
   timeline?: unknown[];
   user?: AdminVideoUser | null;
-  verification: VideoVerificationStatus;
+  verification?: VideoVerificationStatus | null;
   video?: AdminVideoInfo | null;
 
   // Formatted display properties for UI components
@@ -101,7 +101,7 @@ export function VideoReviewConsole({
   const [selectedVideoId, setSelectedVideoId] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'size' | 'ai_risk'>('newest');
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'size'>('newest');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [_error, setError] = useState<string | null>(null);
 
@@ -118,7 +118,7 @@ export function VideoReviewConsole({
     try {
       const res = await staffApi.submissions.list(1, 50);
       if (res && res.data) {
-        const mapped: AdminVideoItem[] = (res.data as unknown as (Record<string, unknown> & { video?: AdminVideoInfo | null; user?: AdminVideoUser | null })[]).map((sub) => {
+        const mapped: AdminVideoItem[] = res.data.map((sub) => {
           const rawStatus = String(sub.status || 'in_review');
           let mappedStatus: VideoStatus = 'UNDER_REVIEW';
           if (rawStatus === 'approved' || rawStatus === 'payment_pending' || rawStatus === 'SELECTED') {
@@ -148,10 +148,7 @@ export function VideoReviewConsole({
             ? `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`
             : 'N/A';
 
-          const durationSecs = sub.video?.durationSeconds;
-          const durationFormatted = durationSecs && durationSecs > 0
-            ? `${Math.floor(durationSecs / 60)}:${String(Math.floor(durationSecs % 60)).padStart(2, '0')}`
-            : 'N/A';
+          const durationFormatted = formatDuration(sub.video?.durationSeconds);
 
           const subId = String(sub.id || '');
 
@@ -178,29 +175,10 @@ export function VideoReviewConsole({
             createdAtFormatted: formattedDate,
             createdAtRaw: rawDateStr,
             previewUrl: sub.video?.previewUrl || undefined,
-            verification: (sub.verification as VideoVerificationStatus | null) || {
-              status: rawStatus === 'rejected' ? 'fail' : 'pass',
-              script: {
-                status: rawStatus === 'rejected' ? 'fail' : 'pass',
-                transcript: `Verification transcript for submission ${subId}.`,
-                confidence: 0.96,
-                missingSegments: [],
-                extraContent: [],
-              },
-              document: {
-                status: 'pass',
-                documentType: 'passport',
-                heldByPerson: true,
-                confidence: 0.95,
-                evidence: ['ID verification matched user account'],
-              },
-              authenticity: {
-                status: 'likely_real',
-                confidence: 0.98,
-                signals: ['Human liveness confirmed'],
-              },
-            },
-            rewardAmount: rawStatus === 'paid' || rawStatus === 'approved' ? 35.0 : undefined,
+            verification: (sub.verification as VideoVerificationStatus | null) || null,
+            rewardAmount: (rawStatus === 'paid' || rawStatus === 'approved' || rawStatus === 'PAID' || rawStatus === 'SELECTED') && (sub as any).rewardAmount != null
+              ? Number((sub as any).rewardAmount)
+              : undefined,
           };
         });
         setVideos(mapped);
@@ -268,11 +246,6 @@ export function VideoReviewConsole({
         if (sortBy === 'size') {
           return b.fileSizeRaw - a.fileSizeRaw;
         }
-        if (sortBy === 'ai_risk') {
-          const riskA = a.verification?.status === 'fail' ? 2 : a.verification?.status === 'uncertain' ? 1 : 0;
-          const riskB = b.verification?.status === 'fail' ? 2 : b.verification?.status === 'uncertain' ? 1 : 0;
-          return riskB - riskA;
-        }
         return 0;
       });
   }, [videos, statusFilter, searchQuery, sortBy]);
@@ -292,13 +265,9 @@ export function VideoReviewConsole({
     const selected = videos.filter((v) => v.status === 'SELECTED' || v.status === 'PAID');
     const totalPaid = selected.reduce((sum, v) => sum + (v.rewardAmount || 25), 0);
     const rejected = videos.filter((v) => v.status === 'REJECTED').length;
-    const aiFlagged = videos.filter(
-      (v) =>
-        v.verification?.status === 'fail' ||
-        v.verification?.authenticity?.status === 'likely_ai_generated'
-    ).length;
+    const totalSubmissions = videos.length;
 
-    return { pending, selectedCount: selected.length, totalPaid, rejected, aiFlagged };
+    return { pending, selectedCount: selected.length, totalPaid, rejected, totalSubmissions };
   }, [videos]);
 
   const handleOpenReviewModal = (action: ReviewActionType) => {
@@ -463,22 +432,22 @@ export function VideoReviewConsole({
               </div>
             </div>
 
-            {/* Quality Check Flags */}
+            {/* Total Submissions */}
             <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-5 shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
-                  REVIEW FLAGS
+                  TOTAL SUBMISSIONS
                 </span>
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                  <AlertTriangle className="h-5 w-5" />
+                  <ShieldCheck className="h-5 w-5" />
                 </div>
               </div>
               <div className="mt-2 flex items-baseline gap-2">
                 <span className="text-3xl font-extrabold tracking-tight text-purple-400">
-                  {metrics.aiFlagged}
+                  {metrics.totalSubmissions}
                 </span>
                 <span className="text-xs font-medium text-purple-400">
-                  issues flagged
+                  total received
                 </span>
               </div>
             </div>
@@ -537,20 +506,20 @@ export function VideoReviewConsole({
                     <span>Refresh</span>
                   </button>
                 )}
-                <div className="flex items-center gap-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-[#FEFEFE] dark:bg-zinc-950 px-3 py-2 text-xs font-semibold text-zinc-600 dark:text-zinc-300">
+                <div className="relative flex items-center gap-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-[#FEFEFE] dark:bg-zinc-950 px-3 py-2 text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all">
                   <ArrowUpDown className="h-3.5 w-3.5 text-zinc-400" />
                   <select
                     value={sortBy}
                     onChange={(e) =>
-                      setSortBy(e.target.value as 'newest' | 'oldest' | 'size' | 'ai_risk')
+                      setSortBy(e.target.value as 'newest' | 'oldest' | 'size')
                     }
-                    className="bg-transparent outline-none cursor-pointer text-xs"
+                    className="appearance-none bg-transparent outline-none cursor-pointer text-xs pr-6"
                   >
-                    <option value="newest">Newest First</option>
-                    <option value="oldest">Oldest First</option>
-                    <option value="ai_risk">AI Risk Score</option>
-                    <option value="size">File Size</option>
+                    <option value="newest" className="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">Newest First</option>
+                    <option value="oldest" className="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">Oldest First</option>
+                    <option value="size" className="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">File Size</option>
                   </select>
+                  <ChevronDown className="absolute right-2.5 h-3 w-3 text-zinc-400 pointer-events-none" />
                 </div>
               </div>
             </div>
@@ -561,7 +530,7 @@ export function VideoReviewConsole({
             {/* LEFT PANE: Video Queue List (5 Cols) */}
             <div className="lg:col-span-5 flex flex-col gap-3 max-h-[820px] overflow-y-auto pr-2 custom-scrollbar">
               <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-zinc-400 px-1">
-                <span>Pending Videos ({filteredVideos.length})</span>
+                <span>Videos ({filteredVideos.length})</span>
                 <span>Select to inspect</span>
               </div>
 
@@ -575,8 +544,6 @@ export function VideoReviewConsole({
                   const isSelected = item.id === selectedVideo?.id;
                   const isApproved = item.status === 'SELECTED' || item.status === 'PAID';
                   const isRejected = item.status === 'REJECTED';
-
-                  const aiStatus = item.verification?.status;
 
                   return (
                     <button
@@ -610,23 +577,6 @@ export function VideoReviewConsole({
                                   ? 'REJECTED'
                                   : 'IN REVIEW'}
                             </span>
-
-                            {/* AI Signal Badge */}
-                            {aiStatus === 'pass' && (
-                              <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 border border-emerald-500/20">
-                                AI Pass
-                              </span>
-                            )}
-                            {aiStatus === 'fail' && (
-                              <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-400 border border-red-500/20">
-                                AI Flagged
-                              </span>
-                            )}
-                            {aiStatus === 'uncertain' && (
-                              <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-400 border border-amber-500/20">
-                                AI Check Needed
-                              </span>
-                            )}
                           </div>
 
                           <h3 className="mt-2 text-sm font-bold text-zinc-900 dark:text-white truncate">

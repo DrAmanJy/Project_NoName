@@ -51,6 +51,7 @@ export function VideoPlayer({
     setIsPlaying(false);
     setProgress(0);
     setCurrentTime(0);
+    setDuration(0);
     setVideoError(false);
     if (videoRef.current) {
       videoRef.current.currentTime = 0;
@@ -74,12 +75,16 @@ export function VideoPlayer({
   const handleTimeUpdate = () => {
     if (!videoRef.current) return;
     const curr = videoRef.current.currentTime;
-    const dur = videoRef.current.duration || 1;
+    const dur = videoRef.current.duration;
     setCurrentTime(curr);
-    setDuration(dur);
-    setProgress((curr / dur) * 100);
-    if (dur > 0 && onDurationLoaded && (!duration || duration === 0)) {
-      onDurationLoaded(dur);
+    if (isFinite(dur) && dur > 0) {
+      setDuration(dur);
+      setProgress((curr / dur) * 100);
+      if (onDurationLoaded && (!duration || duration === 0)) {
+        onDurationLoaded(dur);
+      }
+    } else {
+      setProgress(0);
     }
   };
 

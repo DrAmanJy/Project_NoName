@@ -20,10 +20,9 @@ export function VideoUploadSection() {
   const [errorMessage, setErrorMessage] = useState('');
 
   const MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024;
-  const ALLOWED_MIME_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'];
-
+  
   const validateFile = (selectedFile: File): boolean => {
-    if (!ALLOWED_MIME_TYPES.includes(selectedFile.type)) {
+    if (!AllowedVideoContentTypeSchema.safeParse(selectedFile.type).success) {
       setFile(null);
       setErrorMessage('Please select a valid video file (MP4, MOV, or WEBM).');
       return false;

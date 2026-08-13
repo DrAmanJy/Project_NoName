@@ -18,7 +18,6 @@ import {
   Eye,
   RefreshCw,
   X,
-  Zap,
 } from 'lucide-react';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
@@ -183,10 +182,6 @@ export function DashboardView() {
           {/* Header Banner */}
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between border-b border-zinc-200/80 dark:border-zinc-800/80 pb-8">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-900/80 px-3.5 py-1 text-xs font-semibold text-zinc-900 dark:text-zinc-300 mb-3 border border-zinc-200 dark:border-zinc-800 backdrop-blur-md shadow-inner">
-                <Zap className="h-3.5 w-3.5 text-amber-500 animate-pulse" />
-                <span>Creator Management Portal</span>
-              </div>
               <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
                 Creator Dashboard
               </h1>

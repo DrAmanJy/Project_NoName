@@ -13,7 +13,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
       if (role === 'employee') {
-        router.push('/employee/dashboard');
+        router.push('/employees/dashboard');
       } else if (role === 'admin') {
         router.push('/admin/dashboard');
       }

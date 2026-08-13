@@ -51,10 +51,9 @@ export function VideoUploader() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024; // 100 MB limit
-  const ALLOWED_MIME_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'];
 
   const handleFileSelection = (selectedFile: File) => {
-    if (!ALLOWED_MIME_TYPES.includes(selectedFile.type)) {
+    if (!AllowedVideoContentTypeSchema.safeParse(selectedFile.type).success) {
       setError('Please select a supported video file (.mp4, .mov, or .webm).');
       return;
     }

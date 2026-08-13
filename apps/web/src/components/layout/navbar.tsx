@@ -168,7 +168,7 @@ export function Navbar() {
                       </Link>
                       {(role === 'admin' || role === 'employee') && (
                         <Link
-                          href={role === 'admin' ? '/admin/dashboard' : '/employee/dashboard'}
+                          href={role === 'admin' ? '/admin/dashboard' : '/employees/dashboard'}
                           onClick={() => setIsProfileMenuOpen(false)}
                           className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/50 transition-colors"
                         >

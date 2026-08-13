@@ -37,12 +37,13 @@ interface UserVideoSubmissionItem {
   status: 'draft' | 'in_review' | 'approved' | 'rejected' | 'payment_pending' | 'paid';
   statusLabel: string;
   uploadedAt: string;
-  rewardAmount: string;
+  rewardAmount?: string;
+  videoUrl?: string;
   steps: VideoProgressStep[];
   rejectionReason?: string;
 }
 
-export default function AdminEmployeesPage() {
+export default function EmployeeDashboardPage() {
   const [activeTab, setActiveTab] = useState<'video-progress' | 'employees'>('video-progress');
   const [videoSubmissions, setVideoSubmissions] = useState<UserVideoSubmissionItem[]>([]);
   const [employees, setEmployees] = useState<User[]>([]);
@@ -51,111 +52,7 @@ export default function AdminEmployeesPage() {
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('ALL');
   const [selectedSubmission, setSelectedSubmission] = useState<UserVideoSubmissionItem | null>(null);
 
-  // Fallback user video submissions with detailed progress steps
-  const fallbackSubmissions: UserVideoSubmissionItem[] = [
-    {
-      id: 'sub-8801',
-      title: 'Urban Architecture & Street Culture Vlog',
-      creatorName: 'Alex Rivera',
-      creatorEmail: 'alex.rivera@example.com',
-      status: 'in_review',
-      statusLabel: 'In Quality Review',
-      uploadedAt: 'Aug 12, 2026 • 09:30 AM',
-      rewardAmount: '$45.00',
-      steps: [
-        {
-          title: 'Video Uploaded',
-          description: 'S3 presigned multipart upload verified',
-          state: 'completed',
-          timestamp: 'Aug 12, 2026 • 09:30 AM',
-        },
-        {
-          title: 'Processing & Transcode',
-          description: 'Transcoded to 1080p H.264 video stream',
-          state: 'completed',
-          timestamp: 'Aug 12, 2026 • 09:32 AM',
-        },
-        {
-          title: 'Quality & Guideline Review',
-          description: 'Staff checking content against guidelines',
-          state: 'current',
-          timestamp: 'In progress (Assigned to Reviewer)',
-        },
-        {
-          title: 'Payout Approval',
-          description: 'Disbursement to creator wallet pending',
-          state: 'pending',
-        },
-      ],
-    },
-    {
-      id: 'sub-8802',
-      title: 'Cinematic Mountain Drone Journey 4K',
-      creatorName: 'Elena Rostova',
-      creatorEmail: 'elena.rostova@example.com',
-      status: 'paid',
-      statusLabel: 'Approved & Paid',
-      uploadedAt: 'Aug 11, 2026 • 02:15 PM',
-      rewardAmount: '$75.00',
-      steps: [
-        {
-          title: 'Video Uploaded',
-          description: 'Uploaded successfully',
-          state: 'completed',
-          timestamp: 'Aug 11, 2026 • 02:15 PM',
-        },
-        {
-          title: 'Processing & Transcode',
-          description: 'Adaptive bitrate streams generated',
-          state: 'completed',
-          timestamp: 'Aug 11, 2026 • 02:18 PM',
-        },
-        {
-          title: 'Quality & Guideline Review',
-          description: 'Passed manual verification',
-          state: 'completed',
-          timestamp: 'Aug 11, 2026 • 04:00 PM',
-        },
-        {
-          title: 'Payout Approval',
-          description: '$75.00 payout transferred to creator',
-          state: 'completed',
-          timestamp: 'Aug 11, 2026 • 04:05 PM',
-        },
-      ],
-    },
-    {
-      id: 'sub-8803',
-      title: 'Short Coffee Brewing Tutorial',
-      creatorName: 'Marcus Vance',
-      creatorEmail: 'marcus.vance@example.com',
-      status: 'rejected',
-      statusLabel: 'Rejected',
-      uploadedAt: 'Aug 10, 2026 • 11:45 AM',
-      rewardAmount: '$0.00',
-      rejectionReason: 'Audio track contains un-cleared copyright background music.',
-      steps: [
-        {
-          title: 'Video Uploaded',
-          description: 'Upload complete',
-          state: 'completed',
-          timestamp: 'Aug 10, 2026 • 11:45 AM',
-        },
-        {
-          title: 'Processing & Transcode',
-          description: 'Transcode complete',
-          state: 'completed',
-          timestamp: 'Aug 10, 2026 • 11:47 AM',
-        },
-        {
-          title: 'Quality & Guideline Review',
-          description: 'Failed audio copyright check',
-          state: 'rejected',
-          timestamp: 'Aug 10, 2026 • 01:20 PM',
-        },
-      ],
-    },
-  ];
+
 
   const fetchDashboardData = useCallback(async () => {
     setIsLoading(true);
@@ -171,7 +68,7 @@ export default function AdminEmployeesPage() {
           if (item.status === 'payment_pending') statusLabel = 'Payment Pending';
           if (item.status === 'draft') statusLabel = 'Draft';
 
-          const mappedSteps: VideoProgressStep[] = item.timeline
+          const mappedSteps: VideoProgressStep[] = item.timeline && item.timeline.length > 0
             ? item.timeline.map((step) => ({
                 title:
                   step.key === 'video_uploaded'
@@ -215,13 +112,14 @@ export default function AdminEmployeesPage() {
               day: 'numeric',
               year: 'numeric',
             }),
-            rewardAmount: item.status === 'paid' ? '$50.00' : item.status === 'approved' ? '$50.00 (Pending)' : '$0.00',
+            rewardAmount: (item as any).rewardAmount != null ? `$${Number((item as any).rewardAmount).toFixed(2)}` : undefined,
+            videoUrl: (item as any).video?.previewUrl,
             steps: mappedSteps,
           };
         });
         setVideoSubmissions(mapped);
       } else {
-        setVideoSubmissions(fallbackSubmissions);
+        setVideoSubmissions([]);
       }
 
       // 2. Fetch employee list from admin API
@@ -229,38 +127,10 @@ export default function AdminEmployeesPage() {
       if (employeesRes && Array.isArray(employeesRes.users)) {
         setEmployees(employeesRes.users);
       } else {
-        setEmployees([
-          {
-            id: 'emp-101',
-            name: 'Sarah Connor',
-            email: 'sarah.connor@trueservices.io',
-            role: 'employee',
-            isActive: true,
-            createdAt: '2026-01-15T00:00:00Z',
-            updatedAt: '2026-08-01T00:00:00Z',
-          },
-          {
-            id: 'emp-102',
-            name: 'David Miller',
-            email: 'david.miller@trueservices.io',
-            role: 'employee',
-            isActive: true,
-            createdAt: '2026-02-10T00:00:00Z',
-            updatedAt: '2026-08-05T00:00:00Z',
-          },
-          {
-            id: 'emp-103',
-            name: 'Samantha Wu',
-            email: 'samantha.wu@trueservices.io',
-            role: 'admin',
-            isActive: true,
-            createdAt: '2026-01-01T00:00:00Z',
-            updatedAt: '2026-08-10T00:00:00Z',
-          },
-        ]);
+        setEmployees([]);
       }
     } catch {
-      setVideoSubmissions(fallbackSubmissions);
+      setVideoSubmissions([]);
     } finally {
       setIsLoading(false);
     }
@@ -725,18 +595,20 @@ export default function AdminEmployeesPage() {
 
               <div className="mt-4 space-y-4 max-h-[75vh] overflow-y-auto pr-2">
                 {/* HTML5 Video Player */}
-                <div className="relative overflow-hidden rounded-2xl bg-black border border-zinc-200 dark:border-zinc-800 shadow-md">
-                  <video
-                    controls
-                    autoPlay
-                    playsInline
-                    controlsList="nodownload"
-                    src={(selectedSubmission as unknown as { videoUrl?: string; url?: string }).videoUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'}
-                    className="w-full aspect-video rounded-2xl object-contain bg-black"
-                  >
-                    Your browser does not support HTML5 video playback.
-                  </video>
-                </div>
+                {selectedSubmission.videoUrl && (
+                  <div className="relative overflow-hidden rounded-2xl bg-black border border-zinc-200 dark:border-zinc-800 shadow-md">
+                    <video
+                      controls
+                      autoPlay
+                      playsInline
+                      controlsList="nodownload"
+                      src={selectedSubmission.videoUrl}
+                      className="w-full aspect-video rounded-2xl object-contain bg-black"
+                    >
+                      Your browser does not support HTML5 video playback.
+                    </video>
+                  </div>
+                )}
 
                 <div className="rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 p-4 border border-zinc-200 dark:border-zinc-800">
                   <h4 className="text-base font-bold text-zinc-900 dark:text-white">
@@ -757,7 +629,9 @@ export default function AdminEmployeesPage() {
                     </div>
                     <div>
                       <span className="font-semibold text-zinc-400 block">Target Reward</span>
-                      <span className="font-bold text-emerald-600 dark:text-emerald-400">{selectedSubmission.rewardAmount}</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                        {selectedSubmission.rewardAmount || 'N/A'}
+                      </span>
                     </div>
                   </div>
                 </div>

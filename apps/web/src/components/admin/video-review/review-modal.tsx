@@ -96,6 +96,9 @@ export function ReviewModal({
           feedbackNotes: feedbackNotes.trim() || rejectionReason,
         });
       }
+    } catch (error) {
+      console.error('Submission error:', error);
+      alert('An error occurred while submitting the review. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -139,7 +142,8 @@ export function ReviewModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white transition-colors"
+            disabled={isSubmitting}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:pointer-events-none"
           >
             <X className="h-4 w-4" />
           </button>

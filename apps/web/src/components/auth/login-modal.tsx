@@ -21,7 +21,7 @@ export function LoginModal({ isOpen = true, onClose }: LoginModalProps) {
   useEffect(() => {
     if (isOpen && isAuthenticated && !isLoading) {
       if (role === 'employee') {
-        router.push('/employee/dashboard');
+        router.push('/employees/dashboard');
       } else if (role === 'admin') {
         router.push('/admin/dashboard');
       } else {
