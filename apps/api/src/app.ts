@@ -43,16 +43,17 @@ export function createApp() {
   // Security
   // Cast helmet to RequestHandler to bypass TS2349 when moduleResolution is nodenext on Vercel
   app.use((helmet as unknown as () => RequestHandler)());
+  const allowedOrigins = Array.from(new Set([env.FRONTEND_URL, env.CORS_ORIGIN]));
   app.use(
     cors({
-      origin: true,
+      origin: allowedOrigins,
       credentials: true,
     }),
   );
   app.use(
     rateLimit({
       windowMs: 15 * 60 * 1000,
-      max: 100,
+      max: 300,
       standardHeaders: true,
       legacyHeaders: false,
     }),

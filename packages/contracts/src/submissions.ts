@@ -58,7 +58,8 @@ export const SubmissionResponseSchema = z.object({
   createdAt: z.string().datetime(),
   video: VideoMetadataSchema.nullable().optional(),
   verification: UserSafeVerificationSchema.nullable().optional(),
-  rewardAmount: z.number().nullable().optional(),
+  expectedEarning: z.number().int().nonnegative(),
+  earning: z.number().int().nonnegative(),
 });
 
 export type SubmissionResponse = z.infer<typeof SubmissionResponseSchema>;
@@ -124,11 +125,14 @@ export const StaffSubmissionListResponseSchema = z.object({
   page: z.number().int().min(1),
   limit: z.number().int().min(1),
   total: z.number().int().min(0),
+  totalExpectedEarning: z.number().int().nonnegative(),
+  totalEarning: z.number().int().nonnegative(),
 });
 export type StaffSubmissionListResponse = z.infer<typeof StaffSubmissionListResponseSchema>;
 
 export const UpdateSubmissionStatusRequestSchema = z.object({
   status: SubmissionStatusSchema,
   rejectionReason: z.string().optional(),
+  earning: z.number().int().nonnegative().optional(),
 });
 export type UpdateSubmissionStatusRequest = z.infer<typeof UpdateSubmissionStatusRequestSchema>;

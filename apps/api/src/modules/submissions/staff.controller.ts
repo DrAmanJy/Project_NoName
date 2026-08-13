@@ -1,14 +1,15 @@
-import type { Request, Response } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { Submission } from './models/submission.model.js';
-import { User } from '../auth/models/user.model.js';
+
 import { VideoUpload } from '../video/models/video-upload.model.js';
 import { VideoVerification } from '../video/models/video-verification.model.js';
 import { s3Service } from '../video/storage/s3.service.js';
-import { UpdateSubmissionStatusRequestSchema, SubmissionStatusSchema } from '@repo/contracts';
+import { UpdateSubmissionStatusRequestSchema, SubmissionStatusSchema, type Role } from '@repo/contracts';
+import { ROLE_PERMISSIONS } from '../auth/authorization/roles.js';
 import mongoose from 'mongoose';
 
 export class StaffSubmissionsController {
-  public list = async (req: Request, res: Response, next: import('express').NextFunction): Promise<void> => {
+  public list = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const page = Math.max(1, parseInt(req.query.page as string) || 1);
       const limit = Math.max(1, Math.min(50, parseInt(req.query.limit as string) || 10));
@@ -24,21 +25,39 @@ export class StaffSubmissionsController {
         query.status = parsedStatus.data;
       }
 
-      const [submissions, total] = await Promise.all([
+      const [submissions, total, totals] = await Promise.all([
         Submission.find(query)
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limit)
+          .select('_id userId status idempotencyKey reviewedBy reviewedAt rejectionReason createdAt updatedAt expectedEarning earning')
           .populate('userId', 'id name email avatarUrl isActive role createdAt updatedAt')
           .populate('reviewedBy', 'id name email avatarUrl isActive role createdAt updatedAt')
           .lean(),
         Submission.countDocuments(query),
+        Submission.aggregate([
+          { $match: query },
+          { 
+            $group: { 
+              _id: null, 
+              totalExpectedEarning: { $sum: { $ifNull: ["$expectedEarning", 0] } }, 
+              totalEarning: { $sum: { $ifNull: ["$earning", 0] } } 
+            } 
+          }
+        ]),
       ]);
 
+      const totalExpectedEarning = totals[0]?.totalExpectedEarning || 0;
+      const totalEarning = totals[0]?.totalEarning || 0;
+
       const submissionIds = submissions.map(s => s._id);
-      const videos = await VideoUpload.find({ submissionId: { $in: submissionIds } }).lean();
+      const videos = await VideoUpload.find({ submissionId: { $in: submissionIds } })
+        .select('_id submissionId originalFileName contentType fileSize durationSeconds width height status completedAt')
+        .lean();
       const videoIds = videos.map(v => v._id);
-      const verifications = await VideoVerification.find({ videoUploadId: { $in: videoIds } }).lean();
+      const verifications = await VideoVerification.find({ videoUploadId: { $in: videoIds } })
+        .select('videoUploadId overallStatus scriptVerification.status documentVerification.status videoAuthenticity.status')
+        .lean();
 
       const videosBySubId = new Map(videos.map(v => [v.submissionId.toString(), v]));
       const verificationsByVidId = new Map(verifications.map(v => [v.videoUploadId.toString(), v]));
@@ -46,18 +65,8 @@ export class StaffSubmissionsController {
       const data = await Promise.all(submissions.map(async (sub) => {
         const video = videosBySubId.get(sub._id.toString());
         let verification = null;
-        let previewUrl: string | null = null;
-        let thumbnailUrl: string | null = null;
-
         if (video) {
           verification = verificationsByVidId.get(video._id.toString()) || null;
-          
-          if (video.status === 'uploaded' || video.status === 'processing' || video.status === 'verified') {
-            previewUrl = await s3Service.getSignedDownloadUrl(video.objectKey, 900).catch(() => null);
-          }
-          if (video.thumbnailKey) {
-            thumbnailUrl = await s3Service.getSignedDownloadUrl(video.thumbnailKey, 900).catch(() => null);
-          }
         }
 
         const userObj = sub.userId as unknown as { _id: mongoose.Types.ObjectId; name: string; email: string; avatarUrl?: string; isActive: boolean; role: string; createdAt: Date; updatedAt: Date };
@@ -96,8 +105,6 @@ export class StaffSubmissionsController {
             height: video.height || null,
             uploadStatus: video.status,
             uploadedAt: video.completedAt ? video.completedAt.toISOString() : null,
-            previewUrl,
-            thumbnailUrl,
           } : null,
           reviewedBy: reviewerObj ? {
             id: reviewerObj._id.toString(),
@@ -123,6 +130,8 @@ export class StaffSubmissionsController {
               status: verification.videoAuthenticity?.status || 'pending',
             }
           } : null,
+          expectedEarning: sub.expectedEarning ?? 0,
+          earning: sub.earning ?? 0,
         };
       }));
 
@@ -131,14 +140,15 @@ export class StaffSubmissionsController {
         page,
         limit,
         total,
+        totalExpectedEarning,
+        totalEarning,
       });
     } catch (error) {
-      console.error('List staff submissions error:', error);
       next(error);
     }
   };
 
-  public get = async (req: Request, res: Response, next: import('express').NextFunction): Promise<void> => {
+  public get = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const id = req.params.id as string;
       if (!id || !mongoose.Types.ObjectId.isValid(id)) {
@@ -157,19 +167,19 @@ export class StaffSubmissionsController {
       }
 
       // Fetch related video info and verification
-      const video = await VideoUpload.findOne({ submissionId: submission._id }).lean();
+      const video = await VideoUpload.findOne({ submissionId: submission._id })
+        .select('_id submissionId originalFileName contentType fileSize durationSeconds width height status completedAt objectKey')
+        .lean();
       let verification = null;
       let previewUrl: string | null = null;
-      let thumbnailUrl: string | null = null;
 
       if (video) {
-        verification = await VideoVerification.findOne({ videoUploadId: video._id }).lean();
+        verification = await VideoVerification.findOne({ videoUploadId: video._id })
+          .select('-scriptVerification.transcript')
+          .lean();
         
         if (video.status === 'uploaded' || video.status === 'processing' || video.status === 'verified') {
           previewUrl = await s3Service.getSignedDownloadUrl(video.objectKey, 900).catch(() => null);
-        }
-        if (video.thumbnailKey) {
-          thumbnailUrl = await s3Service.getSignedDownloadUrl(video.thumbnailKey, 900).catch(() => null);
         }
       }
 
@@ -210,7 +220,6 @@ export class StaffSubmissionsController {
           uploadStatus: video.status,
           uploadedAt: video.completedAt ? video.completedAt.toISOString() : null,
           previewUrl,
-          thumbnailUrl,
         } : null,
         reviewedBy: reviewerObj ? {
           id: reviewerObj._id.toString(),
@@ -236,14 +245,15 @@ export class StaffSubmissionsController {
             status: verification.videoAuthenticity.status,
           }
         } : null,
+        expectedEarning: submission.expectedEarning ?? 0,
+        earning: submission.earning ?? 0,
       });
     } catch (error) {
-      console.error('Get staff submission error:', error);
       next(error);
     }
   };
 
-  public updateStatus = async (req: Request, res: Response, next: import('express').NextFunction): Promise<void> => {
+  public updateStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const id = req.params.id as string;
       if (!id || !mongoose.Types.ObjectId.isValid(id)) {
@@ -257,7 +267,7 @@ export class StaffSubmissionsController {
         return;
       }
 
-      const { status, rejectionReason } = bodyResult.data;
+      const { status, rejectionReason, earning } = bodyResult.data;
 
       const submission = await Submission.findById(id);
       if (!submission) {
@@ -265,8 +275,23 @@ export class StaffSubmissionsController {
         return;
       }
 
-      const user = await User.findById(req.auth!.userId).lean();
-      const role = user?.role || 'user';
+      if (status === 'approved' && earning === undefined) {
+        res.status(400).json({ error: 'Earning is required for approval' });
+        return;
+      }
+
+      if (earning !== undefined) {
+        if (!Number.isInteger(earning) || earning < 0) {
+          res.status(400).json({ error: 'Earning must be a positive integer in paise' });
+          return;
+        }
+        if (earning > (submission.expectedEarning || 0)) {
+          res.status(400).json({ error: 'Earning cannot exceed expected earning' });
+          return;
+        }
+      }
+
+      const role = (req.auth!.role as Role) || 'user';
       const currentStatus = submission.status;
 
       // Define valid transitions map
@@ -286,22 +311,23 @@ export class StaffSubmissionsController {
         return;
       }
 
-      // Enforce Role permissions
-      if (role === 'employee') {
+      const allowedPermissions = ROLE_PERMISSIONS[role as Role] || [];
+
+      if (!allowedPermissions.includes('submission:review') && !allowedPermissions.includes('submission:transition_any')) {
+        res.status(403).json({ error: 'Forbidden' });
+        return;
+      }
+
+      // If they don't have transition_any, enforce strict review constraints
+      if (!allowedPermissions.includes('submission:transition_any')) {
         if (currentStatus !== 'in_review') {
-          res.status(403).json({ error: 'Employee can only transition submissions currently in_review' });
+          res.status(403).json({ error: 'Can only transition submissions currently in_review' });
           return;
         }
         if (status !== 'approved' && status !== 'rejected') {
-          res.status(403).json({ error: 'Employee can only set status to approved or rejected' });
+          res.status(403).json({ error: 'Can only set status to approved or rejected' });
           return;
         }
-      } else if (role === 'admin') {
-        // Admin can transition if it's in VALID_TRANSITIONS.
-        // It's already validated against VALID_TRANSITIONS above.
-      } else {
-        res.status(403).json({ error: 'Forbidden' });
-        return;
       }
 
       if (status === 'rejected' && !rejectionReason) {
@@ -309,22 +335,32 @@ export class StaffSubmissionsController {
         return;
       }
 
-      submission.status = status;
-      if (status === 'approved' || status === 'rejected') {
-        submission.reviewedBy = new mongoose.Types.ObjectId(req.auth!.userId);
-        submission.reviewedAt = new Date();
-      }
-      if (status !== 'rejected') {
-        submission.rejectionReason = undefined;
-      } else if (rejectionReason) {
-        submission.rejectionReason = rejectionReason;
+      const updated = await Submission.findOneAndUpdate(
+        { _id: id, status: currentStatus },
+        {
+          $set: {
+            status,
+            ...(status === 'approved' || status === 'rejected' ? { reviewedBy: new mongoose.Types.ObjectId(req.auth!.userId), reviewedAt: new Date() } : {}),
+            rejectionReason: status === 'rejected' ? rejectionReason : undefined,
+            ...(earning !== undefined ? { earning } : {}),
+          },
+          $unset: status !== 'rejected' ? { rejectionReason: 1 } : {},
+          $push: { timeline: { status, timestamp: new Date(), userId: new mongoose.Types.ObjectId(req.auth!.userId) } }
+        },
+        { new: true }
+      );
+
+      if (!updated) {
+        res.status(409).json({ error: 'Concurrent modification: status has changed' });
+        return;
       }
 
-      await submission.save();
-
-      res.json({ success: true });
+      res.json({
+        status: updated.status,
+        expectedEarning: updated.expectedEarning ?? 0,
+        earning: updated.earning ?? 0,
+      });
     } catch (error) {
-      console.error('Update submission status error:', error);
       next(error);
     }
   };

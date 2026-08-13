@@ -1,14 +1,15 @@
-import type { Request, Response } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { User } from './models/user.model.js';
 import { sessionService } from './session/session.service.js';
 import { 
   CreateEmployeeRequestSchema, 
-  UpdateEmployeeRequestSchema 
+  UpdateEmployeeRequestSchema,
+  type Role,
 } from '@repo/contracts';
 import mongoose from 'mongoose';
 
 export class AdminController {
-  public listEmployees = async (req: Request, res: Response): Promise<void> => {
+  public listEmployees = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const page = Math.max(1, parseInt(req.query.page as string) || 1);
       const limit = Math.max(1, Math.min(50, parseInt(req.query.limit as string) || 10));
@@ -32,6 +33,7 @@ export class AdminController {
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limit)
+          .select('_id name email avatarUrl isActive role createdAt updatedAt')
           .lean(),
         User.countDocuments(query),
       ]);
@@ -54,12 +56,11 @@ export class AdminController {
         total,
       });
     } catch (error) {
-      console.error('List employees error:', error);
-      res.status(500).json({ error: 'Failed to list employees' });
+      next(error);
     }
   };
 
-  public createEmployee = async (req: Request, res: Response): Promise<void> => {
+  public createEmployee = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const bodyResult = CreateEmployeeRequestSchema.safeParse(req.body);
       if (!bodyResult.success) {
@@ -93,12 +94,11 @@ export class AdminController {
         updatedAt: newUser.updatedAt.toISOString(),
       });
     } catch (error) {
-      console.error('Create employee error:', error);
-      res.status(500).json({ error: 'Failed to create employee' });
+      next(error);
     }
   };
 
-  public updateEmployee = async (req: Request, res: Response): Promise<void> => {
+  public updateEmployee = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const targetId = req.params.id as string;
       if (!targetId || !mongoose.Types.ObjectId.isValid(targetId)) {
@@ -118,13 +118,15 @@ export class AdminController {
         return;
       }
 
-      const adminUser = await User.findById(req.auth!.userId as string).lean();
-      
       const { name, isActive, role } = bodyResult.data;
+
+      const adminRole = req.auth!.role as Role || 'user';
+      const { ROLE_PERMISSIONS } = await import('./authorization/roles.js');
+      const allowedPermissions = ROLE_PERMISSIONS[adminRole] || [];
 
       // Only allow admins with 'role:manage' to change roles
       if (role && role !== targetUser.role) {
-        if (!adminUser || adminUser.role !== 'admin') {
+        if (!allowedPermissions.includes('role:manage')) {
           res.status(403).json({ error: 'Insufficient permissions to manage roles' });
           return;
         }
@@ -160,24 +162,12 @@ export class AdminController {
           }
         } catch (error: unknown) {
           if ((error as Error).message === 'AbortTransaction') {
-            // Already handled the res.status(400) above or will handle it
             if (!res.headersSent) {
               res.status(400).json({ error: 'Cannot deactivate or demote the last active admin.' });
             }
             return;
           }
-          // If transaction fails for other reasons (e.g. standalone Mongo without replica set), fallback:
-          const activeAdminCount = await User.countDocuments({ role: 'admin', isActive: true });
-          if (activeAdminCount <= 1) {
-            if (!res.headersSent) res.status(400).json({ error: 'Cannot deactivate or demote the last active admin.' });
-            return;
-          }
-          
-          if (name !== undefined) targetUser.name = name;
-          if (isActive !== undefined) targetUser.isActive = isActive;
-          if (role !== undefined) targetUser.role = role;
-          
-          updatedUser = await targetUser.save();
+          throw error;
         } finally {
           await session.endSession();
         }
@@ -206,8 +196,7 @@ export class AdminController {
         updatedAt: updatedUser.updatedAt.toISOString(),
       });
     } catch (error) {
-      console.error('Update employee error:', error);
-      res.status(500).json({ error: 'Failed to update employee' });
+      next(error);
     }
   };
 }

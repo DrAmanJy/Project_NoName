@@ -20,7 +20,11 @@ function getOpenAI(): OpenAI {
     if (!env.OPENAI_API_KEY) {
       throw new Error('OPENAI_API_KEY is missing');
     }
-    openaiClient = new OpenAI({ apiKey: env.OPENAI_API_KEY });
+    openaiClient = new OpenAI({ 
+      apiKey: env.OPENAI_API_KEY,
+      timeout: 60000, // 60 seconds hard timeout
+      maxRetries: 2
+    });
   }
   return openaiClient;
 }

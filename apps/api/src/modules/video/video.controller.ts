@@ -5,9 +5,10 @@ import { VideoVerificationJob } from './models/video-job.model.js';
 import { VideoVerification } from './models/video-verification.model.js';
 import { Submission } from '../submissions/models/submission.model.js';
 import { s3Service } from './storage/s3.service.js';
-import { User } from '../auth/models/user.model.js';
+
 import { ROLE_PERMISSIONS } from '../auth/authorization/roles.js';
 import type { Role } from '@repo/contracts';
+import { env } from '../../config/env.js';
 
 export class VideoController {
   /**
@@ -27,6 +28,10 @@ export class VideoController {
       }
 
       const { uploadId } = req.params;
+      if (!uploadId || typeof uploadId !== 'string' || uploadId.length !== 32 || !/^[0-9a-f]{32}$/i.test(uploadId)) {
+        res.status(400).json({ error: 'Invalid upload ID format' });
+        return;
+      }
       const parsed = MultipartSignRequestSchema.safeParse(req.body);
       if (!parsed.success) {
         res.status(400).json({ error: 'Invalid payload', details: parsed.error });
@@ -49,9 +54,16 @@ export class VideoController {
         return;
       }
 
+      const ttlMs = env.VIDEO_UPLOAD_TTL_MINUTES * 60 * 1000;
+      if (Date.now() - upload.createdAt.getTime() > ttlMs) {
+        await VideoUpload.updateOne({ _id: upload._id, status: { $in: ['created', 'uploading'] } }, { $set: { status: 'cancelled' } });
+        res.status(400).json({ error: 'UPLOAD_EXPIRED' });
+        return;
+      }
+
       // Transition state if first time
       if (upload.status === 'created') {
-        await VideoUpload.updateOne({ uploadId }, { $set: { status: 'uploading' } });
+        await VideoUpload.updateOne({ uploadId, status: 'created' }, { $set: { status: 'uploading' } });
       }
 
       const presignedUrls = await Promise.all(
@@ -80,6 +92,10 @@ export class VideoController {
       }
 
       const { uploadId } = req.params;
+      if (!uploadId || typeof uploadId !== 'string' || uploadId.length !== 32 || !/^[0-9a-f]{32}$/i.test(uploadId)) {
+        res.status(400).json({ error: 'Invalid upload ID format' });
+        return;
+      }
       const parsed = MultipartCompleteRequestSchema.safeParse(req.body);
       if (!parsed.success) {
         res.status(400).json({ error: 'Invalid payload', details: parsed.error });
@@ -108,14 +124,7 @@ export class VideoController {
         return;
       }
 
-      // Complete in R2
-      await s3Service.completeMultipartUpload(
-        upload.objectKey,
-        upload.multipartUploadId,
-        parsed.data.parts,
-      );
-
-      // Atomic update
+      // Atomic update FIRST to prevent concurrent cancel
       const updated = await VideoUpload.findOneAndUpdate(
         { _id: upload._id, status: { $in: ['created', 'uploading'] } },
         {
@@ -129,9 +138,21 @@ export class VideoController {
       );
 
       if (!updated) {
-        // Someone else completed it
-        res.json({ status: 'uploaded' });
+        res.status(400).json({ error: 'UPLOAD_ALREADY_COMPLETED_OR_CANCELLED' });
         return;
+      }
+
+      try {
+        // Complete in R2
+        await s3Service.completeMultipartUpload(
+          upload.objectKey,
+          upload.multipartUploadId,
+          parsed.data.parts,
+        );
+      } catch (error) {
+        // Revert on failure
+        await VideoUpload.updateOne({ _id: upload._id }, { $set: { status: 'uploading', completedAt: null } });
+        throw error;
       }
 
       // Enqueue job atomically - use upsert to prevent duplicates if retried
@@ -150,7 +171,10 @@ export class VideoController {
       // Update parent submission status
       await Submission.updateOne(
         { _id: upload.submissionId, status: 'draft' },
-        { $set: { status: 'in_review' } },
+        { 
+          $set: { status: 'in_review' },
+          $push: { timeline: { status: 'in_review', timestamp: new Date() } }
+        },
       );
 
       res.json({ status: 'uploaded' });
@@ -168,6 +192,10 @@ export class VideoController {
       }
 
       const { uploadId } = req.params;
+      if (!uploadId || typeof uploadId !== 'string' || uploadId.length !== 32 || !/^[0-9a-f]{32}$/i.test(uploadId)) {
+        res.status(400).json({ error: 'Invalid upload ID format' });
+        return;
+      }
       const upload = await VideoUpload.findOne({ uploadId }).lean();
 
       if (!upload) {
@@ -180,19 +208,29 @@ export class VideoController {
         return;
       }
 
+      // Lazy cleanup
+      if (upload.status === 'created' || upload.status === 'uploading') {
+        const ttlMs = env.VIDEO_UPLOAD_TTL_MINUTES * 60 * 1000;
+        if (Date.now() - upload.createdAt.getTime() > ttlMs) {
+          const updated = await VideoUpload.findOneAndUpdate(
+            { _id: upload._id, status: { $in: ['created', 'uploading'] } },
+            { $set: { status: 'cancelled', cancelledAt: new Date() } },
+            { new: true }
+          );
+          if (updated) {
+            upload.status = 'cancelled';
+            s3Service.abortMultipartUpload(upload.objectKey, upload.multipartUploadId).catch(() => {});
+          }
+        }
+      }
+
       let previewUrl: string | null = null;
-      let thumbnailUrl: string | null = null;
       if (
         upload.status === 'uploaded' ||
         upload.status === 'processing' ||
         upload.status === 'verified'
       ) {
         previewUrl = await s3Service.getSignedDownloadUrl(upload.objectKey, 900).catch(() => null);
-      }
-      if (upload.thumbnailKey) {
-        thumbnailUrl = await s3Service
-          .getSignedDownloadUrl(upload.thumbnailKey, 900)
-          .catch(() => null);
       }
 
       res.json({
@@ -206,7 +244,6 @@ export class VideoController {
         uploadStatus: upload.status,
         uploadedAt: upload.completedAt ? upload.completedAt.toISOString() : null,
         previewUrl,
-        thumbnailUrl,
       });
     } catch (error) {
       next(error);
@@ -226,6 +263,10 @@ export class VideoController {
       }
 
       const { uploadId } = req.params;
+      if (!uploadId || typeof uploadId !== 'string' || uploadId.length !== 32 || !/^[0-9a-f]{32}$/i.test(uploadId)) {
+        res.status(400).json({ error: 'Invalid upload ID format' });
+        return;
+      }
       const upload = await VideoUpload.findOne({ uploadId }).lean();
 
       if (!upload) {
@@ -233,8 +274,7 @@ export class VideoController {
         return;
       }
 
-      const user = await User.findById(auth.userId).lean();
-      const role = (user?.role as Role) || 'user';
+      const role = (auth.role as Role) || 'user';
       const allowedPermissions = ROLE_PERMISSIONS[role] || [];
       const isOwner = upload.userId.toString() === auth.userId;
       const canVerify = allowedPermissions.includes('video:verify');
@@ -270,6 +310,10 @@ export class VideoController {
       }
 
       const { uploadId } = req.params;
+      if (!uploadId || typeof uploadId !== 'string' || uploadId.length !== 32 || !/^[0-9a-f]{32}$/i.test(uploadId)) {
+        res.status(400).json({ error: 'Invalid upload ID format' });
+        return;
+      }
       const upload = await VideoUpload.findOne({ uploadId });
 
       if (!upload) {
@@ -292,12 +336,18 @@ export class VideoController {
         return;
       }
 
-      await s3Service.abortMultipartUpload(upload.objectKey, upload.multipartUploadId);
-
-      await VideoUpload.updateOne(
-        { _id: upload._id },
+      const updated = await VideoUpload.findOneAndUpdate(
+        { _id: upload._id, status: { $in: ['created', 'uploading'] } },
         { $set: { status: 'cancelled', cancelledAt: new Date() } },
+        { new: true }
       );
+
+      if (!updated) {
+        res.status(400).json({ error: 'UPLOAD_ALREADY_COMPLETED_OR_CANCELLED' });
+        return;
+      }
+
+      await s3Service.abortMultipartUpload(upload.objectKey, upload.multipartUploadId).catch(() => {});
 
       res.json({ status: 'cancelled' });
     } catch (error) {

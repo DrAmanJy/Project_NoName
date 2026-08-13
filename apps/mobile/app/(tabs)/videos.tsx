@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Modal, FlatList, ScrollView } from 'react-native';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Modal, FlatList, ScrollView, Animated } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -7,6 +7,7 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import { VideoUploadManager } from '@repo/api-client';
 import { MobileUploadSource } from '../../features/video/mobile-upload-source';
 import { apiClient, submissionsApi } from '../../lib/api';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function VideosScreen() {
   const router = useRouter();
@@ -21,6 +22,17 @@ export default function VideosScreen() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState<string>('idle');
   const [idempotencyKey, setIdempotencyKey] = useState<string>('');
+
+  const insets = useSafeAreaInsets();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   const COUNTRIES = [
     'United States', 'United Kingdom', 'Canada', 'Australia', 
@@ -113,7 +125,7 @@ export default function VideosScreen() {
 
       const response = await submissionsApi.create({
         fileName: videoAsset.fileName || 'video.mp4',
-        contentType: (videoAsset.mimeType || 'video/mp4') as any,
+        contentType: (videoAsset.mimeType || 'video/mp4') as 'video/mp4' | 'video/quicktime' | 'video/webm' | 'video/x-m4v',
         fileSize: fileSize,
         totalParts,
         country: selectedCountry,
@@ -177,8 +189,8 @@ export default function VideosScreen() {
   };
 
   return (
-    <View style={styles.safeArea}>
-      <View style={styles.mainContainer}>
+    <View style={[styles.safeArea, { paddingTop: insets.top, paddingBottom: 110 + insets.bottom }]}>
+      <Animated.View style={[styles.mainContainer, { opacity: fadeAnim }]}>
         
         {/* Main Instruction Card / Preview Box */}
         <View style={[styles.instructionCard, selectedVideoUri ? { justifyContent: 'flex-end' } : { justifyContent: 'flex-start' }]}>
@@ -224,29 +236,35 @@ export default function VideosScreen() {
           ) : (
             <ScrollView style={{ width: '100%' }} contentContainerStyle={styles.instructionContent} showsVerticalScrollIndicator={false}>
               <View style={styles.iconCircle}>
-                <FontAwesome5 name="file-video" size={28} color="#5a2e17" />
+                <FontAwesome5 name="file-video" size={28} color="#111111" />
               </View>
               
               <Text style={styles.cardTitle}>How it works</Text>
               
               <View style={styles.stepsContainer}>
-                <Text style={styles.stepText}>
-                  <Text style={{fontWeight: '800'}}>1.</Text> Record a clear video holding your physical visa document in frame.
-                </Text>
-                <Text style={styles.stepText}>
-                  <Text style={{fontWeight: '800'}}>2.</Text> Clearly read the script below directly into the camera.
-                </Text>
-                
-                <View style={styles.scriptBox}>
-                  <Text style={styles.scriptTitle}>REQUIRED SCRIPT (30 SEC):</Text>
-                  <Text style={styles.scriptContent}>
-                    "My name is [Your Name], and I am recording this video on [Today's Date]. I am currently located in [Your Country]. I confirm that I am holding my official physical visa in frame. I understand this video is strictly for verification."
-                  </Text>
+                <View style={styles.stepRow}>
+                  <View style={styles.stepNumberCircle}><Text style={styles.stepNumber}>1</Text></View>
+                  <View style={styles.stepTextContainer}>
+                    <Text style={styles.stepTitle}>Record</Text>
+                    <Text style={styles.stepDesc}>Film a short, authentic video of your daily life holding your physical visa. No scripts or editing needed.</Text>
+                  </View>
                 </View>
 
-                <Text style={styles.stepText}>
-                  <Text style={{fontWeight: '800'}}>3.</Text> Verify your current recording country and submit the file below.
-                </Text>
+                <View style={styles.stepRow}>
+                  <View style={styles.stepNumberCircle}><Text style={styles.stepNumber}>2</Text></View>
+                  <View style={styles.stepTextContainer}>
+                    <Text style={styles.stepTitle}>Upload</Text>
+                    <Text style={styles.stepDesc}>Select your location and securely upload the raw, unedited footage directly from your phone.</Text>
+                  </View>
+                </View>
+
+                <View style={styles.stepRow}>
+                  <View style={styles.stepNumberCircle}><Text style={styles.stepNumber}>3</Text></View>
+                  <View style={styles.stepTextContainer}>
+                    <Text style={styles.stepTitle}>Get Rewarded</Text>
+                    <Text style={styles.stepDesc}>If your video is selected for use, you'll receive a direct cash payment instantly to your wallet.</Text>
+                  </View>
+                </View>
               </View>
 
               <TouchableOpacity style={styles.uploadButton} activeOpacity={0.8} onPress={handlePickVideo}>
@@ -259,10 +277,10 @@ export default function VideosScreen() {
 
         {/* Bottom Form Area */}
         <View style={styles.formArea}>
-          <Text style={styles.inputLabel}>RECORDING LOCATION</Text>
+          <Text style={styles.inputLabel}>SELECT RECORDING LOCATION</Text>
           <TouchableOpacity style={styles.countrySelector} onPress={() => setShowCountryModal(true)} activeOpacity={0.8}>
             <View style={styles.countryLeft}>
-              <FontAwesome5 name="globe-americas" size={18} color="#934d28" />
+              <FontAwesome5 name="globe-americas" size={18} color="#111111" />
               <Text style={[styles.countryText, !selectedCountry && styles.countryTextPlaceholder]}>
                 {selectedCountry ? selectedCountry : 'Select your country'}
               </Text>
@@ -300,7 +318,7 @@ export default function VideosScreen() {
           )}
         </View>
 
-      </View>
+      </Animated.View>
 
       {/* Country Selection Modal */}
       <Modal visible={showCountryModal} animationType="slide" transparent={true}>
@@ -347,16 +365,17 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 110, // Hard stop before custom menu
   },
   instructionCard: {
-    backgroundColor: '#fef1e6', 
+    backgroundColor: '#ffffff', 
     borderRadius: 36,
     paddingVertical: 24,
-    paddingHorizontal: 0, // Removed so inner content can dictate padding or hit edges
+    paddingHorizontal: 0, 
     alignItems: 'center',
     marginBottom: 20,
     flex: 1, 
+    borderWidth: 1,
+    borderColor: '#eaeaea'
   },
   instructionContent: {
     width: '100%',
@@ -449,7 +468,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#fcdcc5',
+    backgroundColor: '#f5f5f5',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
@@ -457,7 +476,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 26,
     fontWeight: '800',
-    color: '#3d1c00',
+    color: '#111111',
     marginBottom: 32,
     letterSpacing: -0.5,
   },
@@ -465,43 +484,42 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 40,
   },
-  stepText: {
-    fontSize: 15,
-    color: '#5c3316',
-    lineHeight: 24,
-    fontWeight: '500',
-    marginBottom: 20,
-    paddingHorizontal: 4,
+  stepRow: {
+    flexDirection: 'row',
+    marginBottom: 24,
+    alignItems: 'flex-start',
   },
-  scriptBox: {
-    backgroundColor: '#ffffff',
-    borderRadius: 20,
-    padding: 20,
-    marginVertical: 12,
-    borderWidth: 1,
-    borderColor: '#fcdcc5',
-    shadowColor: '#5a2e17',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+  stepNumberCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#111111',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+    marginTop: 2,
   },
-  scriptTitle: {
-    fontSize: 12,
+  stepNumber: {
+    color: '#ffffff',
+    fontSize: 14,
     fontWeight: '800',
-    color: '#934d28',
-    marginBottom: 10,
-    letterSpacing: 1,
   },
-  scriptContent: {
+  stepTextContainer: {
+    flex: 1,
+  },
+  stepTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#111111',
+    marginBottom: 6,
+  },
+  stepDesc: {
     fontSize: 15,
-    color: '#3d1c00',
-    lineHeight: 26,
-    fontStyle: 'italic',
-    fontWeight: '500',
+    color: '#666666',
+    lineHeight: 22,
   },
   uploadButton: {
-    backgroundColor: '#7c3f1b', 
+    backgroundColor: '#111111', 
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -509,10 +527,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     borderRadius: 30,
     width: '100%',
-    shadowColor: '#7c3f1b',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
     elevation: 6,
     marginTop: 10,
     marginBottom: 0,

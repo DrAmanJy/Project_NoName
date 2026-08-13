@@ -4,10 +4,12 @@ import type { ISession } from '../models/session.model.js';
 import { Session } from '../models/session.model.js';
 import { User } from '../models/user.model.js';
 import { env } from '../../../config/env.js';
+import { logger } from '../../../infrastructure/logger.js';
 
 export interface ValidatedSession {
   session: ISession;
   userId: string;
+  role: string;
 }
 
 export class SessionService {
@@ -88,18 +90,18 @@ export class SessionService {
         { $set: { lastUsedAt: new Date(now) } }
       ).catch((err) => {
         // Safe fire-and-forget: catch and log the error to avoid unhandled promise rejections
-        // Using console.error here; in production, use a proper logger instance
-        console.error('Failed to asynchronously update session lastUsedAt', err);
+        // In production, use the proper logger instance
+        logger.error({ err }, 'Failed to asynchronously update session lastUsedAt');
       });
     }
 
     // Check if user is active - Optimized with lean and projection
-    const user = await User.findById(session.userId).select('isActive').lean();
+    const user = await User.findById(session.userId).select('isActive role').lean();
     if (!user || !user.isActive) {
       return null;
     }
 
-    return { session, userId: session.userId.toString() };
+    return { session, userId: session.userId.toString(), role: user.role || 'user' };
   }
 
   /**

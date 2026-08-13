@@ -6,7 +6,7 @@ import { VideoReviewConsole } from '@/components/admin/video-review/video-review
 import { EmployeeManagementConsole } from '@/components/admin/employees/employee-management-console';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
-import { Video, Users, ShieldCheck } from 'lucide-react';
+import { Video, Users } from 'lucide-react';
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<'videos' | 'employees'>('videos');

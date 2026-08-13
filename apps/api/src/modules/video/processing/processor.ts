@@ -35,22 +35,7 @@ export class VideoProcessor {
       const probeResult = await FFmpegWrapper.probe(originalPath);
       logger.info({ uploadId: upload._id, probeResult }, 'Probe result');
 
-      // 3. Extract Thumbnail
-      let thumbnailKey: string | null = null;
-      try {
-        logger.info({ uploadId: upload._id }, 'Extracting thumbnail');
-        const thumbnailPath = path.join(tmpDir, 'thumbnail.jpg');
-        const thumbnailTime = Math.min(1, Math.max(0, probeResult.duration * 0.1));
-        await FFmpegWrapper.extractThumbnail(originalPath, thumbnailPath, thumbnailTime);
-
-        thumbnailKey = `videos/${upload.uploadId}/thumbnail.jpg`;
-        await s3Service.uploadFile(thumbnailKey, thumbnailPath, 'image/jpeg');
-        logger.info({ uploadId: upload._id, thumbnailKey }, 'Thumbnail uploaded');
-      } catch (err) {
-        logger.error({ err, uploadId: upload._id }, 'Failed to generate thumbnail');
-      }
-
-      // Update VideoUpload with server-validated metadata & thumbnailKey
+      // Update VideoUpload with server-validated metadata
       await VideoUpload.updateOne(
         { _id: upload._id },
         {
@@ -58,7 +43,6 @@ export class VideoProcessor {
             durationSeconds: probeResult.duration,
             width: probeResult.width,
             height: probeResult.height,
-            ...(thumbnailKey ? { thumbnailKey } : {}),
           },
         }
       );

@@ -20,6 +20,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     'submission:read',
     'submission:update',
     'submission:review',
+    'submission:transition_any',
     'video:read',
     'video:verify',
     'employee:create',

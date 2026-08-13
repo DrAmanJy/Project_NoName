@@ -1,19 +1,19 @@
 {
   "expo": {
-    "name": "noname",
-    "slug": "noname-mobile",
+    "name": "True Services",
+    "slug": "true-services",
     "version": "1.0.0",
-    "scheme": "noname",
+    "scheme": "trueservices",
     "platforms": [
       "ios",
       "android"
     ],
     "ios": {
-      "bundleIdentifier": "com.noname.mobile",
+      "bundleIdentifier": "com.trueservices.mobile",
       "supportsTablet": true
     },
     "android": {
-      "package": "com.noname.mobile",
+      "package": "com.trueservices.mobile",
       "adaptiveIcon": {
         "backgroundColor": "#ffffff"
       }

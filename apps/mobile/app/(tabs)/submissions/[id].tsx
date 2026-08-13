@@ -1,6 +1,7 @@
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { useState, useEffect } from 'react';
+import { FontAwesome5 } from '@expo/vector-icons';
 import type { SubmissionResponse } from '@repo/contracts';
 import { submissionsApi } from '../../../lib/api';
 import { useVideoPlayer, VideoView } from 'expo-video';
@@ -12,6 +13,41 @@ function VideoPlayer({ url }: { url: string }) {
 
   return (
     <VideoView style={styles.videoPlayer} player={player} />
+  );
+}
+
+function TimelineStep({ 
+  icon, 
+  iconColor, 
+  iconBgColor, 
+  title, 
+  subtitle, 
+  isLast = false, 
+  isActive = true 
+}: {
+  icon: string;
+  iconColor: string;
+  iconBgColor: string;
+  title: string;
+  subtitle: string;
+  isLast?: boolean;
+  isActive?: boolean;
+}) {
+  return (
+    <View style={styles.timelineRow}>
+      <View style={styles.timelineLeft}>
+        <View style={[styles.timelineIconContainer, { backgroundColor: iconBgColor }]}>
+          <FontAwesome5 name={icon} size={12} color={iconColor} />
+        </View>
+        {!isLast && (
+          <View style={[styles.timelineLine, !isActive && styles.timelineLineInactive]} />
+        )}
+      </View>
+      <View style={styles.timelineRight}>
+        <Text style={[styles.stepTitle, !isActive && { color: '#aaaaaa' }]}>{title}</Text>
+        <Text style={styles.stepSubtitle}>{subtitle}</Text>
+      </View>
+    </View>
   );
 }
 
@@ -31,9 +67,8 @@ export default function SubmissionDetailScreen() {
           setSubmission(data);
           setError(null);
         }
-      } catch (err) {
+      } catch {
         if (isActive) {
-          console.error('Failed to fetch submission details', err);
           setError('Failed to load submission details.');
         }
       } finally {
@@ -42,18 +77,28 @@ export default function SubmissionDetailScreen() {
         }
       }
     };
-    if (id) {
-      fetchSubmission();
-    }
-    return () => {
-      isActive = false;
-    };
+    if (id) fetchSubmission();
+    return () => { isActive = false; };
   }, [id]);
+
+  const renderStatusTag = (status: string) => {
+    switch (status.toUpperCase()) {
+      case 'IN_REVIEW':
+        return <Text style={styles.submissionStatus}>Status: <Text style={{ color: '#a86532' }}>In Review</Text></Text>;
+      case 'REJECTED':
+        return <Text style={styles.submissionStatus}>Status: <Text style={{ color: '#e55353' }}>Rejected</Text></Text>;
+      case 'PAID':
+      case 'APPROVED':
+        return <Text style={styles.submissionStatus}>Status: <Text style={{ color: '#2eb85c' }}>Approved</Text></Text>;
+      default:
+        return <Text style={styles.submissionStatus}>Status: <Text style={{ color: '#666666' }}>{status}</Text></Text>;
+    }
+  };
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.centered]}>
-        <ActivityIndicator size="large" color="#0000ff" />
+      <View style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#934d28" />
         <Text style={styles.loadingText}>Loading submission...</Text>
       </View>
     );
@@ -61,251 +106,104 @@ export default function SubmissionDetailScreen() {
 
   if (error || !submission) {
     return (
-      <View style={[styles.container, styles.centered]}>
-        <Text style={styles.errorText}>{error || 'Submission not found'}</Text>
+      <View style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: '#e55353' }}>{error || 'Submission not found'}</Text>
       </View>
     );
   }
 
+  const isRejected = submission.status === 'rejected';
+
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Submission Detail</Text>
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Overview</Text>
-        <View style={styles.row}>
-          <Text style={styles.label}>ID:</Text>
-          <Text style={styles.value}>{submission.id}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Status:</Text>
-          <Text style={[styles.value, { textTransform: 'capitalize', color: '#0055ff', fontWeight: 'bold' }]}>
-            {submission.status.replace('_', ' ')}
-          </Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Submitted:</Text>
-          <Text style={styles.value}>
-            {new Date(submission.createdAt).toLocaleString()}
-          </Text>
-        </View>
-      </View>
-      
-      {submission.verification && (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>AI Verification</Text>
-          <View style={styles.row}>
-            <Text style={styles.label}>Overall Result:</Text>
-            <Text style={[styles.value, { 
-              fontWeight: 'bold', textTransform: 'uppercase',
-              color: submission.verification.overallStatus === 'pass' ? 'green' : 
-                     submission.verification.overallStatus === 'fail' ? 'red' : 'orange'
-            }]}>
-              {submission.verification.overallStatus}
-            </Text>
-          </View>
-        </View>
-      )}
-
-      {submission.video && (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Video Details</Text>
-          
+    <View style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        
+        {submission.video?.previewUrl ? (
           <View style={styles.previewContainer}>
-            {submission.video.previewUrl ? (
-              <VideoPlayer url={submission.video.previewUrl} />
-            ) : (
-              <View style={styles.placeholderVideo}>
-                <Text style={styles.placeholderText}>
-                  {submission.video.uploadStatus === 'uploading' 
-                    ? 'Video is currently uploading...' 
-                    : 'Preview not available'}
-                </Text>
-              </View>
-            )}
+            <VideoPlayer url={submission.video.previewUrl} />
+          </View>
+        ) : (
+          <View style={styles.placeholderVideo}>
+            <FontAwesome5 name="video-slash" size={32} color="#cccccc" />
+          </View>
+        )}
+
+        <View style={styles.submissionCard}>
+          <View style={styles.submissionHeader}>
+            <View style={[
+              styles.headerIconContainer, 
+              { backgroundColor: isRejected ? '#e55353' : '#a86532' }
+            ]}>
+              <FontAwesome5 
+                name={isRejected ? 'exclamation-triangle' : 'video'} 
+                size={12} 
+                color="#ffffff" 
+              />
+            </View>
+            <View style={styles.headerTextContainer}>
+              <Text style={styles.submissionTitle} numberOfLines={1}>
+                Submission - {new Date(submission.createdAt).toLocaleDateString()}
+              </Text>
+              {renderStatusTag(submission.status)}
+            </View>
           </View>
 
-          <View style={styles.row}>
-            <Text style={styles.label}>Original File:</Text>
-            <Text style={styles.value} numberOfLines={1} ellipsizeMode="middle">
-              {submission.video.originalFilename}
-            </Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>MIME Type:</Text>
-            <Text style={styles.value}>{submission.video.mimeType}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>File Size:</Text>
-            <Text style={styles.value}>
-              {(submission.video.sizeBytes / (1024 * 1024)).toFixed(2)} MB
-            </Text>
-          </View>
-          
-          {submission.video.durationSeconds != null && (
-            <View style={styles.row}>
-              <Text style={styles.label}>Duration:</Text>
-              <Text style={styles.value}>{Math.round(submission.video.durationSeconds)}s</Text>
-            </View>
-          )}
-          
-          {submission.video.width && submission.video.height && (
-            <View style={styles.row}>
-              <Text style={styles.label}>Resolution:</Text>
-              <Text style={styles.value}>{submission.video.width} × {submission.video.height}</Text>
-            </View>
-          )}
-          
-          <View style={styles.row}>
-            <Text style={styles.label}>Upload Status:</Text>
-            <Text style={[styles.value, { textTransform: 'capitalize' }]}>
-              {submission.video.uploadStatus}
-            </Text>
+          <View style={styles.timelineContainer}>
+            <TimelineStep
+              icon="check"
+              iconColor="#ffffff"
+              iconBgColor="#2eb85c"
+              title="Uploaded"
+              subtitle="Video uploaded successfully"
+              isActive={true}
+            />
+            {submission.verification && (
+              <TimelineStep
+                icon={submission.verification.overallStatus === 'pass' ? 'check' : (submission.verification.overallStatus === 'fail' ? 'times' : 'ellipsis-h')}
+                iconColor="#ffffff"
+                iconBgColor={submission.verification.overallStatus === 'pass' ? '#2eb85c' : (submission.verification.overallStatus === 'fail' ? '#e55353' : '#a86532')}
+                title="AI Verification"
+                subtitle={`Status: ${submission.verification.overallStatus}`}
+                isActive={true}
+              />
+            )}
+            <TimelineStep
+              icon={isRejected ? "times" : (submission.status === 'approved' ? "check" : "ellipsis-h")}
+              iconColor={isRejected || submission.status === 'approved' ? "#ffffff" : "#999999"}
+              iconBgColor={isRejected ? "#e55353" : (submission.status === 'approved' ? "#2eb85c" : "#f0f0f0")}
+              title="Final Decision"
+              subtitle={isRejected ? "Rejected" : (submission.status === 'approved' ? "Approved" : "Pending review")}
+              isLast={true}
+              isActive={isRejected || submission.status === 'approved'}
+            />
           </View>
         </View>
-      )}
-      
-      <Text style={styles.subtitle}>Timeline</Text>
-      {submission.timeline && submission.timeline.length > 0 ? (
-        submission.timeline.map((step, idx) => (
-          <View key={step.key} style={styles.timelineStep}>
-            <Text style={styles.stepTitle}>
-              {idx + 1}. {step.key.replace('_', ' ').toUpperCase()}
-            </Text>
-            <Text style={styles.stepStatus}>Status: {step.status}</Text>
-            {step.message && <Text style={styles.stepMessage}>{step.message}</Text>}
-            {step.completedAt && (
-              <Text style={styles.stepTime}>
-                Completed: {new Date(step.completedAt).toLocaleString()}
-              </Text>
-            )}
-          </View>
-        ))
-      ) : (
-        <Text style={styles.emptyTimeline}>No timeline available.</Text>
-      )}
-      <View style={{ height: 40 }} />
-    </ScrollView>
+
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#f5f5f5',
-  },
-  centered: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 10,
-    color: '#666',
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    color: '#333',
-  },
-  subtitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginTop: 10,
-    marginBottom: 10,
-    color: '#444',
-  },
-  card: {
-    backgroundColor: 'white',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    paddingBottom: 8,
-  },
-  row: {
-    flexDirection: 'row',
-    marginBottom: 8,
-    justifyContent: 'space-between',
-  },
-  label: {
-    fontWeight: 'bold',
-    color: '#666',
-    flex: 1,
-  },
-  value: {
-    color: '#333',
-    flex: 2,
-    textAlign: 'right',
-  },
-  timelineStep: {
-    backgroundColor: 'white',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
-    borderLeftWidth: 4,
-    borderLeftColor: '#007AFF',
-  },
-  stepTitle: {
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 4,
-  },
-  stepStatus: {
-    color: '#666',
-    textTransform: 'capitalize',
-  },
-  stepMessage: {
-    color: '#d97706',
-    marginTop: 4,
-    fontStyle: 'italic',
-  },
-  stepTime: {
-    color: '#999',
-    fontSize: 12,
-    marginTop: 4,
-  },
-  emptyTimeline: {
-    color: '#666',
-    fontStyle: 'italic',
-  },
-  previewContainer: {
-    marginBottom: 16,
-    borderRadius: 8,
-    overflow: 'hidden',
-    backgroundColor: '#000',
-  },
-  videoPlayer: {
-    width: '100%',
-    height: 200,
-  },
-  placeholderVideo: {
-    width: '100%',
-    height: 200,
-    backgroundColor: '#eee',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderStyle: 'dashed',
-    borderRadius: 8,
-  },
-  placeholderText: {
-    color: '#888',
-  }
+  safeArea: { flex: 1, backgroundColor: '#FAFAFA' },
+  scrollContent: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 },
+  loadingText: { marginTop: 10, color: '#8c7b6e', fontWeight: '600' },
+  previewContainer: { marginBottom: 20, borderRadius: 24, overflow: 'hidden', backgroundColor: '#000' },
+  videoPlayer: { width: '100%', height: 220 },
+  placeholderVideo: { width: '100%', height: 220, backgroundColor: '#f2f2f2', borderRadius: 24, justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
+  submissionCard: { backgroundColor: '#ffffff', borderRadius: 24, padding: 24, marginBottom: 20, borderWidth: 1, borderColor: '#f2f2f2', shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.04, shadowRadius: 16, elevation: 2 },
+  submissionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 28 },
+  headerIconContainer: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginRight: 16 },
+  headerTextContainer: { flex: 1, justifyContent: 'center' },
+  submissionTitle: { fontSize: 16, fontWeight: '800', color: '#111111', marginBottom: 4, letterSpacing: -0.3 },
+  submissionStatus: { fontSize: 13, color: '#888888', fontWeight: '600' },
+  timelineContainer: { paddingLeft: 4 },
+  timelineRow: { flexDirection: 'row', minHeight: 60 },
+  timelineLeft: { width: 32, alignItems: 'center', marginRight: 20 },
+  timelineIconContainer: { width: 28, height: 28, borderRadius: 14, justifyContent: 'center', alignItems: 'center', zIndex: 2 },
+  timelineLine: { width: 2, flex: 1, backgroundColor: '#e5e5e5', marginVertical: 4 },
+  timelineLineInactive: { backgroundColor: '#f5f5f5', borderStyle: 'dashed' },
+  timelineRight: { flex: 1, paddingBottom: 28, paddingTop: 4 },
+  stepTitle: { fontSize: 15, fontWeight: '700', color: '#111111', marginBottom: 4, letterSpacing: -0.2 },
+  stepSubtitle: { fontSize: 13, color: '#888888', fontWeight: '500' },
 });
