@@ -22,7 +22,7 @@ export class FFmpegWrapper {
       let stdout = '';
       let stderr = '';
 
-      const process = spawn('ffprobe', args, { signal });
+      const process = spawn('ffprobe', args, { signal, timeout: 60000 });
 
       process.stdout.on('data', (data) => { stdout += data; });
       process.stderr.on('data', (data) => { stderr += data; });
@@ -70,10 +70,11 @@ export class FFmpegWrapper {
         '-ac', '1',     // mono
         '-q:a', '9',    // lowest quality/smallest file
         '-y',           // overwrite
+        '-threads', '1',
         outputPath
       ];
 
-      const process = spawn('ffmpeg', args, { signal });
+      const process = spawn('ffmpeg', args, { signal, timeout: 120000 });
       let stderr = '';
       process.stderr.on('data', (data) => { stderr += data; });
 
@@ -100,10 +101,11 @@ export class FFmpegWrapper {
         '-vf', `fps=${fps},scale=512:-1`, // small frames for AI
         '-frame_pts', '1',
         '-y',
+        '-threads', '1',
         outputPattern
       ];
 
-      const process = spawn('ffmpeg', args, { signal });
+      const process = spawn('ffmpeg', args, { signal, timeout: 180000 });
       let stderr = '';
       process.stderr.on('data', (data) => { stderr += data; });
 
@@ -119,31 +121,5 @@ export class FFmpegWrapper {
     });
   }
 
-  static async extractThumbnail(inputPath: string, outputPath: string, timeSeconds: number, signal?: AbortSignal): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const args = [
-        '-ss', timeSeconds.toString(), // Fast seek before input
-        '-i', inputPath,
-        '-frames:v', '1',              // Exactly one frame
-        '-vf', 'scale=320:-2',         // Small width, preserve aspect ratio
-        '-q:v', '7',                   // Moderate JPEG quality
-        '-y',
-        outputPath
-      ];
 
-      const process = spawn('ffmpeg', args, { signal });
-      let stderr = '';
-      process.stderr.on('data', (data) => { stderr += data; });
-
-      process.on('close', (code) => {
-        if (code !== 0) {
-          reject(new Error(`ffmpeg thumbnail extraction failed (code ${code}): ${stderr}`));
-          return;
-        }
-        resolve();
-      });
-
-      process.on('error', reject);
-    });
-  }
 }

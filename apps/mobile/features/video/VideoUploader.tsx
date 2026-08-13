@@ -57,11 +57,11 @@ export function VideoUploader() {
 
       const response = await submissionsApi.create({
         fileName: fileName,
-        contentType: mimeType as any,
+        contentType: (mimeType || 'video/mp4') as 'video/mp4' | 'video/quicktime' | 'video/webm' | 'video/x-m4v',
         fileSize: fileSize,
         totalParts,
         country: 'United States',
-        durationSeconds: duration || undefined,
+        durationSeconds: duration && duration > 0 ? duration : undefined,
         width: width || undefined,
         height: height || undefined,
       }, idempotencyKey);

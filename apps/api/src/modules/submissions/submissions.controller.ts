@@ -63,7 +63,10 @@ export class SubmissionsController {
         const submission = await Submission.create({
           userId,
           status: 'draft',
+          expectedEarning: env.EXPECTED_EARNING_AMOUNT,
+          earning: 0,
           idempotencyKey,
+          timeline: [{ status: 'draft', timestamp: new Date(), userId }],
         });
 
         await VideoUpload.create({
@@ -125,20 +128,68 @@ export class SubmissionsController {
 
       const userId = new Types.ObjectId(auth.userId);
 
-      const [submissions, total] = await Promise.all([
+      const [submissions, total, totals] = await Promise.all([
         Submission.find({ userId })
+          .select('status createdAt expectedEarning earning')
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limit)
           .lean(),
         Submission.countDocuments({ userId }),
+        Submission.aggregate([
+          { $match: { userId } },
+          { 
+            $group: { 
+              _id: null, 
+              totalExpectedEarning: { $sum: { $ifNull: ["$expectedEarning", 0] } }, 
+              totalEarning: { $sum: { $ifNull: ["$earning", 0] } } 
+            } 
+          }
+        ]),
       ]);
 
-      const data = submissions.map(sub => ({
-        id: sub._id.toString(),
-        status: sub.status,
-        timeline: [], // Short list doesn't necessarily need full timeline, but we return empty array for schema
-        createdAt: sub.createdAt.toISOString(),
+      const totalExpectedEarning = totals[0]?.totalExpectedEarning || 0;
+      const totalEarning = totals[0]?.totalEarning || 0;
+
+      const submissionIds = submissions.map(sub => sub._id);
+      const videos = await VideoUpload.find({ submissionId: { $in: submissionIds } })
+        .select('_id submissionId originalFileName contentType fileSize durationSeconds width height status completedAt objectKey')
+        .sort({ createdAt: -1 })
+        .lean();
+
+      const videosBySubId = new Map(videos.map(v => [v.submissionId.toString(), v]));
+
+      const data = await Promise.all(submissions.map(async sub => {
+        const subIdStr = sub._id.toString();
+        const video = videosBySubId.get(subIdStr);
+        let previewUrl: string | null = null;
+        
+        if (video) {
+          if (video.status === 'uploaded' || video.status === 'processing' || video.status === 'verified') {
+            previewUrl = await s3Service.getSignedDownloadUrl(video.objectKey, 900).catch(() => null);
+          }
+        }
+
+        return {
+          id: subIdStr,
+          status: sub.status,
+          timeline: [], // Short list doesn't necessarily need full timeline, but we return empty array for schema
+          createdAt: sub.createdAt.toISOString(),
+          video: video ? {
+            id: video._id.toString(),
+            originalFilename: video.originalFileName,
+            mimeType: video.contentType,
+            sizeBytes: video.fileSize,
+            durationSeconds: video.durationSeconds || null,
+            width: video.width || null,
+            height: video.height || null,
+            uploadStatus: video.status,
+            uploadedAt: video.completedAt ? video.completedAt.toISOString() : null,
+            previewUrl,
+          } : null,
+          expectedEarning: sub.expectedEarning ?? 0,
+          earning: sub.earning ?? 0,
+        };
       }));
 
       res.json({
@@ -146,6 +197,8 @@ export class SubmissionsController {
         page,
         limit,
         total,
+        totalExpectedEarning,
+        totalEarning,
       });
     } catch (error) {
       next(error);
@@ -178,6 +231,7 @@ export class SubmissionsController {
 
       // Fetch the active upload to build the timeline and return metadata
       const upload = await VideoUpload.findOne({ submissionId: submission._id })
+        .select('_id originalFileName contentType fileSize durationSeconds width height status completedAt objectKey')
         .sort({ createdAt: -1 })
         .lean();
 
@@ -227,13 +281,9 @@ export class SubmissionsController {
       const timeline = timelineMap[submission.status] || timelineMap.draft;
 
       let previewUrl: string | null = null;
-      let thumbnailUrl: string | null = null;
       if (upload) {
         if (upload.status === 'uploaded' || upload.status === 'processing' || upload.status === 'verified') {
           previewUrl = await s3Service.getSignedDownloadUrl(upload.objectKey, 900).catch(() => null);
-        }
-        if (upload.thumbnailKey) {
-          thumbnailUrl = await s3Service.getSignedDownloadUrl(upload.thumbnailKey, 900).catch(() => null);
         }
       }
 
@@ -253,11 +303,12 @@ export class SubmissionsController {
           uploadStatus: upload.status,
           uploadedAt: upload.completedAt ? upload.completedAt.toISOString() : null,
           previewUrl,
-          thumbnailUrl,
         } : null,
         verification: verification ? {
           overallStatus: verification.overallStatus,
         } : null,
+        expectedEarning: submission.expectedEarning ?? 0,
+        earning: submission.earning ?? 0,
       });
     } catch (error) {
       next(error);

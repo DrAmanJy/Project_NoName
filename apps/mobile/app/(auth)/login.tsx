@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet, Platform, ImageBackground } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { SocialLoginButton } from '../../components/auth/SocialLoginButton';
 import { ErrorDialog } from '../../components/ErrorDialog';
 import { useAuth } from '../../features/auth/auth-provider';
@@ -48,17 +49,23 @@ export default function LoginScreen() {
   const isAnyLoading = loadingProvider !== null;
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        
-        {/* Top: Branding and Welcome */}
-        <View style={styles.headerContainer}>
-          <View style={styles.logoPlaceholder}>
-            <Text style={styles.logoText}>LOGO</Text>
-          </View>
-          <Text style={styles.title}>Welcome back</Text>
-          <Text style={styles.subtitle}>Sign in to continue to your account</Text>
-        </View>
+    <View style={styles.outerContainer}>
+      <ImageBackground 
+        source={{ uri: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=800&auto=format&fit=crop' }}
+        style={styles.backgroundImage}
+      >
+        <View style={styles.overlay}>
+          <SafeAreaView style={styles.safeArea}>
+            <View style={styles.container}>
+              
+              {/* Top: Branding and Welcome */}
+              <View style={styles.headerContainer}>
+                <View style={styles.logoPlaceholder}>
+                  <FontAwesome5 name="video" size={24} color="#ffffff" />
+                </View>
+                <Text style={styles.title}>Welcome back</Text>
+                <Text style={styles.subtitle}>Sign in to continue to your account</Text>
+              </View>
 
         {/* Center: Social Authentication Buttons */}
         <View style={styles.buttonsContainer}>
@@ -90,15 +97,30 @@ export default function LoginScreen() {
           onClose={() => setErrorDialogVisible(false)}
         />
 
-      </View>
-    </SafeAreaView>
+            </View>
+          </SafeAreaView>
+        </View>
+      </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  outerContainer: {
+    flex: 1,
+    backgroundColor: '#111111',
+  },
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+  },
   safeArea: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
   },
   container: {
     flex: 1,
@@ -112,8 +134,8 @@ const styles = StyleSheet.create({
   logoPlaceholder: {
     width: 64,
     height: 64,
-    backgroundColor: '#111111',
-    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 32,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
@@ -136,16 +158,16 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#111111',
+    fontSize: 34,
+    fontWeight: '900',
+    color: '#ffffff',
     marginBottom: 10,
-    letterSpacing: -0.8,
+    letterSpacing: -1,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#666666',
+    color: '#d4d4d4',
     lineHeight: 24,
     textAlign: 'center',
   },
@@ -158,12 +180,12 @@ const styles = StyleSheet.create({
   },
   legalText: {
     fontSize: 13,
-    color: '#888888',
+    color: '#a3a3a3',
     textAlign: 'center',
     lineHeight: 20,
   },
   linkText: {
-    color: '#111111',
-    fontWeight: '600',
+    color: '#ffffff',
+    fontWeight: '700',
   },
 });

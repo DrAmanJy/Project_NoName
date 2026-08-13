@@ -71,6 +71,7 @@ export class AppleProvider {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: params.toString(),
+      signal: AbortSignal.timeout(10000),
     });
 
     if (!response.ok) {

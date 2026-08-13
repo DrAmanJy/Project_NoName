@@ -18,7 +18,7 @@ export class AuthController {
     res.cookie(env.AUTH_COOKIE_NAME, token, {
       httpOnly: true,
       secure: env.NODE_ENV === 'production',
-      sameSite: 'none',
+      sameSite: 'lax',
       path: '/',
       maxAge: env.AUTH_SESSION_TTL_DAYS * 24 * 60 * 60 * 1000,
     });
@@ -353,7 +353,7 @@ export class AuthController {
         return;
       }
 
-      const user = await User.findById(req.auth.userId).lean();
+      const user = await User.findById(req.auth.userId).select('_id name email avatarUrl isActive role createdAt updatedAt').lean();
       if (!user) {
         res.status(401).json({ success: false, error: 'User not found' });
         return;

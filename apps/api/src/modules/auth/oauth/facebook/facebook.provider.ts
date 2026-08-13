@@ -32,7 +32,7 @@ export class FacebookProvider {
       code,
     });
 
-    const tokenResponse = await fetch(`${this.tokenUri}?${tokenParams.toString()}`);
+    const tokenResponse = await fetch(`${this.tokenUri}?${tokenParams.toString()}`, { signal: AbortSignal.timeout(10000) });
     if (!tokenResponse.ok) {
       const errText = await tokenResponse.text();
       throw new Error(`Facebook token exchange failed: ${errText}`);
@@ -55,7 +55,7 @@ export class FacebookProvider {
       access_token: appAccessToken,
     });
 
-    const debugResponse = await fetch(`${this.debugTokenUri}?${debugParams.toString()}`);
+    const debugResponse = await fetch(`${this.debugTokenUri}?${debugParams.toString()}`, { signal: AbortSignal.timeout(10000) });
     if (!debugResponse.ok) {
       const errText = await debugResponse.text();
       throw new Error(`Facebook token verification failed: ${errText}`);
@@ -83,7 +83,7 @@ export class FacebookProvider {
       access_token: accessToken,
     });
 
-    const profileResponse = await fetch(`${this.profileUri}?${profileParams.toString()}`);
+    const profileResponse = await fetch(`${this.profileUri}?${profileParams.toString()}`, { signal: AbortSignal.timeout(10000) });
     if (!profileResponse.ok) {
       const errText = await profileResponse.text();
       throw new Error(`Facebook profile fetch failed: ${errText}`);
