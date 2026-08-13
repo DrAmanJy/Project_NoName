@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
-import { earningsApi, submissionsApi } from '@/lib/api-client';
+import { submissionsApi } from '@/lib/api-client';
 import type { VideoStatus } from '@repo/contracts';
 
 interface SubmissionItem {
@@ -61,26 +61,32 @@ export function EarningsView() {
   const fetchEarningsData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const [summaryRes, submissionsRes] = await Promise.all([
-        earningsApi.summary().catch(() => null),
-        submissionsApi.list(1, 50).catch(() => null),
-      ]);
+      const submissionsRes = await submissionsApi.list(1, 50).catch(() => null);
 
-      if (summaryRes) {
-        setSummary({
-          totalEarnings: summaryRes.totalEarnings || 0,
-          pendingEarnings: summaryRes.pendingEarnings || 0,
-          paidEarnings: summaryRes.paidEarnings || 0,
-          currency: summaryRes.currency || 'USD',
-        });
-      } else {
-        setSummary({
-          totalEarnings: 0,
-          pendingEarnings: 0,
-          paidEarnings: 0,
-          currency: 'USD',
+      let calcTotal = 0;
+      let calcPending = 0;
+      let calcPaid = 0;
+
+      if (submissionsRes && Array.isArray(submissionsRes.data)) {
+        submissionsRes.data.forEach((item) => {
+          const amount = item.rewardAmount || 25; // Default expected earning if null
+          if (item.status === 'paid' || item.status === 'approved' || item.status === 'payment_pending') {
+            calcPaid += amount;
+          } else if (item.status !== 'rejected') {
+            calcPending += amount;
+          }
+          if (item.status !== 'rejected') {
+            calcTotal += amount;
+          }
         });
       }
+
+      setSummary({
+        totalEarnings: calcTotal,
+        pendingEarnings: calcPending,
+        paidEarnings: calcPaid,
+        currency: 'USD',
+      });
 
       if (submissionsRes && Array.isArray(submissionsRes.data) && submissionsRes.data.length > 0) {
         const mapped: SubmissionItem[] = submissionsRes.data.map((item) => {
@@ -143,7 +149,7 @@ export function EarningsView() {
             }),
             status,
             statusText,
-            estimatedReward: item.status === 'paid' || item.status === 'approved' ? '$50.00' : '$0.00',
+            estimatedReward: item.rewardAmount != null ? `$${item.rewardAmount.toFixed(2)}` : '$25.00',
             steps,
           };
         });

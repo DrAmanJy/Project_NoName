@@ -1,0 +1,9 @@
+$ next typegen && tsc --noEmit
+Generating route types...
+✓ Types generated successfully
+src/app/employees/dashboard/page.tsx(115,32): error TS2339: Property 'earning' does not exist on type '{ user: { id: string; name: string; isActive: boolean; role: "user" | "employee" | "admin"; createdAt: string; updatedAt: string; email?: string | undefined; avatarUrl?: string | undefined; }; ... 9 more ...; rejectionReason?: string | ... 1 more ... | undefined; }'.
+src/app/employees/dashboard/page.tsx(115,60): error TS2339: Property 'earning' does not exist on type '{ user: { id: string; name: string; isActive: boolean; role: "user" | "employee" | "admin"; createdAt: string; updatedAt: string; email?: string | undefined; avatarUrl?: string | undefined; }; ... 9 more ...; rejectionReason?: string | ... 1 more ... | undefined; }'.
+src/components/admin/video-review/video-review-console.tsx(180,34): error TS2339: Property 'expectedEarning' does not exist on type '{ user: { id: string; name: string; isActive: boolean; role: "user" | "employee" | "admin"; createdAt: string; updatedAt: string; email?: string | undefined; avatarUrl?: string | undefined; }; ... 9 more ...; rejectionReason?: string | ... 1 more ... | undefined; }'.
+src/components/admin/video-review/video-review-console.tsx(181,26): error TS2339: Property 'earning' does not exist on type '{ user: { id: string; name: string; isActive: boolean; role: "user" | "employee" | "admin"; createdAt: string; updatedAt: string; email?: string | undefined; avatarUrl?: string | undefined; }; ... 9 more ...; rejectionReason?: string | ... 1 more ... | undefined; }'.
+src/components/admin/video-review/video-review-console.tsx(309,9): error TS2353: Object literal may only specify known properties, and 'earning' does not exist in type '{ status: "rejected" | "draft" | "in_review" | "approved" | "payment_pending" | "paid"; rejectionReason?: string | undefined; }'.
+[ELIFECYCLE] Command failed with exit code 1.

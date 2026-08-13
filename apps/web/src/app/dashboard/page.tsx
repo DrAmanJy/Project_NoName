@@ -21,7 +21,7 @@ export default function DashboardPage() {
   }, [isAuthenticated, isLoading, role, router]);
 
   return (
-    <RoleGuard allowedRoles={['user', 'employee', 'admin']} fallbackUrl="/">
+    <RoleGuard allowedRoles={['user']} fallbackUrl="/">
       <DashboardView />
     </RoleGuard>
   );

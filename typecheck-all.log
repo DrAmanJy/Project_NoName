@@ -1,0 +1,34 @@
+• turbo 2.10.9
+
+   • Packages in scope: @repo/api-client, @repo/config, @repo/contracts, api, mobile, web
+   • Running typecheck in 6 packages
+   • Remote caching disabled
+
+@repo/contracts:typecheck: cache hit, replaying logs 174e645d14a150c8
+@repo/contracts:build: cache hit, replaying logs cb1565e0fad41980
+@repo/contracts:typecheck: $ tsc --noEmit
+@repo/contracts:build: $ tsc
+@repo/api-client:typecheck: cache hit, replaying logs 772293601838e90e
+@repo/api-client:typecheck: $ tsc --noEmit
+mobile:typecheck: cache miss, executing ddac4f809893736e
+api:typecheck: cache miss, executing c317b101ae6b0b50
+web:typecheck: cache miss, executing 34aae92b5caa5d92
+mobile:typecheck: $ tsc --noEmit
+api:typecheck: $ tsc --noEmit
+web:typecheck: $ next typegen && tsc --noEmit
+web:typecheck: Generating route types...
+web:typecheck: ✓ Types generated successfully
+mobile:typecheck: app/(tabs)/submissions/index.tsx(199,44): error TS2345: Argument of type '`/submissions/${string}`' is not assignable to parameter of type '"/(auth)/login" | RelativePathString | ExternalPathString | "/" | `/?${string}` | `/#${string}` | "/_sitemap" | `/_sitemap?${string}` | `/_sitemap#${string}` | `/(auth)/login?${string}` | ... 30 more ... | { ...; }'.
+mobile:typecheck: app/(tabs)/videos.tsx(169,23): error TS2345: Argument of type '"/submissions"' is not assignable to parameter of type '"/(auth)/login" | RelativePathString | ExternalPathString | "/" | `/?${string}` | `/#${string}` | "/_sitemap" | `/_sitemap?${string}` | `/_sitemap#${string}` | `/(auth)/login?${string}` | ... 30 more ... | { ...; }'.
+mobile:typecheck: features/video/VideoUploader.tsx(90,23): error TS2345: Argument of type '`/submissions/${string}`' is not assignable to parameter of type '"/(auth)/login" | RelativePathString | ExternalPathString | "/" | `/?${string}` | `/#${string}` | "/_sitemap" | `/_sitemap?${string}` | `/_sitemap#${string}` | `/(auth)/login?${string}` | ... 30 more ... | { ...; }'.
+mobile:typecheck: [ELIFECYCLE] Command failed with exit code 2.
+api:typecheck: [ELIFECYCLE] Command failed.
+web:typecheck: [ELIFECYCLE] Command failed.
+mobile#typecheck:  ERROR  command (/home/aman/Projects/Project_NoName/apps/mobile) /home/aman/.local/share/pnpm/store/v11/links/@pnpm/exe/11.20.0/c9cfd00847b74638d64c2ca74032103e96db61c9b9e1adbc8d736c5de478743a/bin/pnpm run typecheck exited (2)
+
+ Tasks:    3 successful, 6 total
+Cached:    3 cached, 6 total
+  Time:    6.288s 
+Failed:    mobile#typecheck
+
+ ERROR  run failed: command  exited (2)

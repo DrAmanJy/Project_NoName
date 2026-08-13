@@ -148,22 +148,26 @@ export function Navbar() {
 
                     {/* Navigation Items */}
                     <div className="py-2.5 space-y-1 border-b border-zinc-100 dark:border-zinc-800/80">
-                      <Link
-                        href="/dashboard"
-                        onClick={() => setIsProfileMenuOpen(false)}
-                        className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white transition-colors"
-                      >
-                        <LayoutDashboard className="h-4 w-4 text-zinc-500" />
-                        <span>Dashboard</span>
-                      </Link>
-                      <Link
-                        href="/dashboard/earnings"
-                        onClick={() => setIsProfileMenuOpen(false)}
-                        className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white transition-colors"
-                      >
-                        <Wallet className="h-4 w-4 text-emerald-500" />
-                        <span>My Earnings</span>
-                      </Link>
+                      {role === 'user' && (
+                        <>
+                          <Link
+                            href="/dashboard"
+                            onClick={() => setIsProfileMenuOpen(false)}
+                            className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                          >
+                            <LayoutDashboard className="h-4 w-4 text-zinc-500" />
+                            <span>Dashboard</span>
+                          </Link>
+                          <Link
+                            href="/dashboard/earnings"
+                            onClick={() => setIsProfileMenuOpen(false)}
+                            className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                          >
+                            <Wallet className="h-4 w-4 text-emerald-500" />
+                            <span>My Earnings</span>
+                          </Link>
+                        </>
+                      )}
                       {(role === 'admin' || role === 'employee') && (
                         <Link
                           href={role === 'admin' ? '/admin/dashboard' : '/employees/dashboard'}
@@ -310,13 +314,15 @@ export function Navbar() {
                     Login
                   </button>
                 )}
-                <Link
-                  href={isAuthenticated ? '/dashboard' : '#upload'}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center rounded-full bg-zinc-900 dark:bg-white py-2.5 text-sm font-semibold text-white dark:text-zinc-900 shadow-md"
-                >
-                  {isAuthenticated ? 'Go to Dashboard' : 'Get Started'}
-                </Link>
+                {(!isAuthenticated || role === 'user') && (
+                  <Link
+                    href={isAuthenticated ? '/dashboard' : '#upload'}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full text-center rounded-full bg-zinc-900 dark:bg-white py-2.5 text-sm font-semibold text-white dark:text-zinc-900 shadow-md"
+                  >
+                    {isAuthenticated ? 'Go to Dashboard' : 'Get Started'}
+                  </Link>
+                )}
               </div>
             </div>
           </div>

@@ -108,10 +108,11 @@ export function VideoUploader() {
   };
 
   const handleStartUpload = async () => {
-    if (!file) return;
+    if (!file || status === 'uploading' || status === 'completed') return;
 
     try {
       setError(null);
+      setStatus('uploading');
       
       const idempotencyKey = crypto.randomUUID();
       const totalParts = Math.ceil(file.size / (8 * 1024 * 1024));
@@ -406,12 +407,12 @@ export function VideoUploader() {
             <button
               type="button"
               onClick={handleStartUpload}
-              disabled={!file}
+              disabled={!file || status === 'uploading'}
               className="w-full group flex items-center justify-center gap-2 rounded-xl bg-zinc-900 dark:bg-white py-3.5 text-sm font-bold text-white dark:text-zinc-900 shadow-md hover:bg-zinc-800 dark:hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               id="start-upload-submit-btn"
             >
-              <Upload className="h-4 w-4" />
-              <span>Start Multipart Video Upload</span>
+              <Upload className={`h-4 w-4 ${status === 'uploading' ? 'animate-bounce' : ''}`} />
+              <span>{status === 'uploading' ? 'Starting Upload...' : 'Start Multipart Video Upload'}</span>
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </button>
           </div>

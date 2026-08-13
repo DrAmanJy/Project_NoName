@@ -9,7 +9,7 @@ import { RoleGuard } from '@/components/auth/role-guard';
 
 export default function UploadVideoPage() {
   return (
-    <RoleGuard allowedRoles={['user', 'employee', 'admin']} fallbackUrl="/">
+    <RoleGuard allowedRoles={['user']} fallbackUrl="/">
       <div className="flex min-h-screen flex-col bg-white dark:bg-black text-zinc-900 dark:text-zinc-50 transition-colors duration-300">
         <Navbar />
 
