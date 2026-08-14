@@ -178,8 +178,15 @@ export function DashboardView() {
             {/* Quick Navigation Action Buttons */}
             <div className="flex flex-wrap items-center gap-3">
               <Link
-                href="/dashboard/earnings"
-                className="group inline-flex items-center gap-2.5 rounded-xl bg-emerald-600 dark:bg-emerald-500 px-5 py-2.5 text-sm font-bold text-white shadow-md transition-all duration-300 hover:bg-emerald-700 dark:hover:bg-emerald-600 hover:shadow-emerald-500/20 hover:shadow-xl hover:-translate-y-0.5"
+                href={videos.length === 0 ? '#' : '/dashboard/earnings'}
+                onClick={(e) => {
+                  if (videos.length === 0) e.preventDefault();
+                }}
+                className={`group inline-flex items-center gap-2.5 rounded-xl px-5 py-2.5 text-sm font-bold shadow-md transition-all duration-300 ${
+                  videos.length === 0
+                    ? 'bg-emerald-600/50 dark:bg-emerald-500/50 text-white/70 cursor-not-allowed'
+                    : 'bg-emerald-600 dark:bg-emerald-500 text-white hover:bg-emerald-700 dark:hover:bg-emerald-600 hover:shadow-emerald-500/20 hover:shadow-xl hover:-translate-y-0.5'
+                }`}
                 id="dashboard-view-earnings-btn"
               >
                 <Wallet className="h-4 w-4" />
@@ -275,8 +282,15 @@ export function DashboardView() {
               <div className="mt-2 flex items-center justify-between text-xs text-zinc-400">
                 <span>Pending: ${pendingEarnedAmount.toFixed(2)}</span>
                 <Link
-                  href="/dashboard/earnings"
-                  className="font-semibold text-emerald-400 hover:text-emerald-300 underline underline-offset-2 flex items-center gap-1"
+                  href={videos.length === 0 ? '#' : '/dashboard/earnings'}
+                  onClick={(e) => {
+                    if (videos.length === 0) e.preventDefault();
+                  }}
+                  className={`font-semibold underline underline-offset-2 flex items-center gap-1 ${
+                    videos.length === 0
+                      ? 'text-emerald-400/50 cursor-not-allowed'
+                      : 'text-emerald-400 hover:text-emerald-300'
+                  }`}
                 >
                   <span>Details</span>
                   <ChevronRight className="h-3 w-3" />
@@ -319,8 +333,8 @@ export function DashboardView() {
                       type="button"
                       onClick={() => setSelectedFilter('ALL')}
                       className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'ALL'
-                          ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-sm'
-                          : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
+                        ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-sm'
+                        : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
                         }`}
                       id="filter-tab-all"
                     >
@@ -330,8 +344,8 @@ export function DashboardView() {
                       type="button"
                       onClick={() => setSelectedFilter('PROCESSING')}
                       className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'PROCESSING'
-                          ? 'bg-blue-600 text-white shadow-sm'
-                          : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
                         }`}
                       id="filter-tab-processing"
                     >
@@ -341,8 +355,8 @@ export function DashboardView() {
                       type="button"
                       onClick={() => setSelectedFilter('IN_REVIEW')}
                       className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'IN_REVIEW'
-                          ? 'bg-amber-600 text-white shadow-sm'
-                          : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
+                        ? 'bg-amber-600 text-white shadow-sm'
+                        : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
                         }`}
                       id="filter-tab-in-review"
                     >
@@ -352,8 +366,8 @@ export function DashboardView() {
                       type="button"
                       onClick={() => setSelectedFilter('PAID')}
                       className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'PAID'
-                          ? 'bg-emerald-600 text-white shadow-sm'
-                          : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
+                        ? 'bg-emerald-600 text-white shadow-sm'
+                        : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
                         }`}
                       id="filter-tab-paid"
                     >
@@ -363,8 +377,8 @@ export function DashboardView() {
                       type="button"
                       onClick={() => setSelectedFilter('REJECTED')}
                       className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'REJECTED'
-                          ? 'bg-red-600 text-white shadow-sm'
-                          : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
+                        ? 'bg-red-600 text-white shadow-sm'
+                        : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
                         }`}
                       id="filter-tab-rejected"
                     >
@@ -443,12 +457,12 @@ export function DashboardView() {
                               {/* Status Badge */}
                               <span
                                 className={`inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-xs font-bold ${isPaid
-                                    ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
-                                    : isInReview
-                                      ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
-                                      : isProcessing
-                                        ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
-                                        : 'bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
+                                  ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
+                                  : isInReview
+                                    ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
+                                    : isProcessing
+                                      ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
+                                      : 'bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
                                   }`}
                               >
                                 {isProcessing && <RefreshCw className="h-3 w-3 animate-spin" />}
@@ -522,22 +536,22 @@ export function DashboardView() {
                               <div
                                 key={idx}
                                 className={`flex items-start gap-3 rounded-xl p-3 border transition-colors ${isCompleted
-                                    ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200/60 dark:border-emerald-900/30'
-                                    : isCurrent
-                                      ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200/60 dark:border-amber-900/30'
-                                      : isStepRejected
-                                        ? 'bg-red-50/50 dark:bg-red-950/20 border-red-200/60 dark:border-red-900/30'
-                                        : 'bg-zinc-100/50 dark:bg-zinc-900/40 border-zinc-200/40 dark:border-zinc-800/40'
+                                  ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200/60 dark:border-emerald-900/30'
+                                  : isCurrent
+                                    ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200/60 dark:border-amber-900/30'
+                                    : isStepRejected
+                                      ? 'bg-red-50/50 dark:bg-red-950/20 border-red-200/60 dark:border-red-900/30'
+                                      : 'bg-zinc-100/50 dark:bg-zinc-900/40 border-zinc-200/40 dark:border-zinc-800/40'
                                   }`}
                               >
                                 <div
                                   className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${isCompleted
-                                      ? 'bg-emerald-600 text-white'
-                                      : isCurrent
-                                        ? 'bg-amber-600 text-white'
-                                        : isStepRejected
-                                          ? 'bg-red-600 text-white'
-                                          : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-500'
+                                    ? 'bg-emerald-600 text-white'
+                                    : isCurrent
+                                      ? 'bg-amber-600 text-white'
+                                      : isStepRejected
+                                        ? 'bg-red-600 text-white'
+                                        : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-500'
                                     }`}
                                 >
                                   {isCompleted ? (
@@ -553,12 +567,12 @@ export function DashboardView() {
                                 <div className="min-w-0 flex-1">
                                   <p
                                     className={`text-xs font-bold truncate ${isCompleted
-                                        ? 'text-emerald-900 dark:text-emerald-300'
-                                        : isCurrent
-                                          ? 'text-amber-900 dark:text-amber-300'
-                                          : isStepRejected
-                                            ? 'text-red-900 dark:text-red-300'
-                                            : 'text-zinc-500 dark:text-zinc-400'
+                                      ? 'text-emerald-900 dark:text-emerald-300'
+                                      : isCurrent
+                                        ? 'text-amber-900 dark:text-amber-300'
+                                        : isStepRejected
+                                          ? 'text-red-900 dark:text-red-300'
+                                          : 'text-zinc-500 dark:text-zinc-400'
                                       }`}
                                   >
                                     {step.title}
@@ -662,12 +676,12 @@ export function DashboardView() {
                     <div key={idx} className="flex gap-4 items-start">
                       <div
                         className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${step.state === 'completed'
-                            ? 'bg-emerald-600 text-white'
-                            : step.state === 'current'
-                              ? 'bg-amber-600 text-white'
-                              : step.state === 'rejected'
-                                ? 'bg-red-600 text-white'
-                                : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400'
+                          ? 'bg-emerald-600 text-white'
+                          : step.state === 'current'
+                            ? 'bg-amber-600 text-white'
+                            : step.state === 'rejected'
+                              ? 'bg-red-600 text-white'
+                              : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400'
                           }`}
                       >
                         {step.state === 'completed' && <CheckCircle2 className="h-4 w-4" />}

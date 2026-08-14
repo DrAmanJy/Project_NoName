@@ -126,6 +126,10 @@ export function VideoUploadSection() {
     }
   };
 
+  if (isAuthenticated) {
+    return null;
+  }
+
   return (
     <section
       id="upload"

@@ -104,43 +104,43 @@ export function EarningsView() {
           const steps =
             item.timeline && item.timeline.length > 0
               ? item.timeline.map((step) => ({
-                  title:
-                    step.key === 'video_uploaded'
-                      ? 'Video Uploaded'
-                      : step.key === 'under_review'
+                title:
+                  step.key === 'video_uploaded'
+                    ? 'Video Uploaded'
+                    : step.key === 'under_review'
                       ? 'Under Review'
                       : 'Payment',
-                  description: step.message || 'Timeline step completed',
-                  state: step.status as 'completed' | 'current' | 'pending' | 'rejected',
-                }))
+                description: step.message || 'Timeline step completed',
+                state: step.status as 'completed' | 'current' | 'pending' | 'rejected',
+              }))
               : [
-                  {
-                    title: 'Video Uploaded',
-                    description: 'Received & verified',
-                    state: 'completed' as const,
-                  },
-                  {
-                    title: 'Under Review',
-                    description: 'Checking content guidelines',
-                    state:
-                      item.status === 'in_review'
-                        ? ('current' as const)
-                        : item.status === 'rejected'
+                {
+                  title: 'Video Uploaded',
+                  description: 'Received & verified',
+                  state: 'completed' as const,
+                },
+                {
+                  title: 'Under Review',
+                  description: 'Checking content guidelines',
+                  state:
+                    item.status === 'in_review'
+                      ? ('current' as const)
+                      : item.status === 'rejected'
                         ? ('rejected' as const)
                         : ('completed' as const),
-                  },
-                  {
-                    title: 'Payment',
-                    description: item.status === 'paid' ? 'Paid to wallet' : 'Pending review approval',
-                    state: item.status === 'paid' ? ('completed' as const) : ('pending' as const),
-                  },
-                ];
+                },
+                {
+                  title: 'Payment',
+                  description: item.status === 'paid' ? 'Paid to wallet' : 'Pending review approval',
+                  state: item.status === 'paid' ? ('completed' as const) : ('pending' as const),
+                },
+              ];
 
           return {
             id: item.id,
             fileName: `submission_${item.id.slice(-6)}.mp4`,
-            fileSize: item.video?.sizeBytes && item.video.sizeBytes > 0 
-              ? `${(item.video.sizeBytes / (1024 * 1024)).toFixed(1)} MB` 
+            fileSize: item.video?.sizeBytes && item.video.sizeBytes > 0
+              ? `${(item.video.sizeBytes / (1024 * 1024)).toFixed(1)} MB`
               : 'N/A',
             date: new Date(item.createdAt).toLocaleDateString('en-US', {
               month: 'short',
@@ -339,44 +339,40 @@ export function EarningsView() {
                     <button
                       type="button"
                       onClick={() => setSelectedFilter('ALL')}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                        selectedFilter === 'ALL'
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'ALL'
                           ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-sm'
                           : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
-                      }`}
+                        }`}
                     >
                       All
                     </button>
                     <button
                       type="button"
                       onClick={() => setSelectedFilter('IN_REVIEW')}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                        selectedFilter === 'IN_REVIEW'
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'IN_REVIEW'
                           ? 'bg-amber-600 text-white shadow-sm'
                           : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
-                      }`}
+                        }`}
                     >
                       In Review
                     </button>
                     <button
                       type="button"
                       onClick={() => setSelectedFilter('PAID')}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                        selectedFilter === 'PAID'
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'PAID'
                           ? 'bg-emerald-600 text-white shadow-sm'
                           : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
-                      }`}
+                        }`}
                     >
                       Paid
                     </button>
                     <button
                       type="button"
                       onClick={() => setSelectedFilter('REJECTED')}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                        selectedFilter === 'REJECTED'
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'REJECTED'
                           ? 'bg-red-500 text-white shadow-sm'
                           : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
-                      }`}
+                        }`}
                     >
                       Rejected
                     </button>
@@ -431,13 +427,12 @@ export function EarningsView() {
                         <div className="flex items-start justify-between gap-4 border-b border-zinc-200 dark:border-zinc-900 pb-5">
                           <div className="flex items-center gap-3.5">
                             <div
-                              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white shadow-sm ${
-                                isRejected
+                              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white shadow-sm ${isRejected
                                   ? 'bg-red-500'
                                   : isInReview
-                                  ? 'bg-amber-600'
-                                  : 'bg-emerald-600'
-                              }`}
+                                    ? 'bg-amber-600'
+                                    : 'bg-emerald-600'
+                                }`}
                             >
                               {isRejected ? (
                                 <AlertTriangle className="h-6 w-6" />
@@ -454,13 +449,12 @@ export function EarningsView() {
                                   Submission - {item.date}
                                 </h3>
                                 <span
-                                  className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
-                                    isRejected
+                                  className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${isRejected
                                       ? 'bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400'
                                       : isInReview
-                                      ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400'
-                                      : 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400'
-                                  }`}
+                                        ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400'
+                                        : 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400'
+                                    }`}
                                 >
                                   {item.statusText}
                                 </span>
@@ -522,20 +516,18 @@ export function EarningsView() {
 
                                 <div className="-mt-0.5">
                                   <h4
-                                    className={`text-sm font-bold ${
-                                      step.state === 'pending'
+                                    className={`text-sm font-bold ${step.state === 'pending'
                                         ? 'text-zinc-400'
                                         : 'text-zinc-900 dark:text-white'
-                                    }`}
+                                      }`}
                                   >
                                     {step.title}
                                   </h4>
                                   <p
-                                    className={`text-xs ${
-                                      step.state === 'pending'
+                                    className={`text-xs ${step.state === 'pending'
                                         ? 'text-zinc-400'
                                         : 'text-zinc-500 dark:text-zinc-400'
-                                    }`}
+                                      }`}
                                   >
                                     {step.description}
                                   </p>

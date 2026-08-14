@@ -2,13 +2,23 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Menu, X, ArrowRight, Sun, Moon, ChevronDown, LogOut } from 'lucide-react';
 import { LoginModal } from '@/components/auth/login-modal';
 import { useAuth } from '@/hooks/use-auth';
 
 export function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
+  
+  const handleDashboardClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const dashboardPaths = ['/dashboard', '/admin/dashboard', '/employees/dashboard'];
+    if (dashboardPaths.includes(pathname)) {
+      e.preventDefault();
+      setIsProfileMenuOpen(false);
+      setMobileMenuOpen(false);
+    }
+  };
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -182,6 +192,7 @@ export function Navbar() {
             {isAuthenticated && (
               <Link
                 href="/dashboard"
+                onClick={handleDashboardClick}
                 className="group flex items-center gap-2 rounded-full bg-zinc-900 dark:bg-white px-5 py-2.5 text-sm font-semibold text-white dark:text-zinc-900 shadow-md transition-all hover:bg-zinc-800 dark:hover:bg-zinc-100 hover:shadow-lg"
               >
                 <span>Dashboard</span>
@@ -233,7 +244,10 @@ export function Navbar() {
                   <div className="flex flex-col gap-2">
                     <Link
                       href="/dashboard"
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={(e) => {
+                        handleDashboardClick(e);
+                        if (!e.defaultPrevented) setMobileMenuOpen(false);
+                      }}
                       className="flex items-center gap-3 rounded-xl bg-zinc-100 dark:bg-zinc-900 p-3 text-sm font-semibold text-zinc-900 dark:text-white"
                     >
                       <div className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-xs font-bold overflow-hidden">
@@ -251,7 +265,10 @@ export function Navbar() {
                     {(role === 'admin' || role === 'employee') && (
                       <Link
                         href={role === 'admin' ? '/admin/dashboard' : '/employees/dashboard'}
-                        onClick={() => setMobileMenuOpen(false)}
+                        onClick={(e) => {
+                          handleDashboardClick(e);
+                          if (!e.defaultPrevented) setMobileMenuOpen(false);
+                        }}
                         className="w-full text-center rounded-xl bg-purple-100 dark:bg-purple-950/60 p-2.5 text-xs font-bold text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800"
                       >
                         {role === 'admin' ? 'Admin Portal' : 'Staff Portal'}
