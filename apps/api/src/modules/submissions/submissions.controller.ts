@@ -133,7 +133,7 @@ export class SubmissionsController {
 
       const [submissions, total, totals] = await Promise.all([
         Submission.find({ userId })
-          .select('status createdAt expectedEarning earning')
+          .select('status createdAt expectedEarning earning rejectionReason')
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limit)
