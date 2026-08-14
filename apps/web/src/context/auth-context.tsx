@@ -42,11 +42,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isLoading && user) {
-      if (isAdmin && (pathname === '/' || pathname === '/login' || pathname === '/dashboard')) {
+      if (isAdmin && (pathname === '/login' || pathname === '/dashboard')) {
         router.push('/admin/dashboard');
-      } else if (isEmployee && (pathname === '/' || pathname === '/login' || pathname === '/dashboard')) {
+      } else if (isEmployee && (pathname === '/login' || pathname === '/dashboard')) {
         router.push('/employees/dashboard');
-      } else if (isUser && (pathname === '/' || pathname === '/login')) {
+      } else if (isUser && pathname === '/login') {
         router.push('/dashboard');
       }
     }

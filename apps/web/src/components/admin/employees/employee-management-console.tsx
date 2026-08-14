@@ -11,6 +11,7 @@ import {
   X,
   Check,
   User as UserIcon,
+  ChevronDown,
 } from 'lucide-react';
 import { adminApi } from '@/lib/api-client';
 import type { User, Role } from '@repo/contracts';
@@ -42,6 +43,7 @@ export function EmployeeManagementConsole() {
 
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState<boolean>(false);
 
   const fetchEmployees = useCallback(async () => {
     setIsLoading(true);
@@ -389,15 +391,52 @@ export function EmployeeManagementConsole() {
                 <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1">
                   Role Designation
                 </label>
-                <select
-                  value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value as Role })}
-                  className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
-                >
-                  <option value="employee">Employee (Read, Update & Review Submissions)</option>
-                  <option value="admin">Admin (Administrator)</option>
-                  <option value="user">User (Standard Account)</option>
-                </select>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
+                    className="flex w-full items-center justify-between gap-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-[#FEFEFE] dark:bg-zinc-950 px-3.5 py-2.5 text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-3.5 w-3.5 text-zinc-400" />
+                      <span>
+                        {formData.role === 'employee' ? 'Employee (Read, Update & Review Submissions)' : 
+                         formData.role === 'admin' ? 'Admin (Administrator)' : 
+                         'User (Standard Account)'}
+                      </span>
+                    </div>
+                    <ChevronDown className={`h-3.5 w-3.5 text-zinc-400 transition-transform ${isRoleDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {isRoleDropdownOpen && (
+                    <>
+                      <div className="fixed inset-0 z-10" onClick={() => setIsRoleDropdownOpen(false)} />
+                      <div className="absolute left-0 right-0 top-full mt-2 z-20 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-xl overflow-hidden py-1 animate-in fade-in slide-in-from-top-2">
+                        {[
+                          { id: 'employee', label: 'Employee (Read, Update & Review Submissions)' },
+                          { id: 'admin', label: 'Admin (Administrator)' },
+                          { id: 'user', label: 'User (Standard Account)' },
+                        ].map((option) => (
+                          <button
+                            key={option.id}
+                            type="button"
+                            onClick={() => {
+                              setFormData({ ...formData, role: option.id as Role });
+                              setIsRoleDropdownOpen(false);
+                            }}
+                            className={`w-full text-left px-4 py-2.5 text-xs font-semibold transition-colors ${
+                              formData.role === option.id
+                                ? 'bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-white'
+                                : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 hover:text-zinc-900 dark:hover:text-white'
+                            }`}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
 
 
