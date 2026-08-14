@@ -192,6 +192,7 @@ export class SubmissionsController {
           } : null,
           expectedEarning: sub.expectedEarning ?? 0,
           earning: sub.earning ?? 0,
+          rejectionReason: sub.rejectionReason,
         };
       }));
 
@@ -312,6 +313,7 @@ export class SubmissionsController {
         } : null,
         expectedEarning: submission.expectedEarning ?? 0,
         earning: submission.earning ?? 0,
+        rejectionReason: submission.rejectionReason,
       });
     } catch (error) {
       next(error);

@@ -60,6 +60,7 @@ export const SubmissionResponseSchema = z.object({
   verification: UserSafeVerificationSchema.nullable().optional(),
   expectedEarning: z.number().int().nonnegative(),
   earning: z.number().int().nonnegative(),
+  rejectionReason: z.string().nullable().optional(),
 });
 
 export type SubmissionResponse = z.infer<typeof SubmissionResponseSchema>;
