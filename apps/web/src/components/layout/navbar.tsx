@@ -63,7 +63,7 @@ export function Navbar() {
     { name: 'How It Works', href: '#how-it-works' },
     { name: 'Submit Video', href: '#upload' },
     { name: 'Testimonials', href: '#testimonials' },
-    { name: 'Contact', href: '#contact' },
+    { name: 'FAQ', href: '#faq' },
     { name: 'Download App', href: '#download' },
   ];
 

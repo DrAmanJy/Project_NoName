@@ -4,7 +4,7 @@ import { AboutSection } from '@/components/marketing/about-section';
 import { HowItWorksSection } from '@/components/marketing/how-it-works-section';
 import { VideoUploadSection } from '@/components/marketing/video-upload-section';
 import { TestimonialsSection } from '@/components/marketing/testimonials-section';
-import { ContactSection } from '@/components/marketing/contact-section';
+import { FAQSection } from '@/components/marketing/faq-section';
 import { Footer } from '@/components/layout/footer';
 import { AppDownloadSection } from '@/components/marketing/app-download-section';
 
@@ -18,7 +18,7 @@ export default function MarketingPage() {
         <HowItWorksSection />
         <VideoUploadSection />
         <TestimonialsSection />
-        <ContactSection />
+        <FAQSection />
         <AppDownloadSection />
       </main>
       <Footer />
