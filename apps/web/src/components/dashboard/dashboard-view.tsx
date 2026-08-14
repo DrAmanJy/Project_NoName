@@ -22,7 +22,6 @@ import {
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
 import { submissionsApi } from '@/lib/api-client';
-import type { VideoStatus } from '@repo/contracts';
 
 interface VideoProgressStep {
   title: string;
@@ -36,6 +35,7 @@ interface UploadedVideoItem {
   earning: number;
   expectedEarning: number;
   id: string;
+  rejectionReason?: string | null;
   status: string;
   timeline: any[];
   video?: {
@@ -153,7 +153,7 @@ export function DashboardView() {
           { title: 'Payout Approval', description: 'Reward disbursement to wallet', state: isPaid ? 'completed' : 'pending' },
         ];
 
-    return { isRejected, isInReview, isProcessing, isPaid, statusLabel, title, fileName, fileSize, duration, uploadedAt, rewardAmount, thumbnailBg, videoUrl, steps, rejectionReason: undefined };
+    return { isRejected, isInReview, isProcessing, isPaid, statusLabel, title, fileName, fileSize, duration, uploadedAt, rewardAmount, thumbnailBg, videoUrl, steps, rejectionReason: video.rejectionReason };
   };
 
   const selectedDerivedVideo = selectedVideo ? { ...selectedVideo, ...getDerivedVideoData(selectedVideo) } : null;
@@ -664,6 +664,12 @@ export function DashboardView() {
                     </span>
                   </div>
                 </div>
+                {selectedVideo.isRejected && selectedVideo.rejectionReason && (
+                  <div className="mt-4 rounded-xl bg-red-50 dark:bg-red-950/40 p-3 border border-red-200 dark:border-red-900/50 text-xs text-red-700 dark:text-red-300">
+                    <span className="font-bold">Rejection Reason: </span>
+                    {selectedVideo.rejectionReason}
+                  </div>
+                )}
               </div>
 
               {/* Audit Log Steps */}
