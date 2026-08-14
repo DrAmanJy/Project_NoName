@@ -402,18 +402,7 @@ export function EmployeeManagementConsole() {
 
 
 
-              <div>
-                <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1">
-                  Avatar Image URL
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://..."
-                  value={formData.avatarUrl}
-                  onChange={(e) => setFormData({ ...formData, avatarUrl: e.target.value })}
-                  className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
-                />
-              </div>
+
 
               <div className="pt-2 flex justify-end gap-3 border-t border-zinc-200 dark:border-zinc-800">
                 <button

@@ -31,7 +31,7 @@ export function FAQSection() {
 
   return (
     <section
-      id="faq"
+      id="contact"
       className="bg-zinc-50 dark:bg-black py-20 md:py-28 border-t border-zinc-200 dark:border-zinc-900 text-zinc-900 dark:text-zinc-50 transition-colors duration-300"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -60,9 +60,8 @@ export function FAQSection() {
                     >
                       <span>{faq.question}</span>
                       <ChevronDown
-                        className={`h-5 w-5 text-zinc-500 transition-transform duration-200 ${
-                          isOpen ? 'rotate-180 text-zinc-900 dark:text-white' : ''
-                        }`}
+                        className={`h-5 w-5 text-zinc-500 transition-transform duration-200 ${isOpen ? 'rotate-180 text-zinc-900 dark:text-white' : ''
+                          }`}
                       />
                     </button>
                     {isOpen && (

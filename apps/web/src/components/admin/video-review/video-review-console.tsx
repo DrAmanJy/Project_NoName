@@ -104,6 +104,7 @@ export function VideoReviewConsole({
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'size'>('newest');
+  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [_error, setError] = useState<string | null>(null);
 
@@ -164,10 +165,10 @@ export function VideoReviewConsole({
             timeline: (sub.timeline as unknown[]) || [],
             user: sub.user || null,
             video: sub.video || null,
-            title: `Submission #${subId.slice(-6)}`,
+            title: sub.user?.name || 'Creator User',
             description: `Video submission uploaded by ${sub.user?.name || 'Creator'}.`,
             userId: sub.user?.id || 'usr_unknown',
-            userName: sub.user?.name || 'Creator User',
+            userName: sub.user?.email || 'creator@example.com',
             userEmail: sub.user?.email || 'creator@example.com',
             fileKey: sub.video?.originalFilename || `uploads/${subId}.mp4`,
             fileSizeFormatted,
@@ -533,20 +534,49 @@ export function VideoReviewConsole({
                     <span>Refresh</span>
                   </button>
                 )}
-                <div className="relative flex items-center gap-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-[#FEFEFE] dark:bg-zinc-950 px-3 py-2 text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all">
-                  <ArrowUpDown className="h-3.5 w-3.5 text-zinc-400" />
-                  <select
-                    value={sortBy}
-                    onChange={(e) =>
-                      setSortBy(e.target.value as 'newest' | 'oldest' | 'size')
-                    }
-                    className="appearance-none bg-transparent outline-none cursor-pointer text-xs pr-6"
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
+                    className="flex items-center justify-between gap-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-[#FEFEFE] dark:bg-zinc-950 px-3 py-2 text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all min-w-[140px]"
                   >
-                    <option value="newest" className="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">Newest First</option>
-                    <option value="oldest" className="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">Oldest First</option>
-                    <option value="size" className="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">File Size</option>
-                  </select>
-                  <ChevronDown className="absolute right-2.5 h-3 w-3 text-zinc-400 pointer-events-none" />
+                    <div className="flex items-center gap-2">
+                      <ArrowUpDown className="h-3.5 w-3.5 text-zinc-400" />
+                      <span>
+                        {sortBy === 'newest' ? 'Newest First' : sortBy === 'oldest' ? 'Oldest First' : 'File Size'}
+                      </span>
+                    </div>
+                    <ChevronDown className={`h-3 w-3 text-zinc-400 transition-transform ${isSortDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {isSortDropdownOpen && (
+                    <>
+                      <div className="fixed inset-0 z-10" onClick={() => setIsSortDropdownOpen(false)} />
+                      <div className="absolute right-0 top-full mt-2 w-40 z-20 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-xl overflow-hidden py-1 animate-in fade-in slide-in-from-top-2">
+                        {[
+                          { id: 'newest', label: 'Newest First' },
+                          { id: 'oldest', label: 'Oldest First' },
+                          { id: 'size', label: 'File Size' },
+                        ].map((option) => (
+                          <button
+                            key={option.id}
+                            type="button"
+                            onClick={() => {
+                              setSortBy(option.id as 'newest' | 'oldest' | 'size');
+                              setIsSortDropdownOpen(false);
+                            }}
+                            className={`w-full text-left px-4 py-2 text-xs font-semibold transition-colors ${
+                              sortBy === option.id
+                                ? 'bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-white'
+                                : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 hover:text-zinc-900 dark:hover:text-white'
+                            }`}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

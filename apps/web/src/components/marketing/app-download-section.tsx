@@ -21,10 +21,6 @@ export function AppDownloadSection() {
           <div className="flex flex-col items-center text-center relative z-10">
             {/* Content Column */}
             <div className="max-w-3xl flex flex-col items-center">
-              <div className="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-200/80 dark:bg-white/10 px-3.5 py-1 text-xs font-medium text-zinc-800 dark:text-zinc-300 backdrop-blur-md mb-6 border border-zinc-300/50 dark:border-white/10">
-                <Smartphone className="h-4 w-4 text-zinc-900 dark:text-white" />
-                <span>Available for iOS & Android</span>
-              </div>
 
               <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white sm:text-5xl leading-tight">
                 Create & earn on the go with the Synex app

@@ -274,19 +274,7 @@ export function ReviewModal({
                 </div>
               )}
 
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
-                  Detailed Rejection Feedback (Visible to Creator)
-                </label>
-                <textarea
-                  rows={4}
-                  value={feedbackNotes}
-                  onChange={(e) => setFeedbackNotes(e.target.value)}
-                  placeholder="Please specify what needs fixing e.g. 'The ID document was unreadable at timestamp 0:12. Please re-upload with clear lighting.'"
-                  required
-                  className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-3 text-xs text-zinc-900 dark:text-white outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all"
-                />
-              </div>
+
 
               <div className="rounded-2xl bg-red-500/10 border border-red-500/20 p-3.5 flex items-start gap-3">
                 <ShieldAlert className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />

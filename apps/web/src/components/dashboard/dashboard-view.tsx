@@ -35,7 +35,6 @@ interface UploadedVideoItem {
   earning: number;
   expectedEarning: number;
   id: string;
-  rejectionReason?: string | null;
   status: string;
   timeline: any[];
   video?: {
@@ -127,33 +126,33 @@ export function DashboardView() {
     const title = `Submission - ${formattedDate}`;
     const fileName = video.video?.originalFilename || `submission_${video.id.slice(-6)}.mp4`;
     const fileSize = video.video?.sizeBytes ? `${(video.video.sizeBytes / (1024 * 1024)).toFixed(1)} MB` : '0 MB';
-    
+
     const durationSeconds = video.video?.durationSeconds || 0;
     const duration = `${Math.floor(durationSeconds / 60).toString().padStart(2, '0')}:${Math.floor(durationSeconds % 60).toString().padStart(2, '0')}`;
     const uploadedAt = formattedDate;
 
-    const rewardAmount = (video.status === 'paid' || video.status === 'approved' || video.status === 'PAID' || video.status === 'SELECTED') 
-      ? `$${(video.earning || 50).toFixed(2)}` 
+    const rewardAmount = (video.status === 'paid' || video.status === 'approved' || video.status === 'PAID' || video.status === 'SELECTED')
+      ? `$${(video.earning || 50).toFixed(2)}`
       : `$${(video.expectedEarning || 0).toFixed(2)}`;
     const thumbnailBg = 'from-amber-600/30 to-zinc-900';
     const videoUrl = video.video?.previewUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
-    
+
     type VideoProgressStep = { title: string; description: string; state: 'completed' | 'current' | 'pending' | 'rejected'; timestamp?: string };
 
     const steps: VideoProgressStep[] = video.timeline && video.timeline.length > 0
       ? video.timeline.map((step) => ({
-          title: step.key === 'video_uploaded' ? 'Video Uploaded' : step.key === 'under_review' ? 'Quality & Guideline Review' : 'Payout Approval',
-          description: step.message || 'Timeline step status updated',
-          state: step.status as VideoProgressStep['state'],
-          timestamp: step.completedAt ? new Date(step.completedAt).toLocaleString() : undefined,
-        }))
+        title: step.key === 'video_uploaded' ? 'Video Uploaded' : step.key === 'under_review' ? 'Quality & Guideline Review' : 'Payout Approval',
+        description: step.message || 'Timeline step status updated',
+        state: step.status as VideoProgressStep['state'],
+        timestamp: step.completedAt ? new Date(step.completedAt).toLocaleString() : undefined,
+      }))
       : [
-          { title: 'Video Uploaded', description: 'S3 chunk upload verified', state: 'completed', timestamp: new Date(video.createdAt).toLocaleString() },
-          { title: 'Quality & Guideline Review', description: 'Checking content against guidelines', state: isInReview ? 'current' : isRejected ? 'rejected' : 'completed' },
-          { title: 'Payout Approval', description: 'Reward disbursement to wallet', state: isPaid ? 'completed' : 'pending' },
-        ];
+        { title: 'Video Uploaded', description: 'S3 chunk upload verified', state: 'completed', timestamp: new Date(video.createdAt).toLocaleString() },
+        { title: 'Quality & Guideline Review', description: 'Checking content against guidelines', state: isInReview ? 'current' : isRejected ? 'rejected' : 'completed' },
+        { title: 'Payout Approval', description: 'Reward disbursement to wallet', state: isPaid ? 'completed' : 'pending' },
+      ];
 
-    return { isRejected, isInReview, isProcessing, isPaid, statusLabel, title, fileName, fileSize, duration, uploadedAt, rewardAmount, thumbnailBg, videoUrl, steps, rejectionReason: video.rejectionReason };
+    return { isRejected, isInReview, isProcessing, isPaid, statusLabel, title, fileName, fileSize, duration, uploadedAt, rewardAmount, thumbnailBg, videoUrl, steps, rejectionReason: undefined };
   };
 
   const selectedDerivedVideo = selectedVideo ? { ...selectedVideo, ...getDerivedVideoData(selectedVideo) } : null;
@@ -322,11 +321,10 @@ export function DashboardView() {
                     <button
                       type="button"
                       onClick={() => setSelectedFilter('ALL')}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                        selectedFilter === 'ALL'
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'ALL'
                           ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-sm'
                           : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
-                      }`}
+                        }`}
                       id="filter-tab-all"
                     >
                       All
@@ -334,11 +332,10 @@ export function DashboardView() {
                     <button
                       type="button"
                       onClick={() => setSelectedFilter('PROCESSING')}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                        selectedFilter === 'PROCESSING'
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'PROCESSING'
                           ? 'bg-blue-600 text-white shadow-sm'
                           : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
-                      }`}
+                        }`}
                       id="filter-tab-processing"
                     >
                       Processing
@@ -346,11 +343,10 @@ export function DashboardView() {
                     <button
                       type="button"
                       onClick={() => setSelectedFilter('IN_REVIEW')}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                        selectedFilter === 'IN_REVIEW'
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'IN_REVIEW'
                           ? 'bg-amber-600 text-white shadow-sm'
                           : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
-                      }`}
+                        }`}
                       id="filter-tab-in-review"
                     >
                       In Review
@@ -358,11 +354,10 @@ export function DashboardView() {
                     <button
                       type="button"
                       onClick={() => setSelectedFilter('PAID')}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                        selectedFilter === 'PAID'
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'PAID'
                           ? 'bg-emerald-600 text-white shadow-sm'
                           : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
-                      }`}
+                        }`}
                       id="filter-tab-paid"
                     >
                       Paid
@@ -370,11 +365,10 @@ export function DashboardView() {
                     <button
                       type="button"
                       onClick={() => setSelectedFilter('REJECTED')}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                        selectedFilter === 'REJECTED'
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'REJECTED'
                           ? 'bg-red-600 text-white shadow-sm'
                           : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
-                      }`}
+                        }`}
                       id="filter-tab-rejected"
                     >
                       Rejected
@@ -451,15 +445,14 @@ export function DashboardView() {
                               </h3>
                               {/* Status Badge */}
                               <span
-                                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-xs font-bold ${
-                                  isPaid
+                                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-xs font-bold ${isPaid
                                     ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
                                     : isInReview
-                                    ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
-                                    : isProcessing
-                                    ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
-                                    : 'bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
-                                }`}
+                                      ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
+                                      : isProcessing
+                                        ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
+                                        : 'bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
+                                  }`}
                               >
                                 {isProcessing && <RefreshCw className="h-3 w-3 animate-spin" />}
                                 {isInReview && <Clock className="h-3 w-3" />}
@@ -531,26 +524,24 @@ export function DashboardView() {
                             return (
                               <div
                                 key={idx}
-                                className={`flex items-start gap-3 rounded-xl p-3 border transition-colors ${
-                                  isCompleted
+                                className={`flex items-start gap-3 rounded-xl p-3 border transition-colors ${isCompleted
                                     ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200/60 dark:border-emerald-900/30'
                                     : isCurrent
-                                    ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200/60 dark:border-amber-900/30'
-                                    : isStepRejected
-                                    ? 'bg-red-50/50 dark:bg-red-950/20 border-red-200/60 dark:border-red-900/30'
-                                    : 'bg-zinc-100/50 dark:bg-zinc-900/40 border-zinc-200/40 dark:border-zinc-800/40'
-                                }`}
+                                      ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200/60 dark:border-amber-900/30'
+                                      : isStepRejected
+                                        ? 'bg-red-50/50 dark:bg-red-950/20 border-red-200/60 dark:border-red-900/30'
+                                        : 'bg-zinc-100/50 dark:bg-zinc-900/40 border-zinc-200/40 dark:border-zinc-800/40'
+                                  }`}
                               >
                                 <div
-                                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                                    isCompleted
+                                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${isCompleted
                                       ? 'bg-emerald-600 text-white'
                                       : isCurrent
-                                      ? 'bg-amber-600 text-white'
-                                      : isStepRejected
-                                      ? 'bg-red-600 text-white'
-                                      : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-500'
-                                  }`}
+                                        ? 'bg-amber-600 text-white'
+                                        : isStepRejected
+                                          ? 'bg-red-600 text-white'
+                                          : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-500'
+                                    }`}
                                 >
                                   {isCompleted ? (
                                     <CheckCircle2 className="h-3.5 w-3.5" />
@@ -564,15 +555,14 @@ export function DashboardView() {
                                 </div>
                                 <div className="min-w-0 flex-1">
                                   <p
-                                    className={`text-xs font-bold truncate ${
-                                      isCompleted
+                                    className={`text-xs font-bold truncate ${isCompleted
                                         ? 'text-emerald-900 dark:text-emerald-300'
                                         : isCurrent
-                                        ? 'text-amber-900 dark:text-amber-300'
-                                        : isStepRejected
-                                        ? 'text-red-900 dark:text-red-300'
-                                        : 'text-zinc-500 dark:text-zinc-400'
-                                    }`}
+                                          ? 'text-amber-900 dark:text-amber-300'
+                                          : isStepRejected
+                                            ? 'text-red-900 dark:text-red-300'
+                                            : 'text-zinc-500 dark:text-zinc-400'
+                                      }`}
                                   >
                                     {step.title}
                                   </p>
@@ -610,128 +600,121 @@ export function DashboardView() {
       {selectedDerivedVideo && (() => {
         const selectedVideo = selectedDerivedVideo;
         return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-2xl rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 shadow-2xl overflow-hidden">
-            <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-900 pb-4">
-              <div className="flex items-center gap-2">
-                <FileVideo className="h-5 w-5 text-amber-500" />
-                <h3 className="text-lg font-bold text-zinc-900 dark:text-white">
-                  Video Player & Status Audit
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedVideo(null)}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
-                id="close-video-modal-btn"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="mt-4 space-y-4 max-h-[75vh] overflow-y-auto pr-2">
-              {/* HTML5 Video Player */}
-              <div className="relative overflow-hidden rounded-2xl bg-black border border-zinc-200 dark:border-zinc-800 shadow-md">
-                <video
-                  controls
-                  autoPlay
-                  playsInline
-                  controlsList="nodownload"
-                  src={selectedVideo.videoUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'}
-                  className="w-full aspect-video rounded-2xl object-contain bg-black"
-                >
-                  Your browser does not support HTML5 video playback.
-                </video>
-              </div>
-
-              <div className="rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 p-4 border border-zinc-200 dark:border-zinc-800">
-                <h4 className="text-base font-bold text-zinc-900 dark:text-white">
-                  {selectedVideo.title}
-                </h4>
-                <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs text-zinc-600 dark:text-zinc-400">
-                  <div>
-                    <span className="font-semibold text-zinc-400 block">File Name</span>
-                    <span>{selectedVideo.fileName}</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-zinc-400 block">Duration</span>
-                    <span>{selectedVideo.duration}</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-zinc-400 block">Target Reward</span>
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                      ${(Number(selectedVideo.expectedEarning || 0) / 100).toFixed(2)}
-                    </span>
-                  </div>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="w-full max-w-2xl rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 shadow-2xl overflow-hidden">
+              <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-900 pb-4">
+                <div className="flex items-center gap-2">
+                  <FileVideo className="h-5 w-5 text-amber-500" />
+                  <h3 className="text-lg font-bold text-zinc-900 dark:text-white">
+                    Video Player & Status Audit
+                  </h3>
                 </div>
-                {selectedVideo.isRejected && selectedVideo.rejectionReason && (
-                  <div className="mt-4 rounded-xl bg-red-50 dark:bg-red-950/40 p-3 border border-red-200 dark:border-red-900/50 text-xs text-red-700 dark:text-red-300">
-                    <span className="font-bold">Rejection Reason: </span>
-                    {selectedVideo.rejectionReason}
-                  </div>
-                )}
+                <button
+                  type="button"
+                  onClick={() => setSelectedVideo(null)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
+                  id="close-video-modal-btn"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
 
-              {/* Audit Log Steps */}
-              <div className="pl-2 space-y-4">
-                <h5 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                  Detailed Step Audit Log
-                </h5>
-                {selectedVideo.steps.map((step, idx) => (
-                  <div key={idx} className="flex gap-4 items-start">
-                    <div
-                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                        step.state === 'completed'
-                          ? 'bg-emerald-600 text-white'
-                          : step.state === 'current'
-                          ? 'bg-amber-600 text-white'
-                          : step.state === 'rejected'
-                          ? 'bg-red-600 text-white'
-                          : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400'
-                      }`}
-                    >
-                      {step.state === 'completed' && <CheckCircle2 className="h-4 w-4" />}
-                      {step.state === 'current' && <Clock className="h-4 w-4" />}
-                      {step.state === 'rejected' && <X className="h-4 w-4" />}
-                      {step.state === 'pending' && idx + 1}
+              <div className="mt-4 space-y-4 max-h-[75vh] overflow-y-auto pr-2">
+                {/* HTML5 Video Player */}
+                <div className="relative overflow-hidden rounded-2xl bg-black border border-zinc-200 dark:border-zinc-800 shadow-md">
+                  <video
+                    controls
+                    autoPlay
+                    playsInline
+                    controlsList="nodownload"
+                    src={selectedVideo.videoUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'}
+                    className="w-full aspect-video rounded-2xl object-contain bg-black"
+                  >
+                    Your browser does not support HTML5 video playback.
+                  </video>
+                </div>
+
+                <div className="rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 p-4 border border-zinc-200 dark:border-zinc-800">
+                  <h4 className="text-base font-bold text-zinc-900 dark:text-white">
+                    {selectedVideo.title}
+                  </h4>
+                  <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs text-zinc-600 dark:text-zinc-400">
+                    <div>
+                      <span className="font-semibold text-zinc-400 block">File Name</span>
+                      <span>{selectedVideo.fileName}</span>
                     </div>
                     <div>
-                      <h6 className="text-sm font-bold text-zinc-900 dark:text-white">
-                        {step.title}
-                      </h6>
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                        {step.description}
-                      </p>
-                      {step.timestamp && (
-                        <span className="mt-1 block font-mono text-[10px] text-zinc-400">
-                          {step.timestamp}
-                        </span>
-                      )}
+                      <span className="font-semibold text-zinc-400 block">Duration</span>
+                      <span>{selectedVideo.duration}</span>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-zinc-400 block">Target Reward</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                        ${(Number(selectedVideo.expectedEarning || 0) / 100).toFixed(2)}
+                      </span>
                     </div>
                   </div>
-                ))}
+                </div>
+
+                {/* Audit Log Steps */}
+                <div className="pl-2 space-y-4">
+                  <h5 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                    Detailed Step Audit Log
+                  </h5>
+                  {selectedVideo.steps.map((step, idx) => (
+                    <div key={idx} className="flex gap-4 items-start">
+                      <div
+                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${step.state === 'completed'
+                            ? 'bg-emerald-600 text-white'
+                            : step.state === 'current'
+                              ? 'bg-amber-600 text-white'
+                              : step.state === 'rejected'
+                                ? 'bg-red-600 text-white'
+                                : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400'
+                          }`}
+                      >
+                        {step.state === 'completed' && <CheckCircle2 className="h-4 w-4" />}
+                        {step.state === 'current' && <Clock className="h-4 w-4" />}
+                        {step.state === 'rejected' && <X className="h-4 w-4" />}
+                        {step.state === 'pending' && idx + 1}
+                      </div>
+                      <div>
+                        <h6 className="text-sm font-bold text-zinc-900 dark:text-white">
+                          {step.title}
+                        </h6>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          {step.description}
+                        </p>
+                        {step.timestamp && (
+                          <span className="mt-1 block font-mono text-[10px] text-zinc-400">
+                            {step.timestamp}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="mt-6 pt-4 border-t border-zinc-200 dark:border-zinc-900 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedVideo(null)}
+                  className="rounded-xl border border-zinc-200 dark:border-zinc-800 px-4 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+                >
+                  Close
+                </button>
+                <Link
+                  href="/dashboard/earnings"
+                  className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 text-xs font-bold shadow-md transition-all flex items-center gap-1.5"
+                >
+                  <Wallet className="h-3.5 w-3.5" />
+                  <span>Go to Earnings Page</span>
+                </Link>
               </div>
             </div>
-
-            {/* Modal Actions */}
-            <div className="mt-6 pt-4 border-t border-zinc-200 dark:border-zinc-900 flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setSelectedVideo(null)}
-                className="rounded-xl border border-zinc-200 dark:border-zinc-800 px-4 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900"
-              >
-                Close
-              </button>
-              <Link
-                href="/dashboard/earnings"
-                className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 text-xs font-bold shadow-md transition-all flex items-center gap-1.5"
-              >
-                <Wallet className="h-3.5 w-3.5" />
-                <span>Go to Earnings Page</span>
-              </Link>
-            </div>
           </div>
-        </div>
         );
       })()}
 
