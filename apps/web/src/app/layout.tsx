@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: 'noname — Video Platform',
-    template: '%s | noname',
+    default: 'Synex',
+    template: '%s | Synex',
   },
   description:
     'Upload videos, get selected, earn money. The platform that connects creators with opportunities.',
@@ -24,7 +24,10 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    siteName: 'noname',
+    siteName: 'Synex',
+  },
+  icons: {
+    icon: '/synex_logo.png',
   },
   robots: {
     index: true,
