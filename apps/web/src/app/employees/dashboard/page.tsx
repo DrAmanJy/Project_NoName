@@ -16,6 +16,9 @@ import {
 } from 'lucide-react';
 import { staffApi } from '@/lib/api-client';
 import { RoleGuard } from '@/components/auth/role-guard';
+import { ReviewModal, type ReviewActionType } from '@/components/admin/video-review/review-modal';
+import { Navbar } from '@/components/layout/navbar';
+import { Footer } from '@/components/layout/footer';
 
 interface VideoProgressStep {
   title: string;
@@ -45,6 +48,14 @@ export default function EmployeeDashboardPage() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('ALL');
   const [selectedSubmission, setSelectedSubmission] = useState<UserVideoSubmissionItem | null>(null);
+
+  const [reviewModalState, setReviewModalState] = useState<{
+    isOpen: boolean;
+    action: ReviewActionType;
+  }>({
+    isOpen: false,
+    action: 'APPROVE',
+  });
 
 
 
@@ -106,7 +117,7 @@ export default function EmployeeDashboardPage() {
               day: 'numeric',
               year: 'numeric',
             }),
-            rewardAmount: item.earning != null ? `₹${(item.earning / 100).toFixed(2)}` : undefined,
+            rewardAmount: item.earning != null ? `$${(item.earning / 100).toFixed(2)}` : undefined,
             videoUrl: item.video?.previewUrl ?? undefined,
             steps: mappedSteps,
           };
@@ -127,6 +138,41 @@ export default function EmployeeDashboardPage() {
   useEffect(() => {
     fetchDashboardData();
   }, [fetchDashboardData]);
+
+  const handleConfirmReview = async (data: {
+    action: ReviewActionType;
+    earning?: number;
+    rejectionReason?: string;
+    feedbackNotes?: string;
+  }) => {
+    if (!selectedSubmission) return;
+    try {
+      const nextStatus = data.action === 'APPROVE' ? 'approved' : 'rejected';
+      await staffApi.submissions.updateStatus(selectedSubmission.id, {
+        status: nextStatus,
+        rejectionReason: data.rejectionReason || data.feedbackNotes,
+        earning: data.earning,
+      });
+      await fetchDashboardData();
+      
+      // Update local selectedSubmission state manually so the Audit modal reflects it
+      setSelectedSubmission((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          status: nextStatus as any,
+          statusLabel: data.action === 'APPROVE' ? 'Approved' : 'Rejected',
+          rejectionReason: data.rejectionReason || data.feedbackNotes,
+          rewardAmount: data.earning ? `$${(data.earning / 100).toFixed(2)}` : prev.rewardAmount,
+        };
+      });
+    } catch (error) {
+      console.error('Failed to update status', error);
+      alert('Failed to update status');
+    } finally {
+      setReviewModalState((prev) => ({ ...prev, isOpen: false }));
+    }
+  };
 
   // Filter video submissions
   const filteredSubmissions = videoSubmissions.filter((item) => {
@@ -154,19 +200,17 @@ export default function EmployeeDashboardPage() {
 
   return (
     <RoleGuard allowedRoles={['admin', 'employee']} fallbackUrl="/dashboard">
-      <div className="relative min-h-screen bg-white dark:bg-black text-zinc-900 dark:text-zinc-50 p-6 lg:p-10 transition-colors duration-300 overflow-hidden">
-        {/* Background Ambient Glow Accents */}
-        <div className="pointer-events-none absolute -top-40 right-1/4 h-96 w-96 rounded-full bg-purple-500/10 blur-[120px] dark:bg-purple-500/5" />
-        <div className="pointer-events-none absolute top-1/3 -left-20 h-96 w-96 rounded-full bg-amber-500/10 blur-[120px] dark:bg-amber-500/5" />
+      <div className="flex min-h-screen flex-col bg-white dark:bg-black text-zinc-900 dark:text-zinc-50 transition-colors duration-300">
+        <Navbar />
+        <main className="flex-1 relative p-6 lg:p-10 overflow-hidden">
+          {/* Background Ambient Glow Accents */}
+          <div className="pointer-events-none absolute -top-40 right-1/4 h-96 w-96 rounded-full bg-purple-500/10 blur-[120px] dark:bg-purple-500/5" />
+          <div className="pointer-events-none absolute top-1/3 -left-20 h-96 w-96 rounded-full bg-amber-500/10 blur-[120px] dark:bg-amber-500/5" />
 
-        <div className="relative mx-auto max-w-7xl">
+          <div className="relative mx-auto max-w-7xl">
           {/* Header Title & Navigation Tabs */}
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between border-b border-zinc-200/80 dark:border-zinc-800/80 pb-6">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-900/80 px-3.5 py-1 text-xs font-semibold text-zinc-900 dark:text-zinc-300 mb-2 border border-zinc-200 dark:border-zinc-800 backdrop-blur-md shadow-inner">
-                <Zap className="h-3.5 w-3.5 text-amber-500 animate-pulse" />
-                <span>Admin & Staff Oversight Portal</span>
-              </div>
               <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
                 User Video Progress & Employee Dashboard
               </h1>
@@ -560,11 +604,33 @@ export default function EmployeeDashboardPage() {
                 </div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-zinc-200 dark:border-zinc-900 flex justify-end">
+              <div className="mt-6 pt-4 border-t border-zinc-200 dark:border-zinc-900 flex justify-between items-center gap-4">
+                {selectedSubmission.status === 'in_review' || selectedSubmission.status === 'draft' ? (
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setReviewModalState({ isOpen: true, action: 'REJECT' })}
+                      className="rounded-xl bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white border border-red-500/20 px-4 py-2 text-xs font-bold transition-all"
+                    >
+                      Reject
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setReviewModalState({ isOpen: true, action: 'APPROVE' })}
+                      className="rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 text-xs font-bold shadow-md transition-colors"
+                    >
+                      Approve
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                     <span className="text-xs font-bold text-zinc-500">Status updated</span>
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={() => setSelectedSubmission(null)}
-                  className="rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-5 py-2 text-xs font-bold shadow-md hover:bg-zinc-800 dark:hover:bg-zinc-100"
+                  className="rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-5 py-2 text-xs font-bold shadow-md hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-colors"
                 >
                   Close Audit
                 </button>
@@ -573,7 +639,19 @@ export default function EmployeeDashboardPage() {
           </div>
         )}
       </div>
-    </div>
-  </RoleGuard>
-);
+
+        <ReviewModal
+          isOpen={reviewModalState.isOpen}
+          onClose={() => setReviewModalState((prev) => ({ ...prev, isOpen: false }))}
+          onConfirm={handleConfirmReview}
+          action={reviewModalState.action}
+          videoId={selectedSubmission?.id || ''}
+          videoTitle={selectedSubmission?.title || ''}
+          expectedEarning={5000} // Default to 5000 cents ($50) since we don't have expected earning in user submission
+        />
+        </main>
+        <Footer />
+      </div>
+    </RoleGuard>
+  );
 }

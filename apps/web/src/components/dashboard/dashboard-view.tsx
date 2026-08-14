@@ -489,7 +489,7 @@ export function DashboardView() {
                             {video.rewardAmount && !isRejected && (
                               <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-900/50">
                                 <DollarSign className="h-3.5 w-3.5" />
-                                <span>Reward Target: {video.rewardAmount}</span>
+                                <span>Reward Target: ${Number(video.expectedEarning) / 100}</span>
                               </div>
                             )}
                           </div>

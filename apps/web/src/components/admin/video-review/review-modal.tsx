@@ -170,14 +170,14 @@ export function ReviewModal({
                 <div className="relative mb-4 flex items-center">
                   <input
                     type="text"
-                    value={`₹${(expectedEarning / 100).toFixed(2)}`}
+                    value={`$${(expectedEarning / 100).toFixed(2)}`}
                     readOnly
                     className="h-11 w-full rounded-2xl border border-zinc-200 bg-zinc-100 pr-4 pl-4 text-sm font-bold text-zinc-600 outline-none dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-400"
                   />
                 </div>
 
                 <label className="mb-2 block text-xs font-bold tracking-wider text-zinc-500 uppercase dark:text-zinc-400">
-                  Actual Earning (₹)
+                  Actual Earning ($)
                 </label>
                 <div className="relative flex items-center">
                   <DollarSign className="pointer-events-none absolute left-3.5 h-4 w-4 text-emerald-500" />
@@ -193,7 +193,7 @@ export function ReviewModal({
                   />
                 </div>
                 <p className="mt-1.5 text-[11px] text-zinc-500">
-                  This reward will be allocated directly to the creator&apos;s wallet balance. Max: ₹{(expectedEarning / 100).toFixed(2)}.
+                  This reward will be allocated directly to the creator&apos;s wallet balance. Max: ${(expectedEarning / 100).toFixed(2)}.
                 </p>
               </div>
 
@@ -306,7 +306,7 @@ export function ReviewModal({
                 {isSubmitting
                   ? 'Updating Status...'
                   : isApprove
-                    ? `Approve & Pay ₹${(parseFloat(earningInput) || 0).toFixed(2)}`
+                    ? `Approve & Pay $${(parseFloat(earningInput) || 0).toFixed(2)}`
                     : 'Confirm Rejection'}
               </span>
             </button>

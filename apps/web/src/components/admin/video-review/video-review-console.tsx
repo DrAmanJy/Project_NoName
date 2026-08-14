@@ -311,6 +311,7 @@ export function VideoReviewConsole({
       console.error('Failed to start review:', error);
     }
   };
+  console.log(selectedVideo, "selected video")
 
   const handleConfirmReview = async (data: {
     action: ReviewActionType;
@@ -722,7 +723,7 @@ export function VideoReviewConsole({
                         >
                           <CheckCircle2 className="h-4 w-4" />
                           <span>
-                            Approve & Grant ₹{((selectedVideo.expectedEarning || 0) / 100).toFixed(2)}
+                            Approve & Grant ${((selectedVideo.expectedEarning || 0) / 100).toFixed(2)}
                           </span>
                         </button>
                       </div>
