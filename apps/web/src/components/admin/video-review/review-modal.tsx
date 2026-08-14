@@ -57,6 +57,7 @@ export function ReviewModal({
   const [rejectionReason, setRejectionReason] = useState<string>(
     REJECTION_REASON_PRESETS[0] ?? 'Script Mismatch & Missing Key Phrases'
   );
+  const [customReason, setCustomReason] = useState<string>('');
   const [feedbackNotes, setFeedbackNotes] = useState<string>('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -91,10 +92,11 @@ export function ReviewModal({
           feedbackNotes: combinedNotes || 'Approved by admin review.',
         });
       } else {
+        const finalReason = rejectionReason === 'Custom' ? customReason.trim() : rejectionReason;
         await onConfirm({
           action: 'REJECT',
-          rejectionReason: rejectionReason,
-          feedbackNotes: feedbackNotes.trim() || rejectionReason,
+          rejectionReason: finalReason,
+          feedbackNotes: feedbackNotes.trim() || finalReason,
         });
       }
     } catch (error) {
@@ -245,15 +247,32 @@ export function ReviewModal({
                 <select
                   value={rejectionReason}
                   onChange={(e) => setRejectionReason(e.target.value)}
-                  className="h-11 w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 text-xs font-semibold text-zinc-900 dark:text-white outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all"
+                  className="h-11 w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 text-xs font-semibold text-zinc-900 dark:text-white outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all mb-4"
                 >
                   {REJECTION_REASON_PRESETS.map((reason) => (
                     <option key={reason} value={reason}>
                       {reason}
                     </option>
                   ))}
+                  <option value="Custom">Custom Reason...</option>
                 </select>
               </div>
+
+              {rejectionReason === 'Custom' && (
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
+                    Specify Custom Reason
+                  </label>
+                  <input
+                    type="text"
+                    value={customReason}
+                    onChange={(e) => setCustomReason(e.target.value)}
+                    placeholder="Enter custom rejection reason"
+                    required
+                    className="h-11 w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 text-xs text-zinc-900 dark:text-white outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all mb-4"
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">

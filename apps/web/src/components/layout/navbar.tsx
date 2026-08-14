@@ -165,7 +165,7 @@ export function Navbar() {
                         <span className="text-[10px] opacity-75 font-normal">End Session</span>
                       </button>
                     </div>
-                  </div>
+                  </div> 
                 )}
               </div>
             ) : (

@@ -105,10 +105,10 @@ export function DashboardView() {
   const paidCount = videos.filter((v) => v.status === 'PAID' || v.status === 'SELECTED' || v.status === 'paid' || v.status === 'approved').length;
   const totalEarnedAmount = videos
     .filter((v) => v.status === 'PAID' || v.status === 'SELECTED' || v.status === 'paid' || v.status === 'approved')
-    .reduce((acc, v) => acc + (v.earning || 50), 0);
+    .reduce((acc, v) => acc + ((Number(v.earning) / 100) || 50), 0);
   const pendingEarnedAmount = videos
     .filter((v) => v.status === 'UNDER_REVIEW' || v.status === 'PROCESSING' || v.status === 'in_review' || v.status === 'draft')
-    .reduce((acc, v) => acc + (v.expectedEarning || 35), 0);
+    .reduce((acc, v) => acc + ((Number(v.expectedEarning) / 100) || 35), 0);
 
   const getDerivedVideoData = (video: UploadedVideoItem) => {
     const isRejected = video.status === 'REJECTED' || video.status === 'rejected';
@@ -507,26 +507,6 @@ export function DashboardView() {
                             <span>Play Video</span>
                           </button>
 
-                          <button
-                            type="button"
-                            onClick={() => setSelectedVideo(video)}
-                            className="flex items-center gap-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-2 text-xs font-bold text-zinc-900 dark:text-white shadow-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-                            id={`video-details-btn-${video.id}`}
-                          >
-                            <Eye className="h-3.5 w-3.5 text-zinc-500" />
-                            <span>Status Details</span>
-                          </button>
-
-                          {isPaid && (
-                            <Link
-                              href="/dashboard/earnings"
-                              className="flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 text-xs font-bold shadow-sm transition-colors"
-                              id={`video-earnings-btn-${video.id}`}
-                            >
-                              <Wallet className="h-3.5 w-3.5" />
-                              <span>View Earning</span>
-                            </Link>
-                          )}
 
                           {isRejected && (
                             <Link
@@ -680,7 +660,7 @@ export function DashboardView() {
                   <div>
                     <span className="font-semibold text-zinc-400 block">Target Reward</span>
                     <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                      {selectedVideo.rewardAmount || '$0.00'}
+                      ${(Number(selectedVideo.expectedEarning || 0) / 100).toFixed(2)}
                     </span>
                   </div>
                 </div>
