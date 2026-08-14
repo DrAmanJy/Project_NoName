@@ -301,9 +301,6 @@ export function VideoReviewConsole({
           v.id === selectedVideo.id ? { ...v, status: 'UNDER_REVIEW' } : v
         )
       );
-      // Ensure we update the selected video state as well to re-render the UI correctly
-      const newVideo = { ...selectedVideo, status: 'UNDER_REVIEW' as const };
-      
       // Update selected video object reference but we cannot directly mutate selectedVideo
       // Wait, we need to find how selectedVideo is set. It uses selectedVideoId!
       // If we just trigger re-render, selectedVideo is derived from videos array.
@@ -312,7 +309,7 @@ export function VideoReviewConsole({
       console.error('Failed to start review:', error);
     }
   };
-  console.log(selectedVideo, "selected video")
+
 
   const handleConfirmReview = async (data: {
     action: ReviewActionType;

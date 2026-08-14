@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Menu, X, ArrowRight, Sun, Moon, ChevronDown, LogOut, LayoutDashboard, Wallet, ShieldCheck } from 'lucide-react';
+import { Menu, X, ArrowRight, Sun, Moon, ChevronDown, LogOut } from 'lucide-react';
 import { LoginModal } from '@/components/auth/login-modal';
 import { useAuth } from '@/hooks/use-auth';
 

@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import {
   Wallet,
-  Settings,
   Video,
   Check,
   MoreHorizontal,
@@ -15,7 +14,6 @@ import {
   DollarSign,
   Clock,
   ArrowUpRight,
-  TrendingUp,
   FileText,
   RefreshCw,
 } from 'lucide-react';

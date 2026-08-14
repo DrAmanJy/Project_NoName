@@ -2,6 +2,7 @@
 
 import React, { useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ShieldAlert, Lock, ArrowLeft, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import type { Role } from '@repo/contracts';
@@ -14,6 +15,7 @@ interface RoleGuardProps {
 
 export function RoleGuard({ children, allowedRoles, fallbackUrl = '/dashboard' }: RoleGuardProps) {
   const { user, role, isLoading, isAuthenticated } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -22,6 +24,16 @@ export function RoleGuard({ children, allowedRoles, fallbackUrl = '/dashboard' }
       document.documentElement.classList.add('dark');
     }
   }, []);
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && !allowedRoles.includes(role)) {
+      if (role === 'admin') {
+        router.push('/admin/dashboard');
+      } else if (role === 'employee') {
+        router.push('/employees/dashboard');
+      }
+    }
+  }, [isLoading, isAuthenticated, role, allowedRoles, router]);
 
   // 1. Loading State (Only a clean, centered loader)
   if (isLoading) {
@@ -62,6 +74,15 @@ export function RoleGuard({ children, allowedRoles, fallbackUrl = '/dashboard' }
 
   // 3. Unauthorized Role State (User logged in, but role is not allowed)
   if (!allowedRoles.includes(role)) {
+    // If admin or employee, they are being auto-redirected by the useEffect. Show loader.
+    if (role === 'admin' || role === 'employee') {
+      return (
+        <div className="flex min-h-screen w-full items-center justify-center bg-white dark:bg-black text-zinc-900 dark:text-white transition-colors duration-300">
+          <Loader2 className="h-9 w-9 animate-spin text-zinc-900 dark:text-white" />
+        </div>
+      );
+    }
+
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center p-6 bg-white dark:bg-black text-zinc-900 dark:text-white transition-colors duration-300">
         <div className="w-full max-w-md text-center rounded-3xl border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 p-8 sm:p-10 shadow-2xl backdrop-blur-xl">

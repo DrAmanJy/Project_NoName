@@ -4,14 +4,14 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Users,
   Shield,
-  Search,
-  Edit2,
-  RefreshCw,
   Loader2,
   X,
   Check,
-  User as UserIcon,
   ChevronDown,
+  UserIcon,
+  Edit2,
+  Search,
+  RefreshCw,
 } from 'lucide-react';
 import { adminApi } from '@/lib/api-client';
 import type { User, Role } from '@repo/contracts';

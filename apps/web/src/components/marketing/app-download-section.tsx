@@ -1,4 +1,4 @@
-import { Smartphone, Shield, Zap, BellRing } from 'lucide-react';
+import { Shield, Zap, BellRing } from 'lucide-react';
 
 export function AppDownloadSection() {
   return (

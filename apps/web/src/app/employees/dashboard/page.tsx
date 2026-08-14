@@ -10,7 +10,6 @@ import {
   FileVideo,
   RefreshCw,
   X,
-  Zap,
   Eye,
   Filter,
 } from 'lucide-react';
@@ -160,7 +159,7 @@ export default function EmployeeDashboardPage() {
         if (!prev) return null;
         return {
           ...prev,
-          status: nextStatus as any,
+          status: nextStatus as UserVideoSubmissionItem['status'],
           statusLabel: data.action === 'APPROVE' ? 'Approved' : 'Rejected',
           rejectionReason: data.rejectionReason || data.feedbackNotes,
           rewardAmount: data.earning ? `$${(data.earning / 100).toFixed(2)}` : prev.rewardAmount,

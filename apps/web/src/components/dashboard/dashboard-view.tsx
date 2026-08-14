@@ -15,7 +15,6 @@ import {
   DollarSign,
   FileVideo,
   ChevronRight,
-  Eye,
   RefreshCw,
   X,
 } from 'lucide-react';
@@ -23,20 +22,18 @@ import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
 import { submissionsApi } from '@/lib/api-client';
 
-interface VideoProgressStep {
-  title: string;
-  description: string;
-  state: 'completed' | 'current' | 'pending' | 'rejected';
-  timestamp?: string;
-}
-
 interface UploadedVideoItem {
   createdAt: string;
   earning: number;
   expectedEarning: number;
   id: string;
   status: string;
-  timeline: any[];
+  timeline: {
+    key: string;
+    message?: string;
+    status: string;
+    completedAt?: string;
+  }[];
   video?: {
     durationSeconds: number | null;
     height: number | null;

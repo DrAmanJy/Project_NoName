@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowLeft, Video, ShieldCheck, CheckCircle2, DollarSign, Sparkles } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, CheckCircle2, DollarSign, Sparkles } from 'lucide-react';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
 import { VideoUploader } from '@/components/video/VideoUploader';
