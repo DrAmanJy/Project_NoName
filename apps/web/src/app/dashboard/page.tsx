@@ -10,15 +10,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const { role, isLoading, isAuthenticated } = useAuth();
 
-  useEffect(() => {
-    if (isAuthenticated && !isLoading) {
-      if (role === 'employee') {
-        router.push('/employees/dashboard');
-      } else if (role === 'admin') {
-        router.push('/admin/dashboard');
-      }
-    }
-  }, [isAuthenticated, isLoading, role, router]);
+
 
   return (
     <RoleGuard allowedRoles={['user']} fallbackUrl="/">

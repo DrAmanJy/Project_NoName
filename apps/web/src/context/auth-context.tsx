@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import type { User, Role } from '@repo/contracts';
 import { authApi } from '@/lib/api-client';
 
@@ -35,6 +36,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     (allowedRoles: Role[]) => allowedRoles.includes(role),
     [role]
   );
+
+  const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      if (isAdmin && (pathname === '/' || pathname === '/login' || pathname === '/dashboard')) {
+        router.push('/admin/dashboard');
+      } else if (isEmployee && (pathname === '/' || pathname === '/login' || pathname === '/dashboard')) {
+        router.push('/employees/dashboard');
+      } else if (isUser && (pathname === '/' || pathname === '/login')) {
+        router.push('/dashboard');
+      }
+    }
+  }, [isLoading, user, isAdmin, isEmployee, isUser, pathname, router]);
 
   const fetchUser = useCallback(async () => {
     const currentRequestId = ++requestIdRef.current;
