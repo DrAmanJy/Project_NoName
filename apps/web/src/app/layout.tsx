@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     siteName: 'Synex',
   },
   icons: {
-    icon: '/synex_logo.png',
+    icon: '/icon.png',
   },
   robots: {
     index: true,

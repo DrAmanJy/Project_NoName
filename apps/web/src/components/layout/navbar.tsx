@@ -172,20 +172,22 @@ export function Navbar() {
               <button
                 type="button"
                 onClick={() => setIsLoginModalOpen(true)}
-                className="rounded-full px-4 py-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-900"
+                className="rounded-full bg-zinc-900 dark:bg-white px-5 py-2.5 text-sm font-semibold text-white dark:text-zinc-900 shadow-md transition-all hover:bg-zinc-800 dark:hover:bg-zinc-100 hover:shadow-lg"
                 id="navbar-login-modal-btn"
               >
                 Login
               </button>
             )}
 
-            <Link
-              href={isAuthenticated ? '/dashboard' : '#upload'}
-              className="group flex items-center gap-2 rounded-full bg-zinc-900 dark:bg-white px-5 py-2.5 text-sm font-semibold text-white dark:text-zinc-900 shadow-md transition-all hover:bg-zinc-800 dark:hover:bg-zinc-100 hover:shadow-lg"
-            >
-              <span>{isAuthenticated ? 'Dashboard' : 'Get Started'}</span>
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </Link>
+            {isAuthenticated && (
+              <Link
+                href="/dashboard"
+                className="group flex items-center gap-2 rounded-full bg-zinc-900 dark:bg-white px-5 py-2.5 text-sm font-semibold text-white dark:text-zinc-900 shadow-md transition-all hover:bg-zinc-800 dark:hover:bg-zinc-100 hover:shadow-lg"
+              >
+                <span>Dashboard</span>
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            )}
           </div>
 
           {/* Mobile menu trigger & Theme toggle */}
@@ -275,21 +277,13 @@ export function Navbar() {
                       setMobileMenuOpen(false);
                       setIsLoginModalOpen(true);
                     }}
-                    className="w-full text-center rounded-full border border-zinc-300 dark:border-zinc-800 py-2.5 text-sm font-semibold text-zinc-900 dark:text-white"
+                    className="w-full text-center rounded-full bg-zinc-900 dark:bg-white py-2.5 text-sm font-semibold text-white dark:text-zinc-900 shadow-md transition-all hover:bg-zinc-800 dark:hover:bg-zinc-100 hover:shadow-lg"
                     id="mobile-login-modal-btn"
                   >
                     Login
                   </button>
                 )}
-                {(!isAuthenticated || role === 'user') && (
-                  <Link
-                    href={isAuthenticated ? '/dashboard' : '#upload'}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="w-full text-center rounded-full bg-zinc-900 dark:bg-white py-2.5 text-sm font-semibold text-white dark:text-zinc-900 shadow-md"
-                  >
-                    {isAuthenticated ? 'Go to Dashboard' : 'Get Started'}
-                  </Link>
-                )}
+
               </div>
             </div>
           </div>
