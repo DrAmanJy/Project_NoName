@@ -5,7 +5,7 @@ import { RoleGuard } from '@/components/auth/role-guard';
 import { VideoReviewConsole } from '@/components/admin/video-review/video-review-console';
 import { EmployeeManagementConsole } from '@/components/admin/employees/employee-management-console';
 import { Navbar } from '@/components/layout/navbar';
-import { Footer } from '@/components/layout/footer';  
+import { Footer } from '@/components/layout/footer';
 import { Video, Users } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -22,7 +22,7 @@ export default function AdminDashboardPage() {
   }, [user, isAdmin, activeTab]);
 
   return (
-    <RoleGuard allowedRoles={['admin', 'employee']} fallbackUrl="/dashboard">
+    <RoleGuard allowedRoles={['admin', 'employee']} fallbackUrl="/submission">
       <div className="flex min-h-screen flex-col bg-[#FEFEFE] dark:bg-black text-zinc-900 dark:text-zinc-50 transition-colors duration-300">
         {/* Main Sticky Navbar */}
         <Navbar />
@@ -50,11 +50,10 @@ export default function AdminDashboardPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab('videos')}
-                className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold transition-all duration-200 ${
-                  activeTab === 'videos'
+                className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold transition-all duration-200 ${activeTab === 'videos'
                     ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-md scale-[1.01]'
                     : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
-                }`}
+                  }`}
                 id="admin-tab-videos-btn"
               >
                 <Video className="h-4 w-4 text-emerald-500" />
@@ -65,11 +64,10 @@ export default function AdminDashboardPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab('employees')}
-                  className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold transition-all duration-200 ${
-                    activeTab === 'employees'
+                  className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold transition-all duration-200 ${activeTab === 'employees'
                       ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-md scale-[1.01]'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
-                  }`}
+                    }`}
                   id="admin-tab-employees-btn"
                 >
                   <Users className="h-4 w-4 text-blue-500" />

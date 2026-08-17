@@ -4,17 +4,14 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import {
   Video,
-  Wallet,
   Upload,
   Search,
   CheckCircle2,
   Clock,
   AlertCircle,
   Play,
-  ArrowUpRight,
   DollarSign,
   FileVideo,
-  ChevronRight,
   RefreshCw,
   X,
 } from 'lucide-react';
@@ -178,24 +175,7 @@ export function DashboardView() {
             {/* Quick Navigation Action Buttons */}
             <div className="flex flex-wrap items-center gap-3">
               <Link
-                href={videos.length === 0 ? '#' : '/dashboard/earnings'}
-                onClick={(e) => {
-                  if (videos.length === 0) e.preventDefault();
-                }}
-                className={`group inline-flex items-center gap-2.5 rounded-xl px-5 py-2.5 text-sm font-bold shadow-md transition-all duration-300 ${
-                  videos.length === 0
-                    ? 'bg-emerald-600/50 dark:bg-emerald-500/50 text-white/70 cursor-not-allowed'
-                    : 'bg-emerald-600 dark:bg-emerald-500 text-white hover:bg-emerald-700 dark:hover:bg-emerald-600 hover:shadow-emerald-500/20 hover:shadow-xl hover:-translate-y-0.5'
-                }`}
-                id="dashboard-view-earnings-btn"
-              >
-                <Wallet className="h-4 w-4" />
-                <span>View Earnings</span>
-                <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </Link>
-
-              <Link
-                href="/dashboard/videos/upload"
+                href="/submission/videos/upload"
                 className="group inline-flex items-center gap-2 rounded-xl bg-zinc-900 dark:bg-white px-5 py-2.5 text-sm font-bold text-white dark:text-zinc-900 shadow-md transition-all duration-300 hover:bg-zinc-800 dark:hover:bg-zinc-100 hover:shadow-xl hover:-translate-y-0.5"
                 id="dashboard-upload-video-btn"
               >
@@ -281,20 +261,6 @@ export function DashboardView() {
               </div>
               <div className="mt-2 flex items-center justify-between text-xs text-zinc-400">
                 <span>Pending: ${pendingEarnedAmount.toFixed(2)}</span>
-                <Link
-                  href={videos.length === 0 ? '#' : '/dashboard/earnings'}
-                  onClick={(e) => {
-                    if (videos.length === 0) e.preventDefault();
-                  }}
-                  className={`font-semibold underline underline-offset-2 flex items-center gap-1 ${
-                    videos.length === 0
-                      ? 'text-emerald-400/50 cursor-not-allowed'
-                      : 'text-emerald-400 hover:text-emerald-300'
-                  }`}
-                >
-                  <span>Details</span>
-                  <ChevronRight className="h-3 w-3" />
-                </Link>
               </div>
             </div>
           </div>
@@ -411,7 +377,7 @@ export function DashboardView() {
                 </p>
                 <div className="mt-6">
                   <Link
-                    href="/dashboard/videos/upload"
+                    href="/submission/videos/upload"
                     className="inline-flex items-center gap-2 rounded-xl bg-zinc-900 dark:bg-white px-6 py-3 text-xs font-bold text-white dark:text-zinc-900 shadow-md transition-all hover:bg-zinc-800 dark:hover:bg-zinc-100 hover:scale-[1.02]"
                     id="dashboard-empty-upload-btn"
                   >
@@ -514,7 +480,7 @@ export function DashboardView() {
 
                           {isRejected && (
                             <Link
-                              href="/dashboard/videos/upload"
+                              href="/submission/videos/upload"
                               className="flex items-center gap-1.5 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-4 py-2 text-xs font-bold shadow-sm hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-colors"
                             >
                               <Upload className="h-3.5 w-3.5" />
@@ -716,13 +682,6 @@ export function DashboardView() {
                 >
                   Close
                 </button>
-                <Link
-                  href="/dashboard/earnings"
-                  className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 text-xs font-bold shadow-md transition-all flex items-center gap-1.5"
-                >
-                  <Wallet className="h-3.5 w-3.5" />
-                  <span>Go to Earnings Page</span>
-                </Link>
               </div>
             </div>
           </div>

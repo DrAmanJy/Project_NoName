@@ -12,8 +12,8 @@ export default function VideosPage() {
           Manage your uploaded videos.
         </p>
         <div className="mt-8">
-          <Link 
-            href="/dashboard/videos/upload" 
+          <Link
+            href="/submission/videos/upload"
             className="bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-6 py-3 rounded-xl font-bold text-sm shadow-md hover:bg-zinc-800 dark:hover:bg-zinc-100 transition"
           >
             Upload New Video

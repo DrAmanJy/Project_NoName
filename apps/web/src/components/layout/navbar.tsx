@@ -10,9 +10,9 @@ import { useAuth } from '@/hooks/use-auth';
 export function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
-  
+
   const handleDashboardClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    const dashboardPaths = ['/dashboard', '/admin/dashboard', '/employees/dashboard'];
+    const dashboardPaths = ['/submission', '/admin/dashboard', '/employees/dashboard'];
     if (dashboardPaths.includes(pathname)) {
       e.preventDefault();
       setIsProfileMenuOpen(false);
@@ -175,7 +175,7 @@ export function Navbar() {
                         <span className="text-[10px] opacity-75 font-normal">End Session</span>
                       </button>
                     </div>
-                  </div> 
+                  </div>
                 )}
               </div>
             ) : (
@@ -191,11 +191,11 @@ export function Navbar() {
 
             {isAuthenticated && (
               <Link
-                href="/dashboard"
+                href="/submission"
                 onClick={handleDashboardClick}
                 className="group flex items-center gap-2 rounded-full bg-zinc-900 dark:bg-white px-5 py-2.5 text-sm font-semibold text-white dark:text-zinc-900 shadow-md transition-all hover:bg-zinc-800 dark:hover:bg-zinc-100 hover:shadow-lg"
               >
-                <span>Dashboard</span>
+                <span>{role === 'user' ? 'Submissions' : 'Dashboard'}</span>
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
             )}
@@ -243,7 +243,7 @@ export function Navbar() {
                 {isAuthenticated && user ? (
                   <div className="flex flex-col gap-2">
                     <Link
-                      href="/dashboard"
+                      href="/submission"
                       onClick={(e) => {
                         handleDashboardClick(e);
                         if (!e.defaultPrevented) setMobileMenuOpen(false);

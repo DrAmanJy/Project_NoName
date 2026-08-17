@@ -18,7 +18,7 @@ export default function UploadVideoPage() {
             {/* Back Navigation Bar */}
             <div className="mb-6">
               <Link
-                href="/dashboard"
+                href="/submission"
                 className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 px-4 py-2 text-xs font-bold text-zinc-900 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
                 id="upload-page-back-to-dashboard-btn"
               >
@@ -80,14 +80,14 @@ export default function UploadVideoPage() {
                     <span>Creator Earnings</span>
                   </div>
                   <h4 className="text-base font-bold text-white">
-                    Earn Up to $50.00 Per Approved Video
+                    Earn Up to $100.00 Per Approved Video
                   </h4>
                   <p className="mt-1 text-xs text-zinc-400">
                     Once your video passes verification review, funds will be directly credited to your creator balance.
                   </p>
                   <div className="mt-4 pt-3 border-t border-zinc-800">
                     <Link
-                      href="/dashboard/earnings"
+                      href="/submission/earnings"
                       className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 underline underline-offset-2"
                     >
                       <Sparkles className="h-3.5 w-3.5" />

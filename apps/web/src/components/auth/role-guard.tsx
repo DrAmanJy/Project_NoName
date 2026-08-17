@@ -13,7 +13,7 @@ interface RoleGuardProps {
   fallbackUrl?: string;
 }
 
-export function RoleGuard({ children, allowedRoles, fallbackUrl = '/dashboard' }: RoleGuardProps) {
+export function RoleGuard({ children, allowedRoles, fallbackUrl = '/submission' }: RoleGuardProps) {
   const { user, role, isLoading, isAuthenticated } = useAuth();
   const router = useRouter();
 

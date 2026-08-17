@@ -42,12 +42,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isLoading && user) {
-      if (isAdmin && (pathname === '/login' || pathname === '/dashboard')) {
+      if (isAdmin && (pathname === '/login' || pathname === '/submission')) {
         router.push('/admin/dashboard');
-      } else if (isEmployee && (pathname === '/login' || pathname === '/dashboard')) {
+      } else if (isEmployee && (pathname === '/login' || pathname === '/submission')) {
         router.push('/employees/dashboard');
       } else if (isUser && pathname === '/login') {
-        router.push('/dashboard');
+        router.push('/submission');
       }
     }
   }, [isLoading, user, isAdmin, isEmployee, isUser, pathname, router]);

@@ -113,7 +113,7 @@ export function VideoUploader() {
     try {
       setError(null);
       setStatus('uploading');
-      
+
       const idempotencyKey = crypto.randomUUID();
       const totalParts = Math.ceil(file.size / (8 * 1024 * 1024));
 
@@ -208,7 +208,7 @@ export function VideoUploader() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-900">
             <Link
-              href="/dashboard"
+              href="/submission"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-zinc-900 dark:bg-white px-6 py-3 text-sm font-bold text-white dark:text-zinc-900 shadow-md hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-all"
               id="upload-complete-dashboard-btn"
             >
@@ -217,7 +217,7 @@ export function VideoUploader() {
             </Link>
 
             <Link
-              href="/dashboard/earnings"
+              href="/submission/earnings"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-6 py-3 text-sm font-bold text-white shadow-md transition-all"
               id="upload-complete-earnings-btn"
             >
@@ -315,13 +315,12 @@ export function VideoUploader() {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className={`relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 text-center cursor-pointer transition-all ${
-              isDragging
-                ? 'border-amber-500 bg-amber-500/5 dark:bg-amber-500/10 scale-[1.01]'
-                : file
+            className={`relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 text-center cursor-pointer transition-all ${isDragging
+              ? 'border-amber-500 bg-amber-500/5 dark:bg-amber-500/10 scale-[1.01]'
+              : file
                 ? 'border-emerald-500/60 bg-emerald-50/30 dark:bg-emerald-950/20'
                 : 'border-zinc-300 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 hover:border-zinc-400 dark:hover:border-zinc-700'
-            }`}
+              }`}
           >
             <input
               type="file"
