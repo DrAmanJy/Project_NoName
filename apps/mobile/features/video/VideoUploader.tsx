@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, ActivityIndicator, Animated } from 'react-native';
+import * as DocumentPicker from 'expo-document-picker';
 import { router } from 'expo-router';
 import { VideoUploadManager } from '@repo/api-client';
 import { MobileUploadSource } from './mobile-upload-source';
 import { apiClient, submissionsApi } from '../../lib/api';
+import { useTheme } from '../../lib/theme';
 
 export function VideoUploader() {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const [fileUri, setFileUri] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [fileSize, setFileSize] = useState<number | null>(null);
@@ -21,10 +24,9 @@ export function VideoUploader() {
   const [error, setError] = useState<string | null>(null);
 
   const pickVideo = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
-      allowsEditing: false,
-      quality: 1,
+    let result = await DocumentPicker.getDocumentAsync({
+      type: ['video/mp4', 'video/quicktime', 'video/webm', 'video/x-m4v', 'video/*'],
+      copyToCacheDirectory: true,
     });
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
@@ -35,13 +37,15 @@ export function VideoUploader() {
         return;
       }
       setFileUri(asset.uri);
-      setFileName(asset.fileName || 'video.mp4');
-      setFileSize(asset.fileSize || 0);
+      setFileName(asset.name || 'video.mp4');
+      setFileSize(asset.size || 0);
       setMimeType(asset.mimeType || 'video/mp4');
-      // Expo ImagePicker returns duration in milliseconds
-      setDuration(asset.duration ? asset.duration / 1000 : null);
-      setWidth(asset.width || null);
-      setHeight(asset.height || null);
+      
+      // Note: DocumentPicker doesn't provide duration, width, or height
+      // The backend or VideoUploadManager handles processing these if missing
+      setDuration(null);
+      setWidth(null);
+      setHeight(null);
       setError(null);
     }
   };
@@ -50,8 +54,10 @@ export function VideoUploader() {
     if (!fileUri || !fileSize || !fileName || !mimeType) return;
 
     try {
-      // 1. Create submission
-      // React Native doesn't have crypto.randomUUID() by default, use a fallback or Math.random
+      setError(null);
+      setProgress(0);
+      setStatus('initializing');
+
       const idempotencyKey = Date.now().toString() + Math.random().toString(36).substring(7);
       const totalParts = Math.ceil(fileSize / (8 * 1024 * 1024));
 
@@ -68,7 +74,6 @@ export function VideoUploader() {
 
       const { submissionId, uploadId } = response;
 
-      // 2. Start upload
       const source = new MobileUploadSource(fileUri, fileSize, mimeType);
       const manager = new VideoUploadManager({
         apiClient: apiClient,
@@ -76,7 +81,7 @@ export function VideoUploader() {
         source,
         fileName: fileName,
         onProgress: (uploaded: number, total: number) => {
-          setProgress(Math.round((uploaded / total) * 100));
+          setProgress(Math.min(100, Math.max(0, Math.round((uploaded / total) * 100))));
         },
         onStateChange: (state: unknown) => {
           setStatus(state as string);
@@ -86,8 +91,10 @@ export function VideoUploader() {
         },
         onComplete: (videoId: string) => {
           setStatus('completed');
-          console.warn('Upload complete, ID:', videoId);
-          router.push(`/submissions/${submissionId}`);
+          setTimeout(() => {
+             setUploadManager(null);
+             router.push(`/submissions/${submissionId}`);
+          }, 1500); // Give user a moment to see the 100% success state
         }
       });
 
@@ -104,11 +111,13 @@ export function VideoUploader() {
       setUploadManager(null);
       setFileUri(null);
       setProgress(0);
+      setStatus('idle');
     }
   };
 
   const handleRetry = async () => {
     if (uploadManager) {
+      setError(null);
       await uploadManager.start(); 
     }
   };
@@ -117,91 +126,225 @@ export function VideoUploader() {
     <View style={styles.container}>
       <Text style={styles.title}>Upload Video</Text>
 
-      {!uploadManager && (
-        <View style={styles.actions}>
-          <Button title="Pick a video from gallery" onPress={pickVideo} />
-          {fileUri && (
-            <View style={styles.selectedFile}>
-              <Text>Selected: {fileName}</Text>
-              <Button title="Start Upload" onPress={startUpload} />
+      <View style={styles.actions}>
+        <TouchableOpacity style={styles.primaryButton} onPress={pickVideo}>
+          <Text style={styles.buttonText}>Pick a video from gallery</Text>
+        </TouchableOpacity>
+        
+        {fileUri && (
+          <View style={styles.selectedFile}>
+            <Text style={styles.fileNameText} numberOfLines={1}>Selected: {fileName}</Text>
+            <TouchableOpacity style={[styles.primaryButton, styles.uploadButton]} onPress={startUpload}>
+              <Text style={styles.buttonText}>Start Upload</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+
+      {!uploadManager && error && (
+        <Text style={styles.globalErrorText}>{error}</Text>
+      )}
+
+      {/* Upload Progress Modal */}
+      <Modal
+        visible={!!uploadManager}
+        transparent={true}
+        animationType="fade"
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Uploading Video</Text>
+            <Text style={styles.modalSubtitle} numberOfLines={1}>{fileName}</Text>
+
+            <View style={styles.progressSection}>
+              <View style={styles.progressHeader}>
+                <Text style={styles.progressText}>{status === 'completed' ? 'Done!' : `${progress}%`}</Text>
+                <Text style={styles.statusLabel}>{status}</Text>
+              </View>
+
+              <View style={styles.progressBarBackground}>
+                <View style={[styles.progressBarFill, { width: `${progress}%`, backgroundColor: status === 'error' ? colors.danger : status === 'completed' ? colors.success : colors.primary }]} />
+              </View>
             </View>
-          )}
-        </View>
-      )}
 
-      {uploadManager && (
-        <View style={styles.progressContainer}>
-          <Text style={styles.statusText}>Uploading {fileName}</Text>
-          <Text style={styles.statusText}>{progress}%</Text>
-          <View style={styles.progressBarBackground}>
-            <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
-          </View>
-          
-          <Text style={styles.statusText}>Status: {status}</Text>
-          
-          <View style={styles.actionsRow}>
-            {status === 'error' && (
-              <Button title="Retry" onPress={handleRetry} color="blue" />
-            )}
-            {status !== 'completed' && status !== 'cancelled' && (
-              <Button title="Cancel" onPress={handleCancel} color="red" />
-            )}
-          </View>
+            {status === 'uploading' || status === 'created' || status === 'initializing' ? (
+               <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 10 }} />
+            ) : null}
 
-          {error && (
-            <Text style={styles.errorText}>{error}</Text>
-          )}
+            {error && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            )}
+
+            <View style={styles.modalActions}>
+              {status === 'error' && (
+                <TouchableOpacity style={[styles.modalButton, styles.retryButton]} onPress={handleRetry}>
+                  <Text style={[styles.modalButtonText, { color: colors.primaryText }]}>Retry</Text>
+                </TouchableOpacity>
+              )}
+              {status !== 'completed' && (
+                <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={handleCancel}>
+                  <Text style={[styles.modalButtonText, { color: colors.text }]}>Cancel</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
         </View>
-      )}
+      </Modal>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
   container: {
-    padding: 20,
-    backgroundColor: '#fff',
-    borderRadius: 10,
+    padding: 24,
+    backgroundColor: colors.card,
+    borderRadius: 16,
     margin: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
     elevation: 3,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
+    fontSize: 22,
+    fontWeight: '700',
+    marginBottom: 24,
+    color: colors.text,
     textAlign: 'center',
   },
   actions: {
     gap: 16,
   },
+  primaryButton: {
+    backgroundColor: colors.text,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  uploadButton: {
+    backgroundColor: colors.primary,
+    marginTop: 8,
+  },
+  buttonText: {
+    color: colors.background,
+    fontSize: 15,
+    fontWeight: '600',
+  },
   selectedFile: {
-    marginTop: 20,
-    gap: 12,
+    marginTop: 12,
+    gap: 8,
+    padding: 16,
+    backgroundColor: colors.surface,
+    borderRadius: 12,
   },
-  progressContainer: {
-    gap: 12,
+  fileNameText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    fontWeight: '500',
   },
-  statusText: {
+  globalErrorText: {
+    color: colors.danger,
+    marginTop: 16,
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: colors.overlay,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    backgroundColor: colors.card,
+    borderRadius: 20,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  progressSection: {
+    marginBottom: 16,
+  },
+  progressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  progressText: {
     fontSize: 16,
-    color: '#333',
+    fontWeight: '700',
+    color: colors.text,
+  },
+  statusLabel: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    textTransform: 'capitalize',
+    fontWeight: '600',
   },
   progressBarBackground: {
-    height: 10,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 5,
+    height: 12,
+    backgroundColor: colors.border,
+    borderRadius: 6,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#2196F3',
+    borderRadius: 6,
   },
-  actionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 10,
+  errorContainer: {
+    backgroundColor: colors.danger + '26',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 8,
+    marginBottom: 16,
   },
   errorText: {
-    color: 'red',
-    marginTop: 10,
+    color: colors.danger,
+    fontSize: 13,
+    fontWeight: '500',
+    textAlign: 'center',
   },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 12,
+    marginTop: 16,
+  },
+  modalButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: colors.surface,
+  },
+  retryButton: {
+    backgroundColor: colors.text,
+  },
+  modalButtonText: {
+    fontWeight: '600',
+  }
 });
