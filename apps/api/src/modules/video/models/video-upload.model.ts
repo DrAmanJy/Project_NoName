@@ -26,6 +26,7 @@ export interface IVideoUpload extends Document {
   createdAt: Date;
   updatedAt: Date;
   completedAt?: Date;
+  cancelledAt?: Date;
   processingStartedAt?: Date;
   processingCompletedAt?: Date;
 }
@@ -105,6 +106,9 @@ const VideoUploadSchema = new Schema<IVideoUpload>(
     completedAt: {
       type: Date,
     },
+    cancelledAt: {
+      type: Date,
+    },
     processingStartedAt: {
       type: Date,
     },
@@ -117,6 +121,13 @@ const VideoUploadSchema = new Schema<IVideoUpload>(
   }
 );
 
+// Index for time-based cleanup queries
 VideoUploadSchema.index({ createdAt: 1 });
+// TTL index: auto-delete cancelled upload documents after VIDEO_RETENTION_DAYS days.
+// This only removes the DB record; the aborted S3 multipart is already cleaned up at cancel time.
+VideoUploadSchema.index(
+  { cancelledAt: 1 },
+  { expireAfterSeconds: 30 * 24 * 60 * 60, partialFilterExpression: { status: 'cancelled' } },
+);
 
 export const VideoUpload = mongoose.model<IVideoUpload>('VideoUpload', VideoUploadSchema);
