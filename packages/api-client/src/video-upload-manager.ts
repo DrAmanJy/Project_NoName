@@ -35,6 +35,7 @@ interface PartState {
   status: 'pending' | 'uploading' | 'completed' | 'failed';
   eTag?: string;
   retryCount: number;
+  bytesUploaded?: number;
 }
 
 export class VideoUploadManager {
@@ -126,6 +127,7 @@ export class VideoUploadManager {
         status: eTag ? 'completed' : 'pending',
         eTag,
         retryCount: 0,
+        bytesUploaded: eTag ? length : 0,
       });
 
       if (eTag) {
@@ -133,9 +135,13 @@ export class VideoUploadManager {
       }
     }
     
-    if (this.onProgress) {
-      this.onProgress(this.bytesUploaded, this.source.size);
-    }
+    this.reportProgress();
+  }
+
+  private reportProgress() {
+    if (!this.onProgress) return;
+    const totalUploaded = this.parts.reduce((sum, p) => sum + (p.status === 'completed' ? p.length : (p.bytesUploaded || 0)), 0);
+    this.onProgress(Math.min(totalUploaded, this.source.size), this.source.size);
   }
 
   private async uploadNextParts() {
@@ -195,28 +201,38 @@ export class VideoUploadManager {
 
       const chunk = await this.source.readPart(part.partNumber, part.offset, part.length);
       
-      const response = await fetch(url, {
-        method: 'PUT',
-        body: chunk.data,
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('PUT', url);
+        
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            part.bytesUploaded = Math.min(e.loaded, part.length);
+            this.reportProgress();
+          }
+        };
+        
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            let eTag = xhr.getResponseHeader('ETag');
+            if (!eTag) {
+              eTag = 'MISSING_ETAG'; 
+            }
+            part.eTag = eTag.replace(/"/g, '');
+            part.status = 'completed';
+            part.bytesUploaded = part.length;
+            this.reportProgress();
+            resolve();
+          } else {
+            reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
+          }
+        };
+        
+        xhr.onerror = () => reject(new Error('Network error'));
+        xhr.onabort = () => reject(new Error('Aborted'));
+        
+        xhr.send(chunk.data);
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      let eTag = response.headers.get('ETag');
-      if (!eTag) {
-        // R2 usually returns ETag, but if missing it's a problem
-        eTag = 'MISSING_ETAG'; 
-      }
-      
-      part.eTag = eTag.replace(/"/g, '');
-      part.status = 'completed';
-      this.bytesUploaded += part.length;
-      
-      if (this.onProgress) {
-        this.onProgress(this.bytesUploaded, this.source.size);
-      }
     } catch {
       part.retryCount++;
       if (part.retryCount > 3) {
