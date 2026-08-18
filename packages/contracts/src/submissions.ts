@@ -7,6 +7,7 @@ export const SubmissionStatusSchema = z.enum([
   'rejected',
   'payment_pending',
   'paid',
+  'cancelled',
 ]);
 
 export type SubmissionStatus = z.infer<typeof SubmissionStatusSchema>;
