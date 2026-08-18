@@ -627,11 +627,13 @@ export function VideoReviewConsole({
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <span
-                              className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${isApproved
-                                ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-                                : isRejected
-                                  ? 'bg-red-500/10 text-red-500 border border-red-500/20'
-                                  : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                              className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${item.status?.toLowerCase() === 'cancelled' || item.video?.uploadStatus?.toLowerCase() === 'cancelled'
+                                ? 'bg-zinc-500/10 text-zinc-500 border border-zinc-500/20 line-through'
+                                : isApproved
+                                  ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                                  : isRejected
+                                    ? 'bg-red-500/10 text-red-500 border border-red-500/20'
+                                    : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
                                 }`}
                             >
                               {item.status.toUpperCase()}
@@ -714,7 +716,12 @@ export function VideoReviewConsole({
                       </span>
                     </div>
 
-                    {selectedVideo.status === 'REJECTED' ? (
+                    {selectedVideo.status?.toLowerCase() === 'cancelled' || selectedVideo.video?.uploadStatus?.toLowerCase() === 'cancelled' ? (
+                      <div className="inline-flex items-center gap-2 rounded-full bg-zinc-500/10 border border-zinc-500/20 px-5 py-2.5 text-xs font-bold text-zinc-500 line-through">
+                        <XCircle className="h-4 w-4" />
+                        <span>Submission Cancelled</span>
+                      </div>
+                    ) : selectedVideo.status === 'REJECTED' ? (
                       <div className="inline-flex items-center gap-2 rounded-full bg-red-500/10 border border-red-500/20 px-5 py-2.5 text-xs font-bold text-red-500">
                         <XCircle className="h-4 w-4" />
                         <span>Submission Rejected</span>

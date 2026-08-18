@@ -19,13 +19,13 @@ export function VideoMetadata({ selectedVideo }: { selectedVideo: AdminVideoItem
                     </div>
                     <div>
                         <span className="text-zinc-500">Submission Status: </span>
-                        <span className="font-bold uppercase text-zinc-900 dark:text-white">
+                        <span className={`font-bold uppercase ${selectedVideo.status?.toLowerCase() === 'cancelled' ? 'line-through text-zinc-400' : 'text-zinc-900 dark:text-white'}`}>
                             {selectedVideo.status}
                         </span>
                     </div>
                     <div>
                         <span className="text-zinc-500">Video Stage: </span>
-                        <span className="font-bold text-zinc-900 dark:text-white capitalize">
+                        <span className={`font-bold capitalize ${(selectedVideo.video?.uploadStatus || 'uploaded').toLowerCase() === 'cancelled' ? 'line-through text-zinc-400' : 'text-zinc-900 dark:text-white'}`}>
                             {selectedVideo.video?.uploadStatus || 'uploaded'}
                         </span>
                     </div>

@@ -10,6 +10,7 @@ import {
   FileVideo,
   RefreshCw,
   X,
+  XCircle,
   Eye,
   Filter,
   DollarSign,
@@ -33,7 +34,7 @@ interface UserVideoSubmissionItem {
   creatorName: string;
   creatorEmail: string;
   creatorAvatar?: string;
-  status: 'draft' | 'in_review' | 'approved' | 'rejected' | 'payment_pending' | 'paid';
+  status: 'draft' | 'in_review' | 'approved' | 'rejected' | 'payment_pending' | 'paid' | 'cancelled';
   statusLabel: string;
   videoStatus?: string;
   uploadedAt: string;
@@ -67,13 +68,15 @@ export default function EmployeeDashboardPage() {
       const staffSubmissionsRes = await staffApi.submissions.list(1, 50).catch(() => null);
       if (staffSubmissionsRes && Array.isArray(staffSubmissionsRes.data) && staffSubmissionsRes.data.length > 0) {
         const mapped: UserVideoSubmissionItem[] = staffSubmissionsRes.data.map((item) => {
-          const videoStatus = item.video?.uploadStatus || 'uploaded';
+          const isCancelled = (item.status as string) === 'cancelled' || item.video?.uploadStatus?.toLowerCase() === 'cancelled';
+          const videoStatus = item.video?.uploadStatus || (isCancelled ? 'cancelled' : 'uploaded');
           let statusLabel = 'In Review';
-          if (item.status === 'approved') statusLabel = 'Approved';
-          if (item.status === 'paid') statusLabel = 'Approved & Paid';
-          if (item.status === 'rejected') statusLabel = 'Rejected';
-          if (item.status === 'payment_pending') statusLabel = 'Payment Pending';
-          if (item.status === 'draft') statusLabel = 'Draft';
+          if (isCancelled) statusLabel = 'Cancelled';
+          else if (item.status === 'approved') statusLabel = 'Approved';
+          else if (item.status === 'paid') statusLabel = 'Approved & Paid';
+          else if (item.status === 'rejected') statusLabel = 'Rejected';
+          else if (item.status === 'payment_pending') statusLabel = 'Payment Pending';
+          else if (item.status === 'draft') statusLabel = 'Draft';
 
           const mappedSteps: VideoProgressStep[] = item.timeline && item.timeline.length > 0
             ? item.timeline.map((step) => ({
@@ -83,26 +86,26 @@ export default function EmployeeDashboardPage() {
                   : step.key === 'under_review'
                     ? 'Quality & Guideline Review'
                     : 'Payout Approval',
-              description: step.message || 'Timeline step status updated',
-              state: step.status as 'completed' | 'current' | 'pending' | 'rejected',
+              description: isCancelled ? 'Upload stage cancelled' : (step.message || 'Timeline step status updated'),
+              state: isCancelled ? 'rejected' : (step.status as 'completed' | 'current' | 'pending' | 'rejected'),
               timestamp: step.completedAt ? new Date(step.completedAt).toLocaleString() : undefined,
             }))
             : [
               {
                 title: 'Video Uploaded',
-                description: 'Upload verified',
-                state: 'completed',
+                description: isCancelled ? 'Upload stage cancelled' : 'Upload verified',
+                state: isCancelled ? 'rejected' : 'completed',
                 timestamp: new Date(item.createdAt).toLocaleString(),
               },
               {
                 title: 'Quality & Guideline Review',
-                description: 'Reviewing against platform guidelines',
-                state: item.status === 'in_review' ? 'current' : item.status === 'rejected' ? 'rejected' : 'completed',
+                description: isCancelled ? 'Upload stage cancelled' : 'Reviewing against platform guidelines',
+                state: isCancelled ? 'rejected' : item.status === 'in_review' ? 'current' : item.status === 'rejected' ? 'rejected' : 'completed',
               },
               {
                 title: 'Payout Approval',
-                description: 'Reward disbursement status',
-                state: item.status === 'paid' ? 'completed' : 'pending',
+                description: isCancelled ? 'Upload stage cancelled' : 'Reward disbursement status',
+                state: isCancelled ? 'rejected' : item.status === 'paid' ? 'completed' : 'pending',
               },
             ];
 
@@ -362,10 +365,11 @@ export default function EmployeeDashboardPage() {
               ) : (
                 <div className="space-y-4">
                   {filteredSubmissions.map((submission) => {
-                    const isPaid = submission.status === 'paid' || submission.status === 'payment_pending';
-                    const isInReview = submission.status === 'in_review' || submission.status === 'draft';
-                    const isApproved = submission.status === 'approved';
-                    const isRejected = submission.status === 'rejected';
+                    const isCancelled = submission.status === 'cancelled' || submission.videoStatus?.toLowerCase() === 'cancelled';
+                    const isPaid = !isCancelled && (submission.status === 'paid' || submission.status === 'payment_pending');
+                    const isInReview = !isCancelled && (submission.status === 'in_review' || submission.status === 'draft');
+                    const isApproved = !isCancelled && submission.status === 'approved';
+                    const isRejected = !isCancelled && submission.status === 'rejected';
 
                     return (
                       <div
@@ -393,13 +397,16 @@ export default function EmployeeDashboardPage() {
                                   {submission.title}
                                 </h3>
                                 <span
-                                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-xs font-bold ${isPaid || isApproved
-                                      ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
-                                      : isInReview
-                                        ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
-                                        : 'bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
+                                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-xs font-bold ${isCancelled
+                                      ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 line-through'
+                                      : isPaid || isApproved
+                                        ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
+                                        : isInReview
+                                          ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
+                                          : 'bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
                                     }`}
                                 >
+                                  {isCancelled && <XCircle className="h-3 w-3" />}
                                   {isInReview && <Clock className="h-3 w-3" />}
                                   {(isPaid || isApproved) && <CheckCircle2 className="h-3 w-3" />}
                                   {isRejected && <AlertCircle className="h-3 w-3" />}
@@ -638,10 +645,10 @@ export default function EmployeeDashboardPage() {
                             {step.state === 'pending' && idx + 1}
                           </div>
                           <div>
-                            <h6 className="text-sm font-bold text-zinc-900 dark:text-white">
+                            <h6 className={`text-sm font-bold ${selectedSubmission.status === 'cancelled' || selectedSubmission.videoStatus?.toLowerCase() === 'cancelled' ? 'line-through text-zinc-400 dark:text-zinc-500' : 'text-zinc-900 dark:text-white'}`}>
                               {step.title}
                             </h6>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                            <p className={`text-xs ${selectedSubmission.status === 'cancelled' || selectedSubmission.videoStatus?.toLowerCase() === 'cancelled' ? 'line-through text-zinc-400 dark:text-zinc-500' : 'text-zinc-500 dark:text-zinc-400'}`}>
                               {step.description}
                             </p>
                             {step.timestamp && (
