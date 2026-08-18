@@ -301,12 +301,13 @@ export class StaffSubmissionsController {
 
       // Define valid transitions map
       const VALID_TRANSITIONS: Record<string, string[]> = {
-        'draft': ['in_review'], // System transitions normally, but documented
+        'draft': ['in_review'],
         'in_review': ['approved', 'rejected'],
-        'approved': ['payment_pending'], // if payment logic exists
+        'approved': ['payment_pending', 'paid'], // staff can mark paid directly or via payment_pending
         'payment_pending': ['paid'],
         'rejected': [],
-        'paid': []
+        'paid': [],
+        'cancelled': [],
       };
 
       const allowedNextStatuses = VALID_TRANSITIONS[currentStatus] || [];
@@ -345,7 +346,7 @@ export class StaffSubmissionsController {
         {
           $set: {
             status,
-            ...(status === 'approved' || status === 'rejected' ? { reviewedBy: new mongoose.Types.ObjectId(req.auth!.userId), reviewedAt: new Date() } : {}),
+            ...(status === 'approved' || status === 'rejected' || status === 'paid' ? { reviewedBy: new mongoose.Types.ObjectId(req.auth!.userId), reviewedAt: new Date() } : {}),
             rejectionReason: status === 'rejected' ? rejectionReason : undefined,
             ...(earning !== undefined ? { earning } : {}),
           },
