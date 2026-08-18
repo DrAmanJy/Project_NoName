@@ -12,6 +12,7 @@ import {
   X,
   Eye,
   Filter,
+  DollarSign,
 } from 'lucide-react';
 import { staffApi } from '@/lib/api-client';
 import { RoleGuard } from '@/components/auth/role-guard';
@@ -65,12 +66,7 @@ export default function EmployeeDashboardPage() {
       const staffSubmissionsRes = await staffApi.submissions.list(1, 50).catch(() => null);
       if (staffSubmissionsRes && Array.isArray(staffSubmissionsRes.data) && staffSubmissionsRes.data.length > 0) {
         const mapped: UserVideoSubmissionItem[] = staffSubmissionsRes.data.map((item) => {
-          let statusLabel = 'In Review';
-          if (item.status === 'approved') statusLabel = 'Approved';
-          if (item.status === 'paid') statusLabel = 'Approved & Paid';
-          if (item.status === 'rejected') statusLabel = 'Rejected';
-          if (item.status === 'payment_pending') statusLabel = 'Payment Pending';
-          if (item.status === 'draft') statusLabel = 'Draft';
+          const statusLabel = item.video?.uploadStatus || item.status;
 
           const mappedSteps: VideoProgressStep[] = item.timeline && item.timeline.length > 0
             ? item.timeline.map((step) => ({
@@ -170,6 +166,20 @@ export default function EmployeeDashboardPage() {
       alert('Failed to update status');
     } finally {
       setReviewModalState((prev) => ({ ...prev, isOpen: false }));
+    }
+  };
+
+  const handleMarkAsPaid = async (submissionId: string) => {
+    try {
+      await staffApi.submissions.updateStatus(submissionId, { status: 'paid' });
+      await fetchDashboardData();
+      if (selectedSubmission && selectedSubmission.id === submissionId) {
+        setSelectedSubmission((prev) =>
+          prev ? { ...prev, status: 'paid', statusLabel: 'paid' } : null
+        );
+      }
+    } catch (error) {
+      console.error('Failed to set paid status:', error);
     }
   };
 
@@ -357,9 +367,17 @@ export default function EmployeeDashboardPage() {
                         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                           {/* Creator Info & Video Title */}
                           <div className="flex items-start gap-4">
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-bold text-base shadow-sm">
-                              {submission.creatorName.charAt(0).toUpperCase()}
-                            </div>
+                            {submission.creatorAvatar ? (
+                              <img
+                                src={submission.creatorAvatar}
+                                alt={submission.creatorName}
+                                className="h-12 w-12 shrink-0 rounded-2xl object-cover border border-zinc-200 dark:border-zinc-800 shadow-sm"
+                              />
+                            ) : (
+                              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-bold text-base shadow-sm">
+                                {submission.creatorName.charAt(0).toUpperCase()}
+                              </div>
+                            )}
 
                             <div>
                               <div className="flex items-center gap-3 flex-wrap">
@@ -400,6 +418,17 @@ export default function EmployeeDashboardPage() {
 
                           {/* Actions */}
                           <div className="flex items-center gap-2 shrink-0">
+                            {(submission.status === 'approved' || submission.status === 'payment_pending') && (
+                              <button
+                                type="button"
+                                onClick={() => handleMarkAsPaid(submission.id)}
+                                className="flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 text-xs font-bold shadow-sm transition-colors"
+                                id={`mark-paid-btn-${submission.id}`}
+                              >
+                                <DollarSign className="h-3.5 w-3.5" />
+                                <span>Set Paid Status</span>
+                              </button>
+                            )}
                             <button
                               type="button"
                               onClick={() => setSelectedSubmission(submission)}
@@ -539,7 +568,22 @@ export default function EmployeeDashboardPage() {
                       <div className="mt-2 grid grid-cols-2 gap-3 text-xs text-zinc-600 dark:text-zinc-400">
                         <div>
                           <span className="font-semibold text-zinc-400 block">Creator</span>
-                          <span>{selectedSubmission.creatorName} ({selectedSubmission.creatorEmail})</span>
+                          <div className="flex items-center gap-2 mt-1">
+                            {selectedSubmission.creatorAvatar ? (
+                              <img
+                                src={selectedSubmission.creatorAvatar}
+                                alt={selectedSubmission.creatorName}
+                                className="h-5 w-5 rounded-full object-cover border border-zinc-200 dark:border-zinc-800 shrink-0"
+                              />
+                            ) : (
+                              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-bold text-[9px] shrink-0">
+                                {selectedSubmission.creatorName.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                            <span className="font-medium text-zinc-900 dark:text-white">
+                              {selectedSubmission.creatorName} ({selectedSubmission.creatorEmail})
+                            </span>
+                          </div>
                         </div>
                         <div>
                           <span className="font-semibold text-zinc-400 block">Submission ID</span>
@@ -615,9 +659,21 @@ export default function EmployeeDashboardPage() {
                           Approve
                         </button>
                       </div>
+                    ) : selectedSubmission.status === 'approved' || selectedSubmission.status === 'payment_pending' ? (
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => handleMarkAsPaid(selectedSubmission.id)}
+                          className="rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 text-xs font-bold shadow-md transition-colors flex items-center gap-1.5"
+                          id="employee-modal-mark-paid-btn"
+                        >
+                          <DollarSign className="h-3.5 w-3.5" />
+                          <span>Set Paid Status</span>
+                        </button>
+                      </div>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-zinc-500">Status updated</span>
+                        <span className="text-xs font-bold text-zinc-500">Status: {selectedSubmission.statusLabel}</span>
                       </div>
                     )}
                     <button

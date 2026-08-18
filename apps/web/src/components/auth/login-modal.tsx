@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShieldCheck, X, Loader2 } from 'lucide-react';
+import { ShieldCheck, X, Loader2, AlertCircle } from 'lucide-react';
 import gsap from 'gsap';
 import { API_URL } from '@/lib/api-client';
 
@@ -15,8 +15,7 @@ interface LoginModalProps {
 export function LoginModal({ isOpen = true, onClose }: LoginModalProps) {
   const router = useRouter();
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
-
-
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const backdropRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -24,6 +23,56 @@ export function LoginModal({ isOpen = true, onClose }: LoginModalProps) {
   const titleRef = useRef<HTMLDivElement>(null);
   const buttonsRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
+
+  // Check URL error parameters on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const errorParam = params.get('error') || params.get('errorMessage');
+      const canceledParam = params.get('canceled') || params.get('cancelled');
+
+      if (errorParam || canceledParam) {
+        setLoadingProvider(null);
+        if (canceledParam || errorParam === 'access_denied' || errorParam === 'user_cancelled') {
+          setErrorMessage('Login request was cancelled. Please try again.');
+        } else {
+          setErrorMessage(decodeURIComponent(errorParam || 'Login attempt failed. Please try again.'));
+        }
+      }
+    }
+  }, []);
+
+  // Handle browser Back button / BFCache page restores
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        setLoadingProvider(null);
+        setErrorMessage('Login request was cancelled or incomplete.');
+      }
+    };
+
+    const handleWindowFocus = () => {
+      if (typeof window !== 'undefined') {
+        const isPending = sessionStorage.getItem('pending_oauth_login') === 'true';
+        if (isPending) {
+          const provider = sessionStorage.getItem('pending_oauth_provider') || 'google';
+          sessionStorage.removeItem('pending_oauth_login');
+          sessionStorage.removeItem('pending_oauth_provider');
+          setLoadingProvider(null);
+          const providerFormatted = provider.charAt(0).toUpperCase() + provider.slice(1);
+          setErrorMessage(`Login with ${providerFormatted} was cancelled or incomplete. Please try again.`);
+        }
+      }
+    };
+
+    window.addEventListener('pageshow', handlePageShow);
+    window.addEventListener('focus', handleWindowFocus);
+
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow);
+      window.removeEventListener('focus', handleWindowFocus);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -80,6 +129,8 @@ export function LoginModal({ isOpen = true, onClose }: LoginModalProps) {
   }, [isOpen]);
 
   const handleClose = () => {
+    setLoadingProvider(null);
+    setErrorMessage(null);
     if (backdropRef.current && modalRef.current) {
       const tl = gsap.timeline({
         onComplete: () => {
@@ -106,7 +157,12 @@ export function LoginModal({ isOpen = true, onClose }: LoginModalProps) {
   };
 
   const handleSocialLogin = (provider: 'google' | 'facebook' | 'apple') => {
+    setErrorMessage(null);
     setLoadingProvider(provider);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('pending_oauth_login', 'true');
+      sessionStorage.setItem('pending_oauth_provider', provider);
+    }
     const endpoint = `${API_URL}/auth/${provider}?client=web`;
 
     // Initiate OAuth through browser navigation, NOT fetch, to avoid CORS failure
@@ -153,6 +209,24 @@ export function LoginModal({ isOpen = true, onClose }: LoginModalProps) {
             Choose a method to sign in and start earning rewards for your videos.
           </p>
         </div>
+
+        {/* Error / Cancellation Toast Alert Banner */}
+        {errorMessage && (
+          <div className="mt-6 flex items-start gap-3 rounded-2xl bg-red-50 dark:bg-red-950/60 p-3.5 border border-red-200 dark:border-red-900/60 text-red-700 dark:text-red-300 text-xs shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
+            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-red-600 dark:text-red-400" />
+            <div className="flex-1 min-w-0">
+              <span className="font-semibold">{errorMessage}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setErrorMessage(null)}
+              className="text-red-500 hover:text-red-700 dark:hover:text-red-200 p-0.5 rounded-md"
+              aria-label="Dismiss error message"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
 
         {/* Social Login Buttons Container */}
         <div ref={buttonsRef} className="mt-8 flex flex-col gap-3.5">

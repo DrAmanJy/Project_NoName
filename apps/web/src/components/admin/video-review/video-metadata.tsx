@@ -18,6 +18,12 @@ export function VideoMetadata({ selectedVideo }: { selectedVideo: AdminVideoItem
                         </span>
                     </div>
                     <div>
+                        <span className="text-zinc-500">Upload Status: </span>
+                        <span className="font-bold text-zinc-900 dark:text-white">
+                            {selectedVideo.video?.uploadStatus || selectedVideo.status}
+                        </span>
+                    </div>
+                    <div>
                         <span className="text-zinc-500">Creator Name: </span>
                         <span className="font-semibold text-zinc-900 dark:text-white">
                             {selectedVideo.userName} ({selectedVideo.userEmail})

@@ -112,10 +112,8 @@ export function DashboardView() {
     const isProcessing = video.status === 'PROCESSING' || video.status === 'UPLOADING' || video.status === 'uploading';
     const isPaid = video.status === 'PAID' || video.status === 'SELECTED' || video.status === 'paid' || video.status === 'approved';
 
-    let statusLabel = 'In Review';
-    if (isPaid) statusLabel = 'Approved & Paid';
-    else if (isRejected) statusLabel = 'Rejected';
-    else if (isProcessing) statusLabel = 'Processing';
+    const uploadStatus = video.video?.uploadStatus || video.status;
+    const statusLabel = uploadStatus;
 
     const formattedDate = new Date(video.createdAt).toLocaleDateString('en-US', {
       month: 'short', day: 'numeric', year: 'numeric',
@@ -149,7 +147,7 @@ export function DashboardView() {
         { title: 'Payout Approval', description: 'Reward disbursement to wallet', state: isPaid ? 'completed' : 'pending' },
       ];
 
-    return { isRejected, isInReview, isProcessing, isPaid, statusLabel, title, fileName, fileSize, duration, uploadedAt, rewardAmount, thumbnailBg, videoUrl, steps, rejectionReason: undefined };
+    return { isRejected, isInReview, isProcessing, isPaid, statusLabel, uploadStatus, title, fileName, fileSize, duration, uploadedAt, rewardAmount, thumbnailBg, videoUrl, steps, rejectionReason: undefined };
   };
 
   const selectedDerivedVideo = selectedVideo ? { ...selectedVideo, ...getDerivedVideoData(selectedVideo) } : null;
@@ -608,7 +606,7 @@ export function DashboardView() {
                   <h4 className="text-base font-bold text-zinc-900 dark:text-white">
                     {selectedVideo.title}
                   </h4>
-                  <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs text-zinc-600 dark:text-zinc-400">
+                  <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-zinc-600 dark:text-zinc-400">
                     <div>
                       <span className="font-semibold text-zinc-400 block">File Name</span>
                       <span>{selectedVideo.fileName}</span>
@@ -616,6 +614,12 @@ export function DashboardView() {
                     <div>
                       <span className="font-semibold text-zinc-400 block">Duration</span>
                       <span>{selectedVideo.duration}</span>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-zinc-400 block">Upload Status</span>
+                      <span className="font-bold text-zinc-900 dark:text-white capitalize">
+                        {selectedVideo.uploadStatus}
+                      </span>
                     </div>
                     <div>
                       <span className="font-semibold text-zinc-400 block">Target Reward</span>

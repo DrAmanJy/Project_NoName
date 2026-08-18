@@ -301,12 +301,21 @@ export function VideoReviewConsole({
           v.id === selectedVideo.id ? { ...v, status: 'UNDER_REVIEW' } : v
         )
       );
-      // Update selected video object reference but we cannot directly mutate selectedVideo
-      // Wait, we need to find how selectedVideo is set. It uses selectedVideoId!
-      // If we just trigger re-render, selectedVideo is derived from videos array.
-      // So setVideos is enough! We don't need setSelectedVideo because it doesn't exist.
     } catch (error) {
       console.error('Failed to start review:', error);
+    }
+  };
+
+  const handleSetPaidStatus = async (videoId: string) => {
+    try {
+      await staffApi.submissions.updateStatus(videoId, {
+        status: 'paid',
+      });
+      setVideos((prev) =>
+        prev.map((v) => (v.id === videoId ? { ...v, status: 'PAID' } : v))
+      );
+    } catch (error) {
+      console.error('Failed to set paid status:', error);
     }
   };
 
@@ -625,11 +634,7 @@ export function VideoReviewConsole({
                                   : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
                                 }`}
                             >
-                              {isApproved
-                                ? 'APPROVED'
-                                : isRejected
-                                  ? 'REJECTED'
-                                  : 'IN REVIEW'}
+                              {(item.video?.uploadStatus || item.status).toUpperCase()}
                             </span>
                           </div>
 
@@ -704,7 +709,7 @@ export function VideoReviewConsole({
                       <span className="text-xs font-bold">
                         Current Status:{' '}
                         <span className="uppercase text-zinc-900 dark:text-white font-extrabold">
-                          {selectedVideo.status}
+                          {selectedVideo.video?.uploadStatus || selectedVideo.status}
                         </span>
                       </span>
                     </div>
@@ -714,10 +719,26 @@ export function VideoReviewConsole({
                         <XCircle className="h-4 w-4" />
                         <span>Submission Rejected</span>
                       </div>
-                    ) : selectedVideo.status === 'SELECTED' || selectedVideo.status === 'PAID' ? (
+                    ) : selectedVideo.status === 'PAID' ? (
                       <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-5 py-2.5 text-xs font-bold text-emerald-500">
                         <CheckCircle2 className="h-4 w-4" />
-                        <span>Submission Approved ({selectedVideo.status})</span>
+                        <span>Submission Paid & Completed</span>
+                      </div>
+                    ) : selectedVideo.status === 'SELECTED' ? (
+                      <div className="flex items-center gap-3">
+                        <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 text-xs font-bold text-emerald-500">
+                          <CheckCircle2 className="h-4 w-4" />
+                          <span>Approved</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleSetPaidStatus(selectedVideo.id)}
+                          className="inline-flex items-center gap-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 text-xs font-bold shadow-lg shadow-emerald-950/30 transition-all hover:scale-[1.02] active:scale-95"
+                          id="admin-mark-as-paid-btn"
+                        >
+                          <DollarSign className="h-4 w-4" />
+                          <span>Set Paid Status</span>
+                        </button>
                       </div>
                     ) : selectedVideo.status === 'PROCESSING' ? (
                       <div className="flex items-center gap-3">
