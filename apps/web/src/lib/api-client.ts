@@ -1,8 +1,12 @@
 import { ApiClient, createAuthApi, createVideosApi, createEarningsApi, createSubmissionsApi, createStaffApi, createAdminApi } from '@repo/api-client';
 
-const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+// When NEXT_PUBLIC_API_URL is empty, requests go to /api/v1 on the same origin.
+// Next.js rewrites proxy those to the real API server-side (see next.config.ts).
+// When set to an absolute URL (local dev without proxy), use it directly.
 export const API_URL = (() => {
+  if (!RAW_API_URL) return '/api/v1';
   let url = RAW_API_URL.replace(/\/+$/, '');
   if (!url.endsWith('/api/v1')) {
     if (url.endsWith('/api')) {
