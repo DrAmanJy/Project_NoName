@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowLeft, ShieldCheck, CheckCircle2, DollarSign, Sparkles } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, CheckCircle2, DollarSign } from 'lucide-react';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
 import { VideoUploader } from '@/components/video/VideoUploader';
@@ -85,15 +85,6 @@ export default function UploadVideoPage() {
                   <p className="mt-1 text-xs text-zinc-400">
                     Once your video passes verification review, funds will be directly credited to your creator balance.
                   </p>
-                  <div className="mt-4 pt-3 border-t border-zinc-800">
-                    <Link
-                      href="/submission/earnings"
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 underline underline-offset-2"
-                    >
-                      <Sparkles className="h-3.5 w-3.5" />
-                      <span>View Payout Rules & Earnings</span>
-                    </Link>
-                  </div>
                 </div>
               </div>
 

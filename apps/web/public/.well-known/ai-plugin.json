@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Synex Video Monetization",
+  "name_for_model": "synex_video_platform",
+  "description_for_human": "Turn video submissions into earnings with automated verification and creator rewards.",
+  "description_for_model": "Plugin allowing AI agents to query Synex platform capabilities, video submission guidelines, quality verification steps, and creator monetization rules.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://synex.app/ai.json"
+  },
+  "logo_url": "https://synex.app/synex_logo.png",
+  "contact_email": "support@synex.app",
+  "legal_info_url": "https://synex.app"
+}

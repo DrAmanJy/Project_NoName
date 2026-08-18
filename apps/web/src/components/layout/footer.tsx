@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ShieldCheck, Download, Smartphone, Twitter, Github, Linkedin } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -24,33 +24,6 @@ export function Footer() {
               <span>Verified Creator Ecosystem</span>
             </div>
           </div>
-
-          {/* Apps & Mobile - App Store style buttons */}
-          <div className="flex flex-col items-start md:items-end mt-4 md:mt-0">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-6">Get The App</h3>
-            <div className="flex flex-col sm:flex-row md:flex-col gap-3">
-              <a 
-                href="#download" 
-                className="flex items-center gap-3 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-5 py-2.5 rounded-xl hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-all shadow-md group border border-transparent dark:border-zinc-200"
-              >
-                <Smartphone className="h-6 w-6 group-hover:-translate-y-0.5 transition-transform" />
-                <div className="flex flex-col text-left">
-                  <span className="text-[10px] font-medium leading-none opacity-80 mb-0.5">Download on the</span>
-                  <span className="text-sm font-bold leading-none tracking-tight">App Store</span>
-                </div>
-              </a>
-              <a 
-                href="#download" 
-                className="flex items-center gap-3 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white px-5 py-2.5 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all shadow-sm border border-zinc-200 dark:border-zinc-800 group"
-              >
-                <Download className="h-6 w-6 group-hover:-translate-y-0.5 transition-transform" />
-                <div className="flex flex-col text-left">
-                  <span className="text-[10px] font-medium leading-none text-zinc-500 dark:text-zinc-400 mb-0.5">GET IT ON</span>
-                  <span className="text-sm font-bold leading-none tracking-tight">Google Play</span>
-                </div>
-              </a>
-            </div>
-          </div>
         </div>
 
         {/* Bottom Bar */}
@@ -58,33 +31,6 @@ export function Footer() {
           <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
             © {new Date().getFullYear()} Synex Platform. All rights reserved.
           </p>
-          
-          <div className="flex flex-col sm:flex-row items-center gap-6">
-            {/* Social Links */}
-            <div className="flex items-center gap-4 text-zinc-400">
-              <a href="#" className="hover:text-zinc-900 dark:hover:text-white transition-colors">
-                <span className="sr-only">Twitter</span>
-                <Twitter className="h-4 w-4" />
-              </a>
-              <a href="#" className="hover:text-zinc-900 dark:hover:text-white transition-colors">
-                <span className="sr-only">GitHub</span>
-                <Github className="h-4 w-4" />
-              </a>
-              <a href="#" className="hover:text-zinc-900 dark:hover:text-white transition-colors">
-                <span className="sr-only">LinkedIn</span>
-                <Linkedin className="h-4 w-4" />
-              </a>
-            </div>
-
-            <div className="hidden sm:block h-4 w-px bg-zinc-200 dark:bg-zinc-800"></div>
-
-            {/* Legal Links */}
-            <div className="flex gap-6 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-              <a href="#privacy" className="hover:text-zinc-900 dark:hover:text-white transition-colors">Privacy</a>
-              <a href="#terms" className="hover:text-zinc-900 dark:hover:text-white transition-colors">Terms</a>
-              <a href="#contact" className="hover:text-zinc-900 dark:hover:text-white transition-colors">Support</a>
-            </div>
-          </div>
         </div>
       </div>
     </footer>

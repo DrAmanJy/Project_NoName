@@ -57,7 +57,10 @@ export function DashboardView() {
     try {
       const res = await submissionsApi.list(1, 50).catch(() => null);
       if (res && Array.isArray(res.data) && res.data.length > 0) {
-        setVideos(res.data as UploadedVideoItem[]);
+        const nonDraftVideos = (res.data as UploadedVideoItem[]).filter(
+          (item) => item.status?.toLowerCase() !== 'draft'
+        );
+        setVideos(nonDraftVideos);
       } else {
         setVideos([]);
       }
@@ -75,7 +78,7 @@ export function DashboardView() {
   const filteredVideos = videos.filter((video) => {
     const matchesFilter =
       selectedFilter === 'ALL' ||
-      (selectedFilter === 'PROCESSING' && (video.status === 'draft' || video.status === 'uploading' || video.status === 'PROCESSING')) ||
+      (selectedFilter === 'PROCESSING' && (video.status === 'uploading' || video.status === 'PROCESSING')) ||
       (selectedFilter === 'IN_REVIEW' && (video.status === 'in_review' || video.status === 'UNDER_REVIEW')) ||
       (selectedFilter === 'PAID' && (video.status === 'paid' || video.status === 'approved' || video.status === 'PAID')) ||
       (selectedFilter === 'REJECTED' && (video.status === 'rejected' || video.status === 'REJECTED'));
@@ -94,19 +97,19 @@ export function DashboardView() {
   });
 
   const totalVideos = videos.length;
-  const inReviewCount = videos.filter((v) => v.status === 'UNDER_REVIEW' || v.status === 'PROCESSING' || v.status === 'in_review' || v.status === 'draft').length;
+  const inReviewCount = videos.filter((v) => v.status === 'UNDER_REVIEW' || v.status === 'PROCESSING' || v.status === 'in_review').length;
   const paidCount = videos.filter((v) => v.status === 'PAID' || v.status === 'SELECTED' || v.status === 'paid' || v.status === 'approved').length;
   const totalEarnedAmount = videos
     .filter((v) => v.status === 'PAID' || v.status === 'SELECTED' || v.status === 'paid' || v.status === 'approved')
     .reduce((acc, v) => acc + ((Number(v.earning) / 100) || 50), 0);
   const pendingEarnedAmount = videos
-    .filter((v) => v.status === 'UNDER_REVIEW' || v.status === 'PROCESSING' || v.status === 'in_review' || v.status === 'draft')
+    .filter((v) => v.status === 'UNDER_REVIEW' || v.status === 'PROCESSING' || v.status === 'in_review')
     .reduce((acc, v) => acc + ((Number(v.expectedEarning) / 100) || 35), 0);
 
   const getDerivedVideoData = (video: UploadedVideoItem) => {
     const isRejected = video.status === 'REJECTED' || video.status === 'rejected';
     const isInReview = video.status === 'UNDER_REVIEW' || video.status === 'in_review';
-    const isProcessing = video.status === 'PROCESSING' || video.status === 'UPLOADING' || video.status === 'draft' || video.status === 'uploading';
+    const isProcessing = video.status === 'PROCESSING' || video.status === 'UPLOADING' || video.status === 'uploading';
     const isPaid = video.status === 'PAID' || video.status === 'SELECTED' || video.status === 'paid' || video.status === 'approved';
 
     let statusLabel = 'In Review';
@@ -260,7 +263,7 @@ export function DashboardView() {
                 ${totalEarnedAmount.toFixed(2)}
               </div>
               <div className="mt-2 flex items-center justify-between text-xs text-zinc-400">
-                <span>Pending: ${pendingEarnedAmount.toFixed(2)}</span>
+                <span>Expected earnings: ${pendingEarnedAmount.toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -477,16 +480,6 @@ export function DashboardView() {
                             <span>Play Video</span>
                           </button>
 
-
-                          {isRejected && (
-                            <Link
-                              href="/submission/videos/upload"
-                              className="flex items-center gap-1.5 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-4 py-2 text-xs font-bold shadow-sm hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-colors"
-                            >
-                              <Upload className="h-3.5 w-3.5" />
-                              <span>Re-upload</span>
-                            </Link>
-                          )}
                         </div>
                       </div>
 

@@ -3,8 +3,21 @@ import { LoginModal } from '@/components/auth/login-modal';
 import MarketingHomePage from '@/app/(marketing)/page';
 
 export const metadata: Metadata = {
-  title: 'Login',
-  description: 'Sign in to your Synex account.',
+  title: 'Sign In to Synex',
+  description: 'Access your Synex creator account to submit videos and track payouts.',
+  alternates: {
+    canonical: '/login',
+  },
+  openGraph: {
+    title: 'Sign In to Synex',
+    description: 'Access your Synex creator account to submit videos and track payouts.',
+    url: '/login',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Sign In to Synex',
+    description: 'Access your Synex creator account to submit videos and track payouts.',
+  },
   robots: {
     index: false,
     follow: false,

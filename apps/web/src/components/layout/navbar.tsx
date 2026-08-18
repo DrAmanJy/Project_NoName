@@ -241,27 +241,39 @@ export function Navbar() {
                 ))}
               <div className="mt-4 flex flex-col gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-900">
                 {isAuthenticated && user ? (
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-3">
+                    {/* User Profile Card (Small Screen Profile Info Section) */}
+                    <div className="flex items-center gap-3 rounded-2xl bg-zinc-100/90 dark:bg-zinc-900/90 p-3.5 border border-zinc-200/80 dark:border-zinc-800/80">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-sm font-bold shadow-sm overflow-hidden">
+                        {user.avatarUrl ? (
+                          <img src={user.avatarUrl} alt={user.name || 'User'} className="h-10 w-10 rounded-full object-cover" />
+                        ) : (
+                          (user.name || 'U').charAt(0).toUpperCase()
+                        )}
+                      </div>
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <span className="text-sm font-semibold text-zinc-900 dark:text-white truncate">{user.name || 'User'}</span>
+                        <span className="text-xs font-normal text-zinc-500 dark:text-zinc-400 truncate">{user.email || 'Creator'}</span>
+                        <span className="mt-1 inline-flex w-fit items-center rounded-md bg-zinc-200/60 dark:bg-zinc-800/80 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300 border border-zinc-300/50 dark:border-zinc-700/50">
+                          {role}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Dedicated Submission Route Button */}
                     <Link
                       href="/submission"
                       onClick={(e) => {
                         handleDashboardClick(e);
                         if (!e.defaultPrevented) setMobileMenuOpen(false);
                       }}
-                      className="flex items-center gap-3 rounded-xl bg-zinc-100 dark:bg-zinc-900 p-3 text-sm font-semibold text-zinc-900 dark:text-white"
+                      className="flex items-center justify-between gap-2 rounded-xl bg-zinc-900 dark:bg-white px-4 py-3 text-xs font-bold text-white dark:text-zinc-900 shadow-md transition-all hover:bg-zinc-800 dark:hover:bg-zinc-100 group"
+                      id="mobile-submission-route-btn"
                     >
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-xs font-bold overflow-hidden">
-                        {user.avatarUrl ? (
-                          <img src={user.avatarUrl} alt={user.name || 'User'} className="h-7 w-7 rounded-full object-cover" />
-                        ) : (
-                          (user.name || 'U').charAt(0).toUpperCase()
-                        )}
-                      </div>
-                      <div className="flex flex-col">
-                        <span>{user.name || 'User'}</span>
-                        <span className="text-xs font-normal text-zinc-500">{user.email || 'Creator'}</span>
-                      </div>
+                      <span>{role === 'user' ? 'Submissions Portal' : 'Submission Dashboard'}</span>
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                     </Link>
+
                     {(role === 'admin' || role === 'employee') && (
                       <Link
                         href={role === 'admin' ? '/admin/dashboard' : '/employees/dashboard'}
@@ -269,11 +281,13 @@ export function Navbar() {
                           handleDashboardClick(e);
                           if (!e.defaultPrevented) setMobileMenuOpen(false);
                         }}
-                        className="w-full text-center rounded-xl bg-purple-100 dark:bg-purple-950/60 p-2.5 text-xs font-bold text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800"
+                        className="w-full text-center rounded-xl bg-purple-100 dark:bg-purple-950/60 p-2.5 text-xs font-bold text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 transition-colors"
                       >
                         {role === 'admin' ? 'Admin Portal' : 'Staff Portal'}
                       </Link>
                     )}
+
+                    {/* Log Out Action Button */}
                     <button
                       type="button"
                       onClick={() => {

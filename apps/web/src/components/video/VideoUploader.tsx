@@ -273,7 +273,7 @@ export function VideoUploader() {
           <div className="flex items-center justify-between pt-4 border-t border-zinc-200 dark:border-zinc-900 text-xs font-semibold">
             <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
               <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-              <span>S3 Presigned Multipart Chunk Upload</span>
+              <span>Video Uploading...</span>
             </div>
 
             <div className="flex items-center gap-3">
@@ -300,10 +300,6 @@ export function VideoUploader() {
         /* Form & Drag-and-Drop Dropzone View */
         <div className="space-y-6">
           <div>
-            <div className="flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-1">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>Step 1: Video File & Region Selection</span>
-            </div>
             <h3 className="text-xl font-bold text-zinc-900 dark:text-white">
               Select Video File & Country
             </h3>
@@ -411,7 +407,7 @@ export function VideoUploader() {
               id="start-upload-submit-btn"
             >
               <Upload className={`h-4 w-4 ${status === 'uploading' ? 'animate-bounce' : ''}`} />
-              <span>{status === 'uploading' ? 'Starting Upload...' : 'Start Multipart Video Upload'}</span>
+              <span>{status === 'uploading' ? 'Starting Upload...' : 'Start Video Upload'}</span>
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </button>
           </div>

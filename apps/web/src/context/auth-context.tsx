@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 import type { User, Role } from '@repo/contracts';
 import { authApi } from '@/lib/api-client';
 
@@ -107,7 +108,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout,
       }}
     >
-      {children}
+      {isLoading ? (
+        <div className="flex min-h-screen w-full items-center justify-center bg-white dark:bg-black text-zinc-900 dark:text-white transition-colors duration-300">
+          <Loader2 className="h-9 w-9 animate-spin text-zinc-900 dark:text-white" />
+        </div>
+      ) : (
+        children
+      )}
     </AuthContext.Provider>
   );
 }

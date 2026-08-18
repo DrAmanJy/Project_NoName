@@ -8,7 +8,22 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/submission/', '/login'],
+        disallow: ['/submission/', '/admin/', '/employees/', '/login'],
+      },
+      {
+        userAgent: [
+          'GPTBot',
+          'ChatGPT-User',
+          'ClaudeBot',
+          'Claude-Web',
+          'PerplexityBot',
+          'Google-Extended',
+          'CCBot',
+          'ByteDance',
+          'Applebot-Extended',
+        ],
+        allow: ['/', '/llms.txt', '/llms-full.txt', '/ai.json', '/.well-known/ai-plugin.json'],
+        disallow: ['/submission/', '/admin/', '/employees/', '/login'],
       },
     ],
     sitemap: `${BASE_URL}/sitemap.xml`,

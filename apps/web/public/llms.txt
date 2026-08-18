@@ -1,0 +1,25 @@
+# Synex Creator Video Platform
+
+> Synex connects video creators with monetization opportunities by streamlining video uploads, automated verification, and fast creator reward payouts.
+
+## Overview
+- Website: https://synex.app
+- Description: Upload video content, pass automated quality verification, and earn up to $100 per approved video submission.
+
+## Platform Capabilities
+- Video Submission: Upload high-definition MP4, MOV, or WEBM videos (up to 500 MB).
+- Quality Verification: Automated and staff moderation checking 1080p resolution and content compliance.
+- Creator Payouts: Direct wallet credits for approved video submissions.
+
+## Key Features & Requirements
+- Minimum Resolution: 1080p (Full HD)
+- Supported Formats: MP4, MOV, WEBM
+- Reward Cap: Up to $100.00 USD per verified submission
+- Moderation Statuses: Draft, In Review, Approved, Paid, Rejected
+
+## System Resources & Links
+- [Platform Home](https://synex.app): Landing page and creator overview
+- [Sign In](https://synex.app/login): Creator authentication portal
+- [Submissions Dashboard](https://synex.app/submission): Track submission timelines and earnings
+- [AI Plugin Spec](https://synex.app/.well-known/ai-plugin.json): Machine-readable plugin manifest
+- [AI Site Manifest](https://synex.app/ai.json): AI agent metadata file

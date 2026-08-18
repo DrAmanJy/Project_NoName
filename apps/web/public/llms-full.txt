@@ -1,0 +1,32 @@
+# Synex Platform - Full AI Agent Context & Documentation
+
+## About Synex
+Synex is a monorepo-architected web and mobile platform enabling content creators to submit videos, monitor verification stages, and receive direct monetary payouts.
+
+## Monorepo Architecture Overview
+- Web Frontend: Next.js (App Router), Tailwind CSS, Framer Motion
+- Backend API: Express.js, TypeScript, MongoDB, Cloudflare R2 presigned video uploads
+- Mobile App: React Native, Expo, Expo Router
+- Shared Contracts: `@repo/contracts` (Zod validation schemas and shared TypeScript types)
+- Shared API Client: `@repo/api-client` (Fetch-based API client for Web and Mobile)
+
+## Video Upload Workflow
+1. Client requests presigned upload URL from Express API (`/api/v1/videos/upload-url`).
+2. Express API signs URL for Cloudflare R2 object storage.
+3. Client uploads video file directly to Cloudflare R2 via HTTP PUT (bypassing API server).
+4. Video record status transitions:
+   - DRAFT -> UPLOADING -> PROCESSING -> UNDER_REVIEW -> APPROVED / REJECTED -> PAID
+5. Staff & Admins inspect submissions in moderation consoles.
+6. Earnings are credited directly to creator balances.
+
+## Quality & Submission Guidelines
+- Resolution: Minimum 1080p (1920x1080)
+- Max File Size: 500 MB
+- Accepted Codecs / Extensions: MP4, MOV, WEBM
+- Content Policy: Original creator content only, no copyright infringement or non-compliant content.
+
+## Contact & Platform Information
+- Platform Name: Synex
+- Website URL: https://synex.app
+- Documentation: https://synex.app/llms.txt
+- Manifest: https://synex.app/ai.json
