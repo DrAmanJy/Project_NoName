@@ -34,7 +34,7 @@ export const optionalAuth = async (req: Request, res: Response, next: NextFuncti
       res.clearCookie(env.AUTH_COOKIE_NAME, {
         httpOnly: true,
         secure: env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
         path: '/',
       });
       req.authError = 'Session invalid or expired';
