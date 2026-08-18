@@ -48,8 +48,7 @@ export function createApp() {
 
   app.use(
     cors({
-      // origin: allowedOrigins,
-      origin: true,
+      origin: env.CORS_ORIGIN,
       credentials: true,
     }),
   );
