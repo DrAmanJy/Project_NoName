@@ -326,12 +326,11 @@ export class StaffSubmissionsController {
 
       // If they don't have transition_any, enforce strict review constraints
       if (!allowedPermissions.includes('submission:transition_any')) {
-        if (currentStatus !== 'in_review') {
-          res.status(403).json({ error: 'Can only transition submissions currently in_review' });
-          return;
-        }
-        if (status !== 'approved' && status !== 'rejected') {
-          res.status(403).json({ error: 'Can only set status to approved or rejected' });
+        const isReviewTransition = currentStatus === 'in_review' && (status === 'approved' || status === 'rejected');
+        const isPaymentTransition = (currentStatus === 'approved' || currentStatus === 'payment_pending') && status === 'paid';
+        
+        if (!isReviewTransition && !isPaymentTransition) {
+          res.status(403).json({ error: 'Can only transition in_review to approved/rejected, or approved to paid' });
           return;
         }
       }
