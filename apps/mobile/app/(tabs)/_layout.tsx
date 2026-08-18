@@ -5,9 +5,11 @@ import { useAuth } from '../../features/auth/auth-provider';
 import { LoadingScreen } from '../../components/LoadingScreen';
 import { CustomTabBar } from '../../components/CustomTabBar';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { useTheme } from '../../lib/theme';
 
 export default function TabsLayout() {
   const { status, user } = useAuth();
+  const { colors } = useTheme();
 
   if (status === 'loading') {
     return <LoadingScreen />;
@@ -34,10 +36,10 @@ export default function TabsLayout() {
               {user?.avatarUrl ? (
                 <Image 
                   source={{ uri: user.avatarUrl }} 
-                  style={{ width: 32, height: 32, borderRadius: 16, marginRight: 10, backgroundColor: '#eaeaea' }} 
+                  style={{ width: 32, height: 32, borderRadius: 16, marginRight: 10, backgroundColor: colors.iconBg }} 
                 />
               ) : null}
-              <Text style={{ fontSize: 22, fontWeight: '900', color: '#111', letterSpacing: -0.5 }}>
+              <Text style={{ fontSize: 22, fontWeight: '900', color: colors.text, letterSpacing: -0.5 }}>
                 {user?.name?.split(' ')[0] || 'User'}
               </Text>
             </View>

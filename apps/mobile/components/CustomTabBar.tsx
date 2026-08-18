@@ -2,9 +2,11 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated, Platform } from 'react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { FontAwesome5 } from '@expo/vector-icons';
-
+import { useTheme } from '../lib/theme';
 
 export function CustomTabBar({ state, descriptors: _descriptors, navigation }: BottomTabBarProps) {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   
   return (
     <View style={styles.tabBarContainer}>
@@ -56,6 +58,8 @@ export function CustomTabBar({ state, descriptors: _descriptors, navigation }: B
               label={displayLabel}
               onPress={onPress}
               onLongPress={onLongPress}
+              colors={colors}
+              styles={styles}
             />
           );
         })}
@@ -71,9 +75,11 @@ type TabBarButtonProps = {
   label: string;
   onPress: () => void;
   onLongPress: () => void;
+  colors: any;
+  styles: any;
 };
 
-function TabBarButton({ isFocused, isCenter, iconName, label, onPress, onLongPress }: TabBarButtonProps) {
+function TabBarButton({ isFocused, isCenter, iconName, label, onPress, onLongPress, colors, styles }: TabBarButtonProps) {
   const scale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -98,7 +104,7 @@ function TabBarButton({ isFocused, isCenter, iconName, label, onPress, onLongPre
     }).start();
   };
 
-  const color = isFocused ? '#ffffff' : '#888888';
+  const color = isFocused ? colors.primary : colors.textMuted;
 
   if (isCenter) {
     return (
@@ -111,7 +117,7 @@ function TabBarButton({ isFocused, isCenter, iconName, label, onPress, onLongPre
         style={styles.centerButtonContainer}
       >
         <Animated.View style={[styles.centerButton, { transform: [{ scale }] }]}>
-          <FontAwesome5 name={iconName} size={20} color="#111111" />
+          <FontAwesome5 name={iconName} size={20} color={colors.primaryText} />
         </Animated.View>
       </TouchableOpacity>
     );
@@ -134,13 +140,13 @@ function TabBarButton({ isFocused, isCenter, iconName, label, onPress, onLongPre
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
   tabBarContainer: {
     position: 'absolute',
     bottom: Platform.OS === 'ios' ? 30 : 20,
     alignSelf: 'center',
     width: '90%',
-    backgroundColor: 'rgba(20, 20, 20, 0.85)',
+    backgroundColor: colors.card,
     borderRadius: 40,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
@@ -148,6 +154,8 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 15,
     overflow: 'visible',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   tabBar: {
     flexDirection: 'row',
@@ -179,14 +187,14 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#ffffff', // White button on dark bar
+    backgroundColor: colors.primary, 
     justifyContent: 'center',
     alignItems: 'center',
     position: 'absolute',
-    top: -28, // Floats exactly halfway above the bar
-    shadowColor: '#ffffff',
+    top: -28, 
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 8,
   },
