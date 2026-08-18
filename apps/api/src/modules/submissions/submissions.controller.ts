@@ -132,15 +132,15 @@ export class SubmissionsController {
       const userId = new Types.ObjectId(auth.userId);
 
       const [submissions, total, totals] = await Promise.all([
-        Submission.find({ userId })
+        Submission.find({ userId, status: { $ne: 'cancelled' } })
           .select('status createdAt expectedEarning earning rejectionReason')
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limit)
           .lean(),
-        Submission.countDocuments({ userId }),
+        Submission.countDocuments({ userId, status: { $ne: 'cancelled' } }),
         Submission.aggregate([
-          { $match: { userId } },
+          { $match: { userId, status: { $ne: 'cancelled' } } },
           { 
             $group: { 
               _id: null, 
