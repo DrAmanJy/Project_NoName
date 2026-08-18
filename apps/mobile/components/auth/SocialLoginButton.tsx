@@ -8,6 +8,7 @@ import {
   Platform
 } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { useTheme } from '../../lib/theme';
 
 type Provider = 'google' | 'apple' | 'facebook';
 
@@ -19,30 +20,6 @@ interface SocialLoginButtonProps {
   onPress: () => void;
 }
 
-const providerConfig = {
-  google: {
-    iconName: 'google',
-    backgroundColor: '#ffffff',
-    textColor: '#111111',
-    borderColor: '#E5E5E5',
-    iconColor: '#111111',
-  },
-  apple: {
-    iconName: 'apple',
-    backgroundColor: '#000000',
-    textColor: '#ffffff',
-    borderColor: '#000000',
-    iconColor: '#ffffff',
-  },
-  facebook: {
-    iconName: 'facebook',
-    backgroundColor: '#1877F2',
-    textColor: '#ffffff',
-    borderColor: '#1877F2',
-    iconColor: '#ffffff',
-  },
-};
-
 export function SocialLoginButton({
   provider,
   label,
@@ -50,6 +27,32 @@ export function SocialLoginButton({
   disabled = false,
   onPress,
 }: SocialLoginButtonProps) {
+  const { colors } = useTheme();
+  
+  const providerConfig = {
+    google: {
+      iconName: 'google',
+      backgroundColor: colors.card,
+      textColor: colors.text,
+      borderColor: colors.border,
+      iconColor: colors.text,
+    },
+    apple: {
+      iconName: 'apple',
+      backgroundColor: colors.primary,
+      textColor: colors.primaryText,
+      borderColor: colors.primary,
+      iconColor: colors.primaryText,
+    },
+    facebook: {
+      iconName: 'facebook',
+      backgroundColor: '#1877F2',
+      textColor: '#ffffff',
+      borderColor: '#1877F2',
+      iconColor: '#ffffff',
+    },
+  };
+
   const config = providerConfig[provider];
   const isDisabled = loading || disabled;
 

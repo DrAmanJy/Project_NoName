@@ -1,8 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, ScrollView, Animated } from 'react-native';
+import { useTheme } from '../lib/theme';
 
 export function HomeScreenSkeleton() {
   const fadeAnim = useRef(new Animated.Value(0.3)).current;
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
 
   useEffect(() => {
     Animated.loop(
@@ -61,21 +64,23 @@ export function HomeScreenSkeleton() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.background,
   },
   scrollContent: {
     paddingTop: 16,
     paddingBottom: 130,
   },
   heroCard: {
-    backgroundColor: '#f5efe6',
+    backgroundColor: colors.surface,
     borderRadius: 36,
     padding: 28,
     marginHorizontal: 20,
     marginBottom: 40,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   heroHeader: {
     flexDirection: 'row',
@@ -86,24 +91,24 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#e5dcd1',
+    backgroundColor: colors.iconBg,
     marginRight: 12,
   },
   skeletonBadge: {
     width: 100,
     height: 16,
     borderRadius: 8,
-    backgroundColor: '#e5dcd1',
+    backgroundColor: colors.border,
   },
   skeletonText: {
-    backgroundColor: '#e5dcd1',
+    backgroundColor: colors.border,
     borderRadius: 8,
   },
   skeletonButton: {
     width: '100%',
     height: 56,
     borderRadius: 30,
-    backgroundColor: '#e5dcd1',
+    backgroundColor: colors.primary + '80', // 50% opacity primary
   },
   sectionContainer: {
     paddingHorizontal: 20,
@@ -111,19 +116,19 @@ const styles = StyleSheet.create({
   },
   trustCard: {
     flexDirection: 'row',
-    backgroundColor: '#fffdf9',
+    backgroundColor: colors.card,
     borderRadius: 24,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#f5efe6',
+    borderColor: colors.border,
     alignItems: 'center',
   },
   skeletonIconCircle: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#f5efe6',
+    backgroundColor: colors.iconBg,
     marginRight: 16,
   },
   trustTextContent: {
