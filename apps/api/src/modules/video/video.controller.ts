@@ -336,9 +336,10 @@ export class VideoController {
         return;
       }
 
+      const now = new Date();
       const updated = await VideoUpload.findOneAndUpdate(
         { _id: upload._id, status: { $in: ['created', 'uploading'] } },
-        { $set: { status: 'cancelled', cancelledAt: new Date() } },
+        { $set: { status: 'cancelled', cancelledAt: now } },
         { new: true }
       );
 
@@ -346,6 +347,15 @@ export class VideoController {
         res.status(400).json({ error: 'UPLOAD_ALREADY_COMPLETED_OR_CANCELLED' });
         return;
       }
+
+      // Cancel the parent submission if it's still a draft (i.e. upload never completed)
+      await Submission.updateOne(
+        { _id: upload.submissionId, status: 'draft' },
+        {
+          $set: { status: 'cancelled', cancelledAt: now },
+          $push: { timeline: { status: 'cancelled', timestamp: now } },
+        },
+      );
 
       await s3Service.abortMultipartUpload(upload.objectKey, upload.multipartUploadId).catch(() => {});
 
