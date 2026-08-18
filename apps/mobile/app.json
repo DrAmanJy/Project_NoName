@@ -1,9 +1,11 @@
 {
   "expo": {
-    "name": "True Services",
-    "slug": "true-services",
+    "name": "Synex",
+    "slug": "synex",
+    "icon": "./assets/icon.png",
     "version": "1.0.0",
-    "scheme": "trueservices",
+    "scheme": "noname",
+    "userInterfaceStyle": "automatic",
     "platforms": [
       "ios",
       "android"
@@ -15,6 +17,7 @@
     "android": {
       "package": "com.trueservices.mobile",
       "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       }
     },
@@ -26,6 +29,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d71d9eef-286e-49ee-b5b2-78bfb8aa651a"
+      }
     }
   }
 }
