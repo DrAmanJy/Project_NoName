@@ -634,7 +634,7 @@ export function VideoReviewConsole({
                                   : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
                                 }`}
                             >
-                              {(item.video?.uploadStatus || item.status).toUpperCase()}
+                              {item.status.toUpperCase()}
                             </span>
                           </div>
 
@@ -709,7 +709,7 @@ export function VideoReviewConsole({
                       <span className="text-xs font-bold">
                         Current Status:{' '}
                         <span className="uppercase text-zinc-900 dark:text-white font-extrabold">
-                          {selectedVideo.video?.uploadStatus || selectedVideo.status}
+                          {selectedVideo.status}
                         </span>
                       </span>
                     </div>

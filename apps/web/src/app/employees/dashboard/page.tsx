@@ -35,6 +35,7 @@ interface UserVideoSubmissionItem {
   creatorAvatar?: string;
   status: 'draft' | 'in_review' | 'approved' | 'rejected' | 'payment_pending' | 'paid';
   statusLabel: string;
+  videoStatus?: string;
   uploadedAt: string;
   rewardAmount?: string;
   videoUrl?: string;
@@ -66,7 +67,13 @@ export default function EmployeeDashboardPage() {
       const staffSubmissionsRes = await staffApi.submissions.list(1, 50).catch(() => null);
       if (staffSubmissionsRes && Array.isArray(staffSubmissionsRes.data) && staffSubmissionsRes.data.length > 0) {
         const mapped: UserVideoSubmissionItem[] = staffSubmissionsRes.data.map((item) => {
-          const statusLabel = item.video?.uploadStatus || item.status;
+          const videoStatus = item.video?.uploadStatus || 'uploaded';
+          let statusLabel = 'In Review';
+          if (item.status === 'approved') statusLabel = 'Approved';
+          if (item.status === 'paid') statusLabel = 'Approved & Paid';
+          if (item.status === 'rejected') statusLabel = 'Rejected';
+          if (item.status === 'payment_pending') statusLabel = 'Payment Pending';
+          if (item.status === 'draft') statusLabel = 'Draft';
 
           const mappedSteps: VideoProgressStep[] = item.timeline && item.timeline.length > 0
             ? item.timeline.map((step) => ({
@@ -107,6 +114,7 @@ export default function EmployeeDashboardPage() {
             creatorAvatar: item.user?.avatarUrl,
             status: item.status as UserVideoSubmissionItem['status'],
             statusLabel,
+            videoStatus,
             uploadedAt: new Date(item.createdAt).toLocaleDateString('en-US', {
               month: 'short',
               day: 'numeric',
@@ -592,6 +600,12 @@ export default function EmployeeDashboardPage() {
                         <div>
                           <span className="font-semibold text-zinc-400 block">Upload Date</span>
                           <span>{selectedSubmission.uploadedAt}</span>
+                        </div>
+                        <div>
+                          <span className="font-semibold text-zinc-400 block">Video Stage</span>
+                          <span className="font-bold text-zinc-900 dark:text-zinc-100 capitalize">
+                            {selectedSubmission.videoStatus || 'uploaded'}
+                          </span>
                         </div>
                         <div>
                           <span className="font-semibold text-zinc-400 block">Target Reward</span>

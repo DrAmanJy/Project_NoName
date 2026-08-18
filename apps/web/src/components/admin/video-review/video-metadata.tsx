@@ -18,9 +18,15 @@ export function VideoMetadata({ selectedVideo }: { selectedVideo: AdminVideoItem
                         </span>
                     </div>
                     <div>
-                        <span className="text-zinc-500">Upload Status: </span>
-                        <span className="font-bold text-zinc-900 dark:text-white">
-                            {selectedVideo.video?.uploadStatus || selectedVideo.status}
+                        <span className="text-zinc-500">Submission Status: </span>
+                        <span className="font-bold uppercase text-zinc-900 dark:text-white">
+                            {selectedVideo.status}
+                        </span>
+                    </div>
+                    <div>
+                        <span className="text-zinc-500">Video Stage: </span>
+                        <span className="font-bold text-zinc-900 dark:text-white capitalize">
+                            {selectedVideo.video?.uploadStatus || 'uploaded'}
                         </span>
                     </div>
                     <div>

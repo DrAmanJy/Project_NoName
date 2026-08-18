@@ -4,50 +4,50 @@ export function TestimonialsSection() {
   const testimonials = [
     {
       quote:
-        "I honestly didn't expect much, but Synex completely surprised me. I uploaded a short clip of my morning coffee routine, and within 12 hours, it was selected for a campaign. The payout was instant and directly to my wallet. This is the future of content creation.",
-      name: 'Sarah Jenkins',
-      role: 'Lifestyle Creator',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&auto=format&fit=crop',
+        "As a beauty UGC creator, I used to wait weeks to get paid by traditional agencies. On Synex, I uploaded a 30-second unboxing video directly from my phone. Within 8 hours, it went from 'UNDER_REVIEW' to 'PAID' directly into my account. The sheer speed is unbelievable.",
+      name: 'Sophia Al-Mansoor',
+      role: 'UGC Beauty Creator',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250&h=250',
       rating: 5,
     },
     {
       quote:
-        "What I love most about Synex is the transparency. You know exactly what they're looking for and what you'll get paid. As someone who travels a lot, it's an incredible way to monetize the random beautiful moments I capture on my phone without needing a massive following.",
-      name: 'Marcus Chen',
-      role: 'Travel Enthusiast',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop',
+        "The direct presigned R2 upload is super smooth even for heavy 4K 60fps clips. I love being able to track every step of my submission status in real-time on the creator dashboard. No middleman, just raw video assets for real reward payouts.",
+      name: 'Alexey Morozov',
+      role: 'Tech & Gear Reviewer',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=250&h=250',
       rating: 5,
     },
     {
       quote:
-        "The submission process is flawless. No complicated forms, just upload and wait for the review. I've had three videos selected this month alone. It's incredibly motivating to see real brands value raw, authentic content over highly produced studio shots.",
-      name: 'Elena Rostova',
-      role: 'Digital Nomad',
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=150&auto=format&fit=crop',
+        "I submitted 4 workout demonstration videos last week. Three were selected and paid out within 24 hours. The platform gives crystal clear guidelines on what brands need, making it incredibly straightforward to create winning clips.",
+      name: 'Jessica Taylor',
+      role: 'Fitness & Wellness Creator',
+      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=250&h=250',
       rating: 5,
     },
     {
       quote:
-        "I used to spend hours editing videos for platforms that barely paid anything. With Synex, I just shoot raw, unedited footage of my woodworking projects and get compensated fairly. The direct S3 upload is lightning fast even for my 4K files.",
-      name: 'David Okafor',
-      role: 'Woodworking Artisan',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=150&auto=format&fit=crop',
+        "Synex completely changed how I monetize my B-roll footage. I uploaded raw clips from my weekend hike in Oregon, and earned $150 before Monday morning. It’s the simplest way for videographers to get paid for authentic raw content.",
+      name: "Liam O'Connor",
+      role: 'Outdoor Filmmaker',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=250&h=250',
       rating: 5,
     },
     {
       quote:
-        "As a student, I'm always looking for side hustles. Synex lets me earn by just recording small clips of my study setups and campus life. It literally takes 5 minutes of my day. I've already withdrawn enough to cover my textbooks for the semester!",
-      name: 'Priya Sharma',
-      role: 'Student & Vlogger',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop',
+        "What sets Synex apart is total transparency. You see your upload progress, review stage, and instant payout status right on your dashboard. I’ve already recommended Synex to all my fellow food content creators.",
+      name: 'Amina Diallo',
+      role: 'Culinary Content Creator',
+      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=250&h=250',
       rating: 5,
     },
     {
       quote:
-        "The push notifications are a game changer. I uploaded a video while walking my dog, and by the time I got home, my phone buzzed telling me it was approved and paid. The platform is sleek, professional, and treats creators with genuine respect.",
-      name: 'James Wilson',
-      role: 'Pet Creator',
-      avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=150&auto=format&fit=crop',
+        "I was skeptical at first, but after receiving my first payout straight to my wallet, I was hooked. No subscriber threshold required—just submit good, authentic videos and get rewarded.",
+      name: 'Mateo Hernandez',
+      role: 'Lifestyle & Streetwear Creator',
+      avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=250&h=250',
       rating: 5,
     },
   ];
