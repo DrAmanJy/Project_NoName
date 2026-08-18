@@ -33,9 +33,7 @@ export class BackendAuthService implements AuthService {
       return mockService.signIn(provider);
     }
 
-    const redirectUri = AuthSession.makeRedirectUri({
-      path: 'auth/callback',
-    });
+    const redirectUri = 'noname://auth/callback';
 
     let API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://project-no-name-api-rosy.vercel.app/api/v1';
     

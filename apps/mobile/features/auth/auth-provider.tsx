@@ -64,19 +64,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await loadAuthSession();
   }, [loadAuthSession]);
 
-  const value = useMemo<AuthContextValue>(() => ({
-    status: authState.status,
-    user: authState.user,
-    signIn,
-    signOut,
-    refreshAuth,
-  }), [authState, signIn, signOut, refreshAuth]);
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      status: authState.status,
+      user: authState.user,
+      signIn,
+      signOut,
+      refreshAuth,
+    }),
+    [authState, signIn, signOut, refreshAuth],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

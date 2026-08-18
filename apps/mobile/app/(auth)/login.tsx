@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Platform, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, Platform, ImageBackground, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { SocialLoginButton } from '../../components/auth/SocialLoginButton';
-import { ErrorDialog } from '../../components/ErrorDialog';
+import { CustomDialog } from '../../components/CustomDialog';
 import { useAuth } from '../../features/auth/auth-provider';
 import type { AuthProviderType } from '../../features/auth/auth-types';
+import { useTheme } from '../../lib/theme';
 
 function getAvailableAuthProviders(): readonly AuthProviderType[] {
   switch (Platform.OS) {
@@ -29,7 +30,9 @@ export default function LoginScreen() {
   const [errorDialogVisible, setErrorDialogVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const { signIn } = useAuth();
-  
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
+
   const availableProviders = getAvailableAuthProviders();
 
   const handleLogin = async (provider: AuthProviderType) => {
@@ -39,7 +42,8 @@ export default function LoginScreen() {
     try {
       await signIn(provider);
     } catch (error) {
-      const msg = error instanceof Error ? error.message : 'An unexpected error occurred during sign in.';
+      const msg =
+        error instanceof Error ? error.message : 'An unexpected error occurred during sign in.';
       setErrorMessage(msg);
       setErrorDialogVisible(true);
       setLoadingProvider(null);
@@ -50,53 +54,58 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.outerContainer}>
-      <ImageBackground 
-        source={{ uri: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=800&auto=format&fit=crop' }}
+      <ImageBackground
+        source={{
+          uri: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=800&auto=format&fit=crop',
+        }}
         style={styles.backgroundImage}
       >
         <View style={styles.overlay}>
           <SafeAreaView style={styles.safeArea}>
             <View style={styles.container}>
-              
               {/* Top: Branding and Welcome */}
               <View style={styles.headerContainer}>
                 <View style={styles.logoPlaceholder}>
-                  <FontAwesome5 name="video" size={24} color="#ffffff" />
+                  <Image
+                    source={require('../../assets/logo.png')}
+                    style={{ width: 100, height: 100 }}
+                    resizeMode="contain"
+                  />
                 </View>
                 <Text style={styles.title}>Welcome back</Text>
                 <Text style={styles.subtitle}>Sign in to continue to your account</Text>
               </View>
 
-        {/* Center: Social Authentication Buttons */}
-        <View style={styles.buttonsContainer}>
-          {availableProviders.map((provider) => (
-            <SocialLoginButton
-              key={provider}
-              provider={provider}
-              label={PROVIDER_LABELS[provider]}
-              onPress={() => handleLogin(provider)}
-              loading={loadingProvider === provider}
-              disabled={isAnyLoading && loadingProvider !== provider}
-            />
-          ))}
-        </View>
+              {/* Center: Social Authentication Buttons */}
+              <View style={styles.buttonsContainer}>
+                {availableProviders.map((provider) => (
+                  <SocialLoginButton
+                    key={provider}
+                    provider={provider}
+                    label={PROVIDER_LABELS[provider]}
+                    onPress={() => handleLogin(provider)}
+                    loading={loadingProvider === provider}
+                    disabled={isAnyLoading && loadingProvider !== provider}
+                  />
+                ))}
+              </View>
 
-        {/* Bottom: Legal Text */}
-        <View style={styles.footerContainer}>
-          <Text style={styles.legalText}>
-            By continuing, you agree to our{' '}
-            <Text style={styles.linkText}>Terms of Service</Text> and{' '}
-            <Text style={styles.linkText}>Privacy Policy</Text>.
-          </Text>
-        </View>
+              {/* Bottom: Legal Text */}
+              <View style={styles.footerContainer}>
+                <Text style={styles.legalText}>
+                  By continuing, you agree to our{' '}
+                  <Text style={styles.linkText}>Terms of Service</Text> and{' '}
+                  <Text style={styles.linkText}>Privacy Policy</Text>.
+                </Text>
+              </View>
 
-        <ErrorDialog
-          visible={errorDialogVisible}
-          message={errorMessage}
-          title="Sign In Failed"
-          onClose={() => setErrorDialogVisible(false)}
-        />
-
+              <CustomDialog
+                visible={errorDialogVisible}
+                type="error"
+                message={errorMessage}
+                title="Sign In Failed"
+                onClose={() => setErrorDialogVisible(false)}
+              />
             </View>
           </SafeAreaView>
         </View>
@@ -105,10 +114,10 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#111111',
+    backgroundColor: colors.background,
   },
   backgroundImage: {
     flex: 1,
@@ -132,35 +141,16 @@ const styles = StyleSheet.create({
     marginBottom: 48,
   },
   logoPlaceholder: {
-    width: 64,
-    height: 64,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 32,
+    width: 100,
+    height: 100,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
-  logoText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '900',
-    letterSpacing: 1.5,
   },
   title: {
     fontSize: 34,
     fontWeight: '900',
-    color: '#ffffff',
+    color: '#ffffff', // Keep white due to dark image background overlay
     marginBottom: 10,
     letterSpacing: -1,
     textAlign: 'center',
