@@ -191,11 +191,11 @@ export function Navbar() {
 
             {isAuthenticated && (
               <Link
-                href="/submission"
+                href={role === 'admin' ? '/admin/dashboard' : role === 'employee' ? '/employees/dashboard' : '/submission'}
                 onClick={handleDashboardClick}
                 className="group flex items-center gap-2 rounded-full bg-zinc-900 dark:bg-white px-5 py-2.5 text-sm font-semibold text-white dark:text-zinc-900 shadow-md transition-all hover:bg-zinc-800 dark:hover:bg-zinc-100 hover:shadow-lg"
               >
-                <span>{role === 'user' ? 'Submissions' : 'Dashboard'}</span>
+                <span>{role === 'user' ? 'Submissions' : role === 'admin' ? 'Admin Dashboard' : 'Staff Dashboard'}</span>
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
             )}
@@ -260,20 +260,23 @@ export function Navbar() {
                       </div>
                     </div>
 
-                    {/* Dedicated Submission Route Button */}
-                    <Link
-                      href="/submission"
-                      onClick={(e) => {
-                        handleDashboardClick(e);
-                        if (!e.defaultPrevented) setMobileMenuOpen(false);
-                      }}
-                      className="flex items-center justify-between gap-2 rounded-xl bg-zinc-900 dark:bg-white px-4 py-3 text-xs font-bold text-white dark:text-zinc-900 shadow-md transition-all hover:bg-zinc-800 dark:hover:bg-zinc-100 group"
-                      id="mobile-submission-route-btn"
-                    >
-                      <span>{role === 'user' ? 'Submissions Portal' : 'Submission Dashboard'}</span>
-                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    </Link>
+                    {/* Submissions Portal Button - Shown ONLY to regular users on small screens */}
+                    {role === 'user' && (
+                      <Link
+                        href="/submission"
+                        onClick={(e) => {
+                          handleDashboardClick(e);
+                          if (!e.defaultPrevented) setMobileMenuOpen(false);
+                        }}
+                        className="flex items-center justify-between gap-2 rounded-xl bg-zinc-900 dark:bg-white px-4 py-3 text-xs font-bold text-white dark:text-zinc-900 shadow-md transition-all hover:bg-zinc-800 dark:hover:bg-zinc-100 group"
+                        id="mobile-submission-route-btn"
+                      >
+                        <span>Submissions Portal</span>
+                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </Link>
+                    )}
 
+                    {/* Admin / Staff Portal Button - Shown to admin or employee on small screens */}
                     {(role === 'admin' || role === 'employee') && (
                       <Link
                         href={role === 'admin' ? '/admin/dashboard' : '/employees/dashboard'}
@@ -281,9 +284,11 @@ export function Navbar() {
                           handleDashboardClick(e);
                           if (!e.defaultPrevented) setMobileMenuOpen(false);
                         }}
-                        className="w-full text-center rounded-xl bg-purple-100 dark:bg-purple-950/60 p-2.5 text-xs font-bold text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 transition-colors"
+                        className="flex items-center justify-between gap-2 rounded-xl bg-purple-600 dark:bg-purple-500 px-4 py-3 text-xs font-bold text-white shadow-md transition-all hover:bg-purple-700 dark:hover:bg-purple-600 group"
+                        id="mobile-admin-staff-route-btn"
                       >
-                        {role === 'admin' ? 'Admin Portal' : 'Staff Portal'}
+                        <span>{role === 'admin' ? 'Admin Portal' : 'Staff Portal'}</span>
+                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                       </Link>
                     )}
 

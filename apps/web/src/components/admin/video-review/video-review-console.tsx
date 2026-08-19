@@ -505,7 +505,7 @@ export function VideoReviewConsole({
             {/* Filters & Sorting */}
             <div className="flex flex-wrap items-center gap-2">
               {/* Filter Tabs */}
-              <div className="flex items-center gap-1 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-[#FEFEFE] dark:bg-zinc-950 p-1">
+              <div className="flex items-center gap-1 overflow-x-auto max-w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-[#FEFEFE] dark:bg-zinc-950 p-1 no-scrollbar">
                 {[
                   { id: 'ALL', label: 'All Queue' },
                   { id: 'UNDER_REVIEW', label: 'In Review' },
@@ -516,7 +516,7 @@ export function VideoReviewConsole({
                     key={tab.id}
                     type="button"
                     onClick={() => setStatusFilter(tab.id)}
-                    className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${statusFilter === tab.id
+                    className={`shrink-0 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${statusFilter === tab.id
                       ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-sm'
                       : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
                       }`}
@@ -698,17 +698,17 @@ export function VideoReviewConsole({
                   <VideoMetadata selectedVideo={selectedVideo} />
 
                   {/* ACTION CENTER TOOLBAR (Approve vs Reject) */}
-                  <div className="sticky bottom-4 z-30 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-[#FEFEFE]/90 dark:bg-zinc-950/90 backdrop-blur-xl p-4 shadow-2xl flex items-center justify-between gap-4">
+                  <div className="sticky bottom-4 z-30 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-[#FEFEFE]/90 dark:bg-zinc-950/90 backdrop-blur-xl p-4 shadow-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <div
-                        className={`h-3 w-3 rounded-full ${selectedVideo.status === 'SELECTED'
+                        className={`h-3 w-3 rounded-full shrink-0 ${selectedVideo.status === 'SELECTED'
                           ? 'bg-emerald-500'
                           : selectedVideo.status === 'REJECTED'
                             ? 'bg-red-500'
                             : 'bg-amber-500 animate-pulse'
                           }`}
                       />
-                      <span className="text-xs font-bold">
+                      <span className="text-xs font-bold truncate">
                         Current Status:{' '}
                         <span className="uppercase text-zinc-900 dark:text-white font-extrabold">
                           {selectedVideo.status}

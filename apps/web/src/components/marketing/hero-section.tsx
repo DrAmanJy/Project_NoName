@@ -126,7 +126,7 @@ export function HeroSection() {
   return (
     <section
       ref={container}
-      className="relative h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-white dark:bg-black text-zinc-900 dark:text-white"
+      className="relative min-h-[90vh] md:h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-white dark:bg-black text-zinc-900 dark:text-white py-16 md:py-0"
     >
       {/* Background Image with Parallax */}
       <div ref={bgRef} className="absolute inset-0 -z-10 h-[130%] w-full">
@@ -142,25 +142,25 @@ export function HeroSection() {
       <div className="hero-spotlight" />
       <div ref={dotGridRef} className="dot-grid-hover" />
 
-      <div className="z-20 text-center px-4 max-w-4xl mx-auto mt-20">
+      <div className="z-20 text-center px-4 max-w-4xl mx-auto mt-12 sm:mt-16 md:mt-20">
         <h1
           ref={headlineRef}
-          className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-6"
+          className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-4 sm:mb-6 px-2"
           style={{ clipPath: 'polygon(0 0, 100% 0, 100% 120%, 0% 120%)' }}
         >
           Your Life Is Already Content. Get Paid For It.
         </h1>
         <p
           ref={subheadRef}
-          className="text-lg md:text-2xl text-zinc-600 dark:text-zinc-300 max-w-2xl mx-auto font-medium"
+          className="text-base sm:text-lg md:text-2xl text-zinc-600 dark:text-zinc-300 max-w-2xl mx-auto font-medium px-2"
         >
           Upload short lifestyle videos. No followers needed. No editing required. Just real
           moments, rewarded with real cash.
         </p>
       </div>
 
-      <div ref={arrowRef} className="absolute bottom-10 z-20 text-zinc-500 dark:text-white/70 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer">
-        <ChevronDown className="w-10 h-10" />
+      <div ref={arrowRef} className="absolute bottom-6 sm:bottom-10 z-20 text-zinc-500 dark:text-white/70 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer">
+        <ChevronDown className="w-8 h-8 sm:w-10 sm:h-10" />
       </div>
     </section>
   );

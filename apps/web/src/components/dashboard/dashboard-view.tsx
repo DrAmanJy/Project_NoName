@@ -309,11 +309,11 @@ export function DashboardView() {
                   </div>
 
                   {/* Filter Pills */}
-                  <div className="flex items-center gap-1 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-1">
+                  <div className="flex items-center gap-1 overflow-x-auto max-w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-1 no-scrollbar">
                     <button
                       type="button"
                       onClick={() => setSelectedFilter('ALL')}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'ALL'
+                      className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'ALL'
                         ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-sm'
                         : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
                         }`}
@@ -324,7 +324,7 @@ export function DashboardView() {
                     <button
                       type="button"
                       onClick={() => setSelectedFilter('PROCESSING')}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'PROCESSING'
+                      className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'PROCESSING'
                         ? 'bg-blue-600 text-white shadow-sm'
                         : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
                         }`}
@@ -335,7 +335,7 @@ export function DashboardView() {
                     <button
                       type="button"
                       onClick={() => setSelectedFilter('IN_REVIEW')}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'IN_REVIEW'
+                      className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'IN_REVIEW'
                         ? 'bg-amber-600 text-white shadow-sm'
                         : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
                         }`}
@@ -346,7 +346,7 @@ export function DashboardView() {
                     <button
                       type="button"
                       onClick={() => setSelectedFilter('PAID')}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'PAID'
+                      className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'PAID'
                         ? 'bg-emerald-600 text-white shadow-sm'
                         : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
                         }`}
@@ -357,7 +357,7 @@ export function DashboardView() {
                     <button
                       type="button"
                       onClick={() => setSelectedFilter('REJECTED')}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'REJECTED'
+                      className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'REJECTED'
                         ? 'bg-red-600 text-white shadow-sm'
                         : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
                         }`}
