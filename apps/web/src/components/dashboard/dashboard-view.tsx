@@ -100,6 +100,7 @@ export function DashboardView() {
 
   const totalVideos = videos.length;
   const inReviewCount = videos.filter((v) => v.status === 'UNDER_REVIEW' || v.status === 'PROCESSING' || v.status === 'in_review').length;
+  const approvedCount = videos.filter((v) => v.status === 'SELECTED' || v.status === 'approved').length;
   const paidCount = videos.filter((v) => v.status === 'PAID' || v.status === 'paid').length;
   const totalEarnedAmount = videos
     .filter((v) => v.status === 'PAID' || v.status === 'paid')
@@ -303,22 +304,22 @@ export function DashboardView() {
               </div>
             </div>
 
-            {/* Card 3: Approved & Paid */}
-            <div className="group rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/80 dark:bg-zinc-950/80 p-6 shadow-sm backdrop-blur-xl transition-all duration-300 hover:border-emerald-400/50 dark:hover:border-emerald-500/50 hover:shadow-xl hover:-translate-y-1">
+            {/* Card 3: Approved */}
+            <div className="group rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/80 dark:bg-zinc-950/80 p-6 shadow-sm backdrop-blur-xl transition-all duration-300 hover:border-blue-400/50 dark:hover:border-blue-500/50 hover:shadow-xl hover:-translate-y-1">
               <div className="flex items-center justify-between">
                 <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                  APPROVED & PAID
+                  APPROVED
                 </p>
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400 shadow-sm transition-transform duration-300 group-hover:scale-110">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/50 text-blue-600 dark:text-blue-400 shadow-sm transition-transform duration-300 group-hover:scale-110">
                   <CheckCircle2 className="h-5 w-5" />
                 </div>
               </div>
               <div className="mt-3 text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
-                {paidCount} Approved
+                {approvedCount} Approved
               </div>
-              <div className="mt-2 text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                <span>Direct payouts unlocked</span>
+              <div className="mt-2 text-xs font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
+                <span>Passed quality verification</span>
               </div>
             </div>
 
