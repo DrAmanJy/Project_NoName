@@ -28,17 +28,16 @@ export default function AdminDashboardPage() {
         <Navbar />
 
         {/* ADMIN OVERSIGHT PORTAL HEADER WITH MARGIN & PADDING */}
-        <div className="relative border-b border-zinc-200/80 dark:border-zinc-800/80 bg-[#FEFEFE] dark:bg-black pt-10 sm:pt-12 pb-8 transition-colors duration-300">
+        <div className="relative border-b border-zinc-200/80 dark:border-zinc-800/80 bg-[#FEFEFE] dark:bg-black pt-6 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 transition-colors duration-300">
           {/* Subtle Ambient Glow */}
           <div className="pointer-events-none absolute -top-20 right-1/3 h-72 w-72 rounded-full bg-emerald-500/10 blur-[100px] dark:bg-emerald-500/5" />
 
-          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6">
             <div>
-
-              <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
                 {activeTab === 'videos' ? 'Video Moderation & Verification' : 'Employee Management Directory'}
               </h1>
-              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed">
+              <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed">
                 {activeTab === 'videos'
                   ? 'Review creator submissions, inspect video quality, approve rewards, or issue rejection feedback.'
                   : 'Manage employee permissions, track active staff, and oversee platform administration.'}
@@ -46,11 +45,11 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Segmented Control Switcher */}
-            <div className="flex items-center gap-1.5 rounded-2xl bg-zinc-100/80 dark:bg-zinc-900/90 p-1.5 border border-zinc-200 dark:border-zinc-800 shadow-sm backdrop-blur-md shrink-0">
+            <div className="flex items-center gap-1.5 rounded-2xl bg-zinc-100/80 dark:bg-zinc-900/90 p-1.5 border border-zinc-200 dark:border-zinc-800 shadow-sm backdrop-blur-md shrink-0 max-w-full overflow-x-auto no-scrollbar">
               <button
                 type="button"
                 onClick={() => setActiveTab('videos')}
-                className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold transition-all duration-200 ${activeTab === 'videos'
+                className={`inline-flex items-center gap-2 rounded-xl px-4 sm:px-5 py-2 sm:py-2.5 text-xs font-bold transition-all duration-200 shrink-0 ${activeTab === 'videos'
                     ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-md scale-[1.01]'
                     : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
                   }`}
@@ -64,7 +63,7 @@ export default function AdminDashboardPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab('employees')}
-                  className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold transition-all duration-200 ${activeTab === 'employees'
+                  className={`inline-flex items-center gap-2 rounded-xl px-4 sm:px-5 py-2 sm:py-2.5 text-xs font-bold transition-all duration-200 shrink-0 ${activeTab === 'employees'
                       ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-md scale-[1.01]'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
                     }`}
@@ -79,7 +78,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* ACTIVE SECTION CONTENT WITH AMPLE TOP MARGIN */}
-        <main className="flex-1 pt-8 pb-12 lg:pt-10 lg:pb-16">
+        <main className="flex-1 pt-6 sm:pt-8 pb-10 sm:pb-12 lg:pt-10 lg:pb-16">
           {activeTab === 'videos' ? (
             <VideoReviewConsole showNavbar={false} showHeaderBanner={false} />
           ) : (

@@ -232,102 +232,175 @@ export function EmployeeManagementConsole() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wider">
-                <tr>
-                  <th className="px-6 py-4">Employee</th>
-                  <th className="px-6 py-4">Email</th>
-                  <th className="px-6 py-4">Role</th>
-                  <th className="px-6 py-4">Joined Date</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/60 font-medium">
-                {filteredEmployees.map((emp) => {
-                  const avatarSrc =
-                    emp.avatarUrl ||
-                    `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(emp.name || 'User')}`;
-                  const formattedDate = new Date(emp.createdAt).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                  });
+          <>
+            {/* Mobile Card Roster View (< md) */}
+            <div className="grid grid-cols-1 gap-3 p-4 md:hidden">
+              {filteredEmployees.map((emp) => {
+                const avatarSrc =
+                  emp.avatarUrl ||
+                  `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(emp.name || 'User')}`;
+                const formattedDate = new Date(emp.createdAt).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                });
 
-                  return (
-                    <tr
-                      key={emp.id}
-                      className="hover:bg-zinc-50/80 dark:hover:bg-zinc-900/40 transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          {/* Avatar */}
-                          <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800">
-                            <img
-                              src={avatarSrc}
-                              alt={emp.name}
-                              className="h-full w-full object-cover"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(emp.name || 'User')}`;
-                              }}
-                            />
-                          </div>
-                          <div>
-                            <span className="font-bold text-zinc-900 dark:text-white block">
-                              {emp.name}
+                return (
+                  <div
+                    key={emp.id}
+                    className="rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/60 dark:bg-zinc-900/40 p-4 flex items-center justify-between gap-3"
+                  >
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800">
+                        <img
+                          src={avatarSrc}
+                          alt={emp.name}
+                          className="h-full w-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(emp.name || 'User')}`;
+                          }}
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <span className="font-bold text-zinc-900 dark:text-white text-xs block truncate">
+                          {emp.name}
+                        </span>
+                        <span className="text-[11px] text-zinc-500 dark:text-zinc-400 block truncate">
+                          {emp.email || 'N/A'}
+                        </span>
+                        <div className="mt-1 flex items-center gap-2 flex-wrap">
+                          {emp.role === 'admin' && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                              <Shield className="h-2.5 w-2.5" />
+                              Admin
                             </span>
+                          )}
+                          {emp.role === 'employee' && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-purple-500/10 px-2 py-0.5 text-[10px] font-bold text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                              <UserIcon className="h-2.5 w-2.5" />
+                              Employee
+                            </span>
+                          )}
+                          {emp.role === 'user' && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-purple-500/10 px-2 py-0.5 text-[10px] font-bold text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                              <UserIcon className="h-2.5 w-2.5" />
+                              User
+                            </span>
+                          )}
+                          <span className="text-[10px] text-zinc-400 font-mono">• {formattedDate}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEditModal(emp)}
+                      className="rounded-xl p-2 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all shrink-0"
+                      title="Edit Details & Avatar"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Table View (>= md) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wider">
+                  <tr>
+                    <th className="px-6 py-4">Employee</th>
+                    <th className="px-6 py-4">Email</th>
+                    <th className="px-6 py-4">Role</th>
+                    <th className="px-6 py-4">Joined Date</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/60 font-medium">
+                  {filteredEmployees.map((emp) => {
+                    const avatarSrc =
+                      emp.avatarUrl ||
+                      `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(emp.name || 'User')}`;
+                    const formattedDate = new Date(emp.createdAt).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    });
+
+                    return (
+                      <tr
+                        key={emp.id}
+                        className="hover:bg-zinc-50/80 dark:hover:bg-zinc-900/40 transition-colors"
+                      >
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800">
+                              <img
+                                src={avatarSrc}
+                                alt={emp.name}
+                                className="h-full w-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(emp.name || 'User')}`;
+                                }}
+                              />
+                            </div>
+                            <div>
+                              <span className="font-bold text-zinc-900 dark:text-white block">
+                                {emp.name}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      <td className="px-6 py-4 text-zinc-600 dark:text-zinc-300">
-                        {emp.email || 'N/A'}
-                      </td>
+                        <td className="px-6 py-4 text-zinc-600 dark:text-zinc-300">
+                          {emp.email || 'N/A'}
+                        </td>
 
-                      <td className="px-6 py-4">
-                        {emp.role === 'admin' && (
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1 text-[11px] font-bold text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                            <Shield className="h-3 w-3" />
-                            Administrator
-                          </span>
-                        )}
+                        <td className="px-6 py-4">
+                          {emp.role === 'admin' && (
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1 text-[11px] font-bold text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                              <Shield className="h-3 w-3" />
+                              Administrator
+                            </span>
+                          )}
 
-                        {emp.role === 'employee' && (
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-500/10 px-3 py-1 text-[11px] font-bold text-purple-600 dark:text-purple-400 border border-purple-500/20">
-                            <UserIcon className="h-3 w-3" />
-                            Employee
-                          </span>
-                        )}
+                          {emp.role === 'employee' && (
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-500/10 px-3 py-1 text-[11px] font-bold text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                              <UserIcon className="h-3 w-3" />
+                              Employee
+                            </span>
+                          )}
 
+                          {emp.role === 'user' && (
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-500/10 px-3 py-1 text-[11px] font-bold text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                              <UserIcon className="h-3 w-3" />
+                              User
+                            </span>
+                          )}
+                        </td>
 
-                        {emp.role === 'user' && (
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-500/10 px-3 py-1 text-[11px] font-bold text-purple-600 dark:text-purple-400 border border-purple-500/20">
-                            <UserIcon className="h-3 w-3" />
-                            User
-                          </span>
-                        )}
-                      </td>
+                        <td className="px-6 py-4 text-zinc-500 dark:text-zinc-400">{formattedDate}</td>
 
-                      <td className="px-6 py-4 text-zinc-500 dark:text-zinc-400">{formattedDate}</td>
-
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleOpenEditModal(emp)}
-                            className="rounded-xl p-2 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all"
-                            title="Edit Details & Avatar"
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditModal(emp)}
+                              className="rounded-xl p-2 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all"
+                              title="Edit Details & Avatar"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 

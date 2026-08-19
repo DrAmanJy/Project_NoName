@@ -698,7 +698,7 @@ export function VideoReviewConsole({
                   <VideoMetadata selectedVideo={selectedVideo} />
 
                   {/* ACTION CENTER TOOLBAR (Approve vs Reject) */}
-                  <div className="sticky bottom-4 z-30 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-[#FEFEFE]/90 dark:bg-zinc-950/90 backdrop-blur-xl p-4 shadow-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                  <div className="sticky bottom-4 z-30 rounded-2xl sm:rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-[#FEFEFE]/90 dark:bg-zinc-950/90 backdrop-blur-xl p-3 sm:p-4 shadow-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <div
                         className={`h-3 w-3 rounded-full shrink-0 ${selectedVideo.status === 'SELECTED'
@@ -717,30 +717,30 @@ export function VideoReviewConsole({
                     </div>
 
                     {selectedVideo.status?.toLowerCase() === 'cancelled' || selectedVideo.video?.uploadStatus?.toLowerCase() === 'cancelled' ? (
-                      <div className="inline-flex items-center gap-2 rounded-full bg-zinc-500/10 border border-zinc-500/20 px-5 py-2.5 text-xs font-bold text-zinc-500 line-through">
+                      <div className="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-500/10 border border-zinc-500/20 px-5 py-2.5 text-xs font-bold text-zinc-500 line-through">
                         <XCircle className="h-4 w-4" />
                         <span>Submission Cancelled</span>
                       </div>
                     ) : selectedVideo.status === 'REJECTED' ? (
-                      <div className="inline-flex items-center gap-2 rounded-full bg-red-500/10 border border-red-500/20 px-5 py-2.5 text-xs font-bold text-red-500">
+                      <div className="inline-flex items-center justify-center gap-2 rounded-full bg-red-500/10 border border-red-500/20 px-5 py-2.5 text-xs font-bold text-red-500">
                         <XCircle className="h-4 w-4" />
                         <span>Submission Rejected</span>
                       </div>
                     ) : selectedVideo.status === 'PAID' ? (
-                      <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-5 py-2.5 text-xs font-bold text-emerald-500">
+                      <div className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-5 py-2.5 text-xs font-bold text-emerald-500">
                         <CheckCircle2 className="h-4 w-4" />
                         <span>Submission Paid & Completed</span>
                       </div>
                     ) : selectedVideo.status === 'SELECTED' ? (
-                      <div className="flex items-center gap-3">
-                        <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 text-xs font-bold text-emerald-500">
+                      <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                        <div className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 text-xs font-bold text-emerald-500 flex-1 sm:flex-initial">
                           <CheckCircle2 className="h-4 w-4" />
                           <span>Approved</span>
                         </div>
                         <button
                           type="button"
                           onClick={() => handleSetPaidStatus(selectedVideo.id)}
-                          className="inline-flex items-center gap-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 text-xs font-bold shadow-lg shadow-emerald-950/30 transition-all hover:scale-[1.02] active:scale-95"
+                          className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 text-xs font-bold shadow-lg shadow-emerald-950/30 transition-all hover:scale-[1.02] active:scale-95 flex-1 sm:flex-initial"
                           id="admin-mark-as-paid-btn"
                         >
                           <DollarSign className="h-4 w-4" />
@@ -748,23 +748,23 @@ export function VideoReviewConsole({
                         </button>
                       </div>
                     ) : selectedVideo.status === 'PROCESSING' ? (
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 w-full sm:w-auto">
                         <button
                           type="button"
                           onClick={handleStartReview}
-                          className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-blue-950/30 transition-all hover:scale-[1.02] hover:bg-blue-500 hover:shadow-xl active:scale-95"
+                          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-blue-950/30 transition-all hover:scale-[1.02] hover:bg-blue-500 hover:shadow-xl active:scale-95"
                         >
                           <Play className="h-4 w-4" />
                           <span>Start Review Process</span>
                         </button>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-3">
+                      <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
                         {/* Reject Button */}
                         <button
                           type="button"
                           onClick={() => handleOpenReviewModal('REJECT')}
-                          className="inline-flex items-center gap-2 rounded-full bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white border border-red-500/20 px-5 py-2.5 text-xs font-bold transition-all hover:shadow-lg active:scale-95"
+                          className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-full bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white border border-red-500/20 px-5 py-2.5 text-xs font-bold transition-all hover:shadow-lg active:scale-95"
                         >
                           <XCircle className="h-4 w-4" />
                           <span>Reject Video</span>
@@ -774,7 +774,7 @@ export function VideoReviewConsole({
                         <button
                           type="button"
                           onClick={() => handleOpenReviewModal('APPROVE')}
-                          className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-950/30 transition-all hover:scale-[1.02] hover:bg-emerald-500 hover:shadow-xl active:scale-95"
+                          className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-full bg-emerald-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-950/30 transition-all hover:scale-[1.02] hover:bg-emerald-500 hover:shadow-xl active:scale-95"
                         >
                           <CheckCircle2 className="h-4 w-4" />
                           <span>

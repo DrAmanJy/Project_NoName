@@ -9,9 +9,7 @@ import {
   CheckCircle2,
   AlertCircle,
   RefreshCw,
-  Sparkles,
   ArrowRight,
-  Wallet,
   LayoutDashboard,
   Globe,
 } from 'lucide-react';
@@ -190,40 +188,30 @@ export function VideoUploader() {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-6 sm:p-8 shadow-lg transition-colors">
+    <div className="w-full max-w-3xl mx-auto rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-4 sm:p-6 md:p-8 shadow-lg transition-colors overflow-hidden">
       {/* Upload Complete Success Screen */}
       {status === 'completed' ? (
-        <div className="text-center py-8 space-y-6 animate-in fade-in zoom-in duration-300">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800">
-            <CheckCircle2 className="h-10 w-10" />
+        <div className="text-center py-6 sm:py-8 space-y-6 animate-in fade-in zoom-in duration-300">
+          <div className="mx-auto flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800">
+            <CheckCircle2 className="h-8 w-8 sm:h-10 sm:w-10" />
           </div>
           <div>
-            <h3 className="text-2xl font-extrabold text-zinc-900 dark:text-white">
+            <h3 className="text-xl sm:text-2xl font-extrabold text-zinc-900 dark:text-white">
               Video Uploaded Successfully!
             </h3>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 max-w-md mx-auto">
-              Your video <span className="font-semibold text-zinc-900 dark:text-white">&quot;{file?.name}&quot;</span> ({country}) has been received and queued for review.
+            <p className="mt-2 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 max-w-md mx-auto px-2">
+              Your video <span className="font-semibold text-zinc-900 dark:text-white break-all">&quot;{file?.name}&quot;</span> ({country}) has been received and queued for review.
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-900">
+          <div className="flex justify-center pt-4 border-t border-zinc-200 dark:border-zinc-900">
             <Link
               href="/submission"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-zinc-900 dark:bg-white px-6 py-3 text-sm font-bold text-white dark:text-zinc-900 shadow-md hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-all"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-zinc-900 dark:bg-white px-6 py-3 text-xs sm:text-sm font-bold text-white dark:text-zinc-900 shadow-md hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-all hover:scale-[1.02] active:scale-95"
               id="upload-complete-dashboard-btn"
             >
               <LayoutDashboard className="h-4 w-4" />
               <span>Back to Dashboard</span>
-            </Link>
-
-            <Link
-              href="/submission/earnings"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-6 py-3 text-sm font-bold text-white shadow-md transition-all"
-              id="upload-complete-earnings-btn"
-            >
-              <Wallet className="h-4 w-4" />
-              <span>View Creator Earnings</span>
-              <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>

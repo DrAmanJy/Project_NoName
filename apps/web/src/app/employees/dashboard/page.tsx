@@ -222,23 +222,22 @@ export default function EmployeeDashboardPage() {
     <RoleGuard allowedRoles={['admin', 'employee']} fallbackUrl="/submission">
       <div className="flex min-h-screen flex-col bg-white dark:bg-black text-zinc-900 dark:text-zinc-50 transition-colors duration-300">
         <Navbar />
-        <main className="flex-1 relative p-6 lg:p-10 overflow-hidden">
+        <main className="flex-1 relative p-4 sm:p-6 lg:p-10 overflow-hidden">
           {/* Background Ambient Glow Accents */}
           <div className="pointer-events-none absolute -top-40 right-1/4 h-96 w-96 rounded-full bg-purple-500/10 blur-[120px] dark:bg-purple-500/5" />
           <div className="pointer-events-none absolute top-1/3 -left-20 h-96 w-96 rounded-full bg-amber-500/10 blur-[120px] dark:bg-amber-500/5" />
 
           <div className="relative mx-auto max-w-7xl">
             {/* Header Title & Navigation Tabs */}
-            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between border-b border-zinc-200/80 dark:border-zinc-800/80 pb-6">
+            <div className="flex flex-col gap-4 sm:gap-6 md:flex-row md:items-center md:justify-between border-b border-zinc-200/80 dark:border-zinc-800/80 pb-5 sm:pb-6">
               <div>
-                <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
                   User Video Progress & Employee Dashboard
                 </h1>
                 <p className="mt-1 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400">
                   Monitor real-time user video submission timelines, verification progress, and manage staff employees.
                 </p>
               </div>
-
             </div>
 
             {/* User Video Progress Monitor */}
@@ -324,8 +323,8 @@ export default function EmployeeDashboardPage() {
               </div>
 
               {/* Filter & Search Bar */}
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="relative flex-1 max-w-md">
+              <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="relative flex-1 max-w-md w-full">
                   <Search className="absolute left-3.5 top-3 h-4 w-4 text-zinc-400 pointer-events-none" />
                   <input
                     type="text"
@@ -337,14 +336,14 @@ export default function EmployeeDashboardPage() {
                   />
                 </div>
 
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 no-scrollbar max-w-full">
                   <Filter className="h-4 w-4 text-zinc-400 shrink-0" />
                   {(['ALL', 'IN_REVIEW', 'APPROVED', 'PAID', 'REJECTED'] as const).map((statusKey) => (
                     <button
                       key={statusKey}
                       type="button"
                       onClick={() => setSelectedStatusFilter(statusKey)}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all ${selectedStatusFilter === statusKey
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all shrink-0 ${selectedStatusFilter === statusKey
                           ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-sm'
                           : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800'
                         }`}
@@ -374,30 +373,30 @@ export default function EmployeeDashboardPage() {
                     return (
                       <div
                         key={submission.id}
-                        className="rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-6 shadow-sm transition-all hover:border-zinc-400 dark:hover:border-zinc-700"
+                        className="rounded-2xl sm:rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-4 sm:p-6 shadow-sm transition-all hover:border-zinc-400 dark:hover:border-zinc-700"
                       >
-                        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="flex flex-col gap-4 sm:gap-6 lg:flex-row lg:items-start lg:justify-between">
                           {/* Creator Info & Video Title */}
-                          <div className="flex items-start gap-4">
+                          <div className="flex items-start gap-3 sm:gap-4 min-w-0 flex-1">
                             {submission.creatorAvatar ? (
                               <img
                                 src={submission.creatorAvatar}
                                 alt={submission.creatorName}
-                                className="h-12 w-12 shrink-0 rounded-2xl object-cover border border-zinc-200 dark:border-zinc-800 shadow-sm"
+                                className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 rounded-2xl object-cover border border-zinc-200 dark:border-zinc-800 shadow-sm"
                               />
                             ) : (
-                              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-bold text-base shadow-sm">
+                              <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-bold text-sm sm:text-base shadow-sm">
                                 {submission.creatorName.charAt(0).toUpperCase()}
                               </div>
                             )}
 
-                            <div>
-                              <div className="flex items-center gap-3 flex-wrap">
-                                <h3 className="text-base font-bold text-zinc-900 dark:text-white">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                                <h3 className="text-sm sm:text-base font-bold text-zinc-900 dark:text-white truncate">
                                   {submission.title}
                                 </h3>
                                 <span
-                                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-xs font-bold ${isCancelled
+                                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 sm:px-3 py-0.5 text-[11px] sm:text-xs font-bold shrink-0 ${isCancelled
                                       ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 line-through'
                                       : isPaid || isApproved
                                         ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
@@ -414,10 +413,10 @@ export default function EmployeeDashboardPage() {
                                 </span>
                               </div>
 
-                              <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400 flex items-center gap-2">
+                              <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400 flex items-center gap-1.5 sm:gap-2 flex-wrap">
                                 <span className="font-semibold text-zinc-900 dark:text-zinc-200">{submission.creatorName}</span>
                                 <span>•</span>
-                                <span>{submission.creatorEmail}</span>
+                                <span className="truncate max-w-[180px] sm:max-w-none">{submission.creatorEmail}</span>
                                 <span>•</span>
                                 <span>Uploaded: {submission.uploadedAt}</span>
                               </p>
@@ -432,12 +431,12 @@ export default function EmployeeDashboardPage() {
                           </div>
 
                           {/* Actions */}
-                          <div className="flex items-center gap-2 shrink-0">
+                          <div className="flex flex-wrap items-center gap-2 shrink-0 w-full lg:w-auto">
                             {(submission.status === 'approved' || submission.status === 'payment_pending') && (
                               <button
                                 type="button"
                                 onClick={() => handleMarkAsPaid(submission.id)}
-                                className="flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 text-xs font-bold shadow-sm transition-colors"
+                                className="flex-1 lg:flex-none inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 text-xs font-bold shadow-sm transition-colors"
                                 id={`mark-paid-btn-${submission.id}`}
                               >
                                 <DollarSign className="h-3.5 w-3.5" />
@@ -447,7 +446,7 @@ export default function EmployeeDashboardPage() {
                             <button
                               type="button"
                               onClick={() => setSelectedSubmission(submission)}
-                              className="flex items-center gap-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-2 text-xs font-bold text-zinc-900 dark:text-white shadow-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                              className="flex-1 lg:flex-none inline-flex items-center justify-center gap-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-2 text-xs font-bold text-zinc-900 dark:text-white shadow-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                               id={`inspect-submission-btn-${submission.id}`}
                             >
                               <Eye className="h-3.5 w-3.5 text-zinc-500" />
@@ -540,26 +539,26 @@ export default function EmployeeDashboardPage() {
 
             {/* Video Audit Detail Modal */}
             {selectedSubmission && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-                <div className="w-full max-w-2xl rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 shadow-2xl overflow-hidden">
-                  <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-900 pb-4">
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 sm:p-4 md:p-6 backdrop-blur-sm animate-in fade-in duration-200">
+                <div className="w-full max-w-2xl max-h-[92vh] flex flex-col rounded-2xl sm:rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 sm:p-6 shadow-2xl overflow-hidden">
+                  <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-900 pb-3 sm:pb-4 shrink-0">
                     <div className="flex items-center gap-2">
-                      <FileVideo className="h-5 w-5 text-amber-500" />
-                      <h3 className="text-lg font-bold text-zinc-900 dark:text-white">
+                      <FileVideo className="h-5 w-5 text-amber-500 shrink-0" />
+                      <h3 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-white truncate">
                         Video Progress Audit Details
                       </h3>
                     </div>
                     <button
                       type="button"
                       onClick={() => setSelectedSubmission(null)}
-                      className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-500 hover:text-zinc-900 dark:hover:text-white shrink-0"
                       id="close-admin-modal-btn"
                     >
                       <X className="h-4 w-4" />
                     </button>
                   </div>
 
-                  <div className="mt-4 space-y-4 max-h-[75vh] overflow-y-auto pr-2">
+                  <div className="mt-4 space-y-4 flex-1 overflow-y-auto pr-1 sm:pr-2">
                     {/* HTML5 Video Player */}
                     {selectedSubmission.videoUrl && (
                       <div className="relative overflow-hidden rounded-2xl bg-black border border-zinc-200 dark:border-zinc-800 shadow-md">
@@ -576,14 +575,14 @@ export default function EmployeeDashboardPage() {
                       </div>
                     )}
 
-                    <div className="rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 p-4 border border-zinc-200 dark:border-zinc-800">
-                      <h4 className="text-base font-bold text-zinc-900 dark:text-white">
+                    <div className="rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 p-3.5 sm:p-4 border border-zinc-200 dark:border-zinc-800">
+                      <h4 className="text-sm sm:text-base font-bold text-zinc-900 dark:text-white break-words">
                         {selectedSubmission.title}
                       </h4>
-                      <div className="mt-2 grid grid-cols-2 gap-3 text-xs text-zinc-600 dark:text-zinc-400">
+                      <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-zinc-600 dark:text-zinc-400">
                         <div>
                           <span className="font-semibold text-zinc-400 block">Creator</span>
-                          <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center gap-2 mt-1 min-w-0">
                             {selectedSubmission.creatorAvatar ? (
                               <img
                                 src={selectedSubmission.creatorAvatar}
@@ -595,14 +594,14 @@ export default function EmployeeDashboardPage() {
                                 {selectedSubmission.creatorName.charAt(0).toUpperCase()}
                               </div>
                             )}
-                            <span className="font-medium text-zinc-900 dark:text-white">
+                            <span className="font-medium text-zinc-900 dark:text-white truncate">
                               {selectedSubmission.creatorName} ({selectedSubmission.creatorEmail})
                             </span>
                           </div>
                         </div>
                         <div>
                           <span className="font-semibold text-zinc-400 block">Submission ID</span>
-                          <span className="font-mono text-zinc-900 dark:text-zinc-100">{selectedSubmission.id}</span>
+                          <span className="font-mono text-zinc-900 dark:text-zinc-100 break-all">{selectedSubmission.id}</span>
                         </div>
                         <div>
                           <span className="font-semibold text-zinc-400 block">Upload Date</span>
@@ -623,12 +622,12 @@ export default function EmployeeDashboardPage() {
                       </div>
                     </div>
 
-                    <div className="pl-2 space-y-4">
+                    <div className="pl-1 sm:pl-2 space-y-4">
                       <h5 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
                         Complete Progress Audit Timeline
                       </h5>
                       {selectedSubmission.steps.map((step, idx) => (
-                        <div key={idx} className="flex gap-4 items-start">
+                        <div key={idx} className="flex gap-3 sm:gap-4 items-start">
                           <div
                             className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${step.state === 'completed'
                                 ? 'bg-emerald-600 text-white'
@@ -644,7 +643,7 @@ export default function EmployeeDashboardPage() {
                             {step.state === 'rejected' && <X className="h-4 w-4" />}
                             {step.state === 'pending' && idx + 1}
                           </div>
-                          <div>
+                          <div className="min-w-0 flex-1">
                             <h6 className={`text-sm font-bold ${selectedSubmission.status === 'cancelled' || selectedSubmission.videoStatus?.toLowerCase() === 'cancelled' ? 'line-through text-zinc-400 dark:text-zinc-500' : 'text-zinc-900 dark:text-white'}`}>
                               {step.title}
                             </h6>
@@ -662,30 +661,30 @@ export default function EmployeeDashboardPage() {
                     </div>
                   </div>
 
-                  <div className="mt-6 pt-4 border-t border-zinc-200 dark:border-zinc-900 flex justify-between items-center gap-4">
+                  <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-zinc-200 dark:border-zinc-900 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 shrink-0">
                     {selectedSubmission.status === 'in_review' || selectedSubmission.status === 'draft' ? (
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 w-full sm:w-auto">
                         <button
                           type="button"
                           onClick={() => setReviewModalState({ isOpen: true, action: 'REJECT' })}
-                          className="rounded-xl bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white border border-red-500/20 px-4 py-2 text-xs font-bold transition-all"
+                          className="flex-1 sm:flex-initial rounded-xl bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white border border-red-500/20 px-4 py-2 text-xs font-bold transition-all text-center"
                         >
                           Reject
                         </button>
                         <button
                           type="button"
                           onClick={() => setReviewModalState({ isOpen: true, action: 'APPROVE' })}
-                          className="rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 text-xs font-bold shadow-md transition-colors"
+                          className="flex-1 sm:flex-initial rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 text-xs font-bold shadow-md transition-colors text-center"
                         >
                           Approve
                         </button>
                       </div>
                     ) : selectedSubmission.status === 'approved' || selectedSubmission.status === 'payment_pending' ? (
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 w-full sm:w-auto">
                         <button
                           type="button"
                           onClick={() => handleMarkAsPaid(selectedSubmission.id)}
-                          className="rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 text-xs font-bold shadow-md transition-colors flex items-center gap-1.5"
+                          className="flex-1 sm:flex-initial rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 text-xs font-bold shadow-md transition-colors flex items-center justify-center gap-1.5"
                           id="employee-modal-mark-paid-btn"
                         >
                           <DollarSign className="h-3.5 w-3.5" />
@@ -700,7 +699,7 @@ export default function EmployeeDashboardPage() {
                     <button
                       type="button"
                       onClick={() => setSelectedSubmission(null)}
-                      className="rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-5 py-2 text-xs font-bold shadow-md hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-colors"
+                      className="rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-5 py-2 text-xs font-bold shadow-md hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-colors text-center"
                     >
                       Close Audit
                     </button>

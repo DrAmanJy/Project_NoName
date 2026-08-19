@@ -10,8 +10,8 @@ export function VideoMetadata({ selectedVideo }: { selectedVideo: AdminVideoItem
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div className="space-y-2">
-                    <div>
+                <div className="space-y-2 min-w-0">
+                    <div className="truncate">
                         <span className="text-zinc-500">Video Title: </span>
                         <span className="font-bold text-zinc-900 dark:text-white">
                             {selectedVideo.title}
@@ -29,13 +29,13 @@ export function VideoMetadata({ selectedVideo }: { selectedVideo: AdminVideoItem
                             {selectedVideo.video?.uploadStatus || 'uploaded'}
                         </span>
                     </div>
-                    <div>
+                    <div className="truncate">
                         <span className="text-zinc-500">Creator Name: </span>
                         <span className="font-semibold text-zinc-900 dark:text-white">
                             {selectedVideo.userName} ({selectedVideo.userEmail})
                         </span>
                     </div>
-                    <div>
+                    <div className="truncate">
                         <span className="text-zinc-500">Creator User ID: </span>
                         <span className="font-mono text-zinc-400">
                             {selectedVideo.userId}
@@ -43,7 +43,7 @@ export function VideoMetadata({ selectedVideo }: { selectedVideo: AdminVideoItem
                     </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 min-w-0">
                     <div>
                         <span className="text-zinc-500">Cloudflare R2 Key: </span>
                         <span className="font-mono text-[11px] text-zinc-400 break-all">
