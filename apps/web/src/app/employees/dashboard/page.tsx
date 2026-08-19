@@ -199,8 +199,8 @@ export default function EmployeeDashboardPage() {
     const matchesFilter =
       selectedStatusFilter === 'ALL' ||
       (selectedStatusFilter === 'IN_REVIEW' && (item.status === 'in_review' || item.status === 'draft')) ||
-      (selectedStatusFilter === 'APPROVED' && item.status === 'approved') ||
-      (selectedStatusFilter === 'PAID' && (item.status === 'paid' || item.status === 'payment_pending')) ||
+      (selectedStatusFilter === 'APPROVED' && (item.status === 'approved' || item.status === 'payment_pending')) ||
+      (selectedStatusFilter === 'PAID' && item.status === 'paid') ||
       (selectedStatusFilter === 'REJECTED' && item.status === 'rejected');
 
     const matchesSearch =
@@ -215,7 +215,7 @@ export default function EmployeeDashboardPage() {
   // KPI Calculations
   const totalCount = videoSubmissions.length;
   const inReviewCount = videoSubmissions.filter((v) => v.status === 'in_review' || v.status === 'draft').length;
-  const paidCount = videoSubmissions.filter((v) => v.status === 'paid' || v.status === 'approved').length;
+  const paidCount = videoSubmissions.filter((v) => v.status === 'paid').length;
   const rejectedCount = videoSubmissions.filter((v) => v.status === 'rejected').length;
 
   return (
@@ -249,9 +249,9 @@ export default function EmployeeDashboardPage() {
                 <div className="group rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/80 dark:bg-zinc-950/80 p-5 shadow-sm backdrop-blur-xl transition-all duration-300 hover:border-zinc-400 dark:hover:border-zinc-700 hover:shadow-xl hover:-translate-y-1">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                      USER SUBMISSIONS
+                      TOTAL SUBMISSIONS
                     </span>
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white shadow-sm transition-transform duration-300 group-hover:scale-110">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 shadow-sm transition-transform duration-300 group-hover:scale-110">
                       <FileVideo className="h-5 w-5" />
                     </div>
                   </div>
@@ -259,7 +259,7 @@ export default function EmployeeDashboardPage() {
                     {totalCount}
                   </div>
                   <span className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 block">
-                    Total user videos tracked
+                    All user video uploads
                   </span>
                 </div>
 
@@ -285,11 +285,11 @@ export default function EmployeeDashboardPage() {
                   </span>
                 </div>
 
-                {/* Card 3: Approved & Paid */}
+                {/* Card 3: Paid Submissions */}
                 <div className="group rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/80 dark:bg-zinc-950/80 p-5 shadow-sm backdrop-blur-xl transition-all duration-300 hover:border-emerald-400/50 dark:hover:border-emerald-500/50 hover:shadow-xl hover:-translate-y-1">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                      APPROVED & PAID
+                      PAID SUBMISSIONS
                     </span>
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400 shadow-sm transition-transform duration-300 group-hover:scale-110">
                       <CheckCircle2 className="h-5 w-5" />

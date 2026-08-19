@@ -81,7 +81,8 @@ export function DashboardView() {
       selectedFilter === 'ALL' ||
       (selectedFilter === 'PROCESSING' && (video.status === 'uploading' || video.status === 'PROCESSING')) ||
       (selectedFilter === 'IN_REVIEW' && (video.status === 'in_review' || video.status === 'UNDER_REVIEW')) ||
-      (selectedFilter === 'PAID' && (video.status === 'paid' || video.status === 'approved' || video.status === 'PAID')) ||
+      (selectedFilter === 'APPROVED' && (video.status === 'approved' || video.status === 'SELECTED')) ||
+      (selectedFilter === 'PAID' && (video.status === 'paid' || video.status === 'PAID')) ||
       (selectedFilter === 'REJECTED' && (video.status === 'rejected' || video.status === 'REJECTED'));
 
     const formattedDate = new Date(video.createdAt).toLocaleDateString('en-US', {
@@ -99,12 +100,12 @@ export function DashboardView() {
 
   const totalVideos = videos.length;
   const inReviewCount = videos.filter((v) => v.status === 'UNDER_REVIEW' || v.status === 'PROCESSING' || v.status === 'in_review').length;
-  const paidCount = videos.filter((v) => v.status === 'PAID' || v.status === 'SELECTED' || v.status === 'paid' || v.status === 'approved').length;
+  const paidCount = videos.filter((v) => v.status === 'PAID' || v.status === 'paid').length;
   const totalEarnedAmount = videos
-    .filter((v) => v.status === 'PAID' || v.status === 'SELECTED' || v.status === 'paid' || v.status === 'approved')
+    .filter((v) => v.status === 'PAID' || v.status === 'paid')
     .reduce((acc, v) => acc + ((Number(v.earning) / 100) || 50), 0);
   const pendingEarnedAmount = videos
-    .filter((v) => v.status === 'UNDER_REVIEW' || v.status === 'PROCESSING' || v.status === 'in_review')
+    .filter((v) => v.status !== 'PAID' && v.status !== 'paid' && v.status !== 'REJECTED' && v.status !== 'rejected' && v.status?.toLowerCase() !== 'cancelled')
     .reduce((acc, v) => acc + ((Number(v.expectedEarning) / 100) || 35), 0);
 
   const getDerivedVideoData = (video: UploadedVideoItem) => {
@@ -112,12 +113,14 @@ export function DashboardView() {
     const isRejected = !isCancelled && (video.status === 'REJECTED' || video.status === 'rejected');
     const isInReview = !isCancelled && (video.status === 'UNDER_REVIEW' || video.status === 'in_review');
     const isProcessing = !isCancelled && (video.status === 'PROCESSING' || video.status === 'UPLOADING' || video.status === 'uploading');
-    const isPaid = !isCancelled && (video.status === 'PAID' || video.status === 'SELECTED' || video.status === 'paid' || video.status === 'approved');
+    const isApproved = !isCancelled && (video.status === 'SELECTED' || video.status === 'approved');
+    const isPaid = !isCancelled && (video.status === 'PAID' || video.status === 'paid');
 
     const videoStatus = video.video?.uploadStatus || (isCancelled ? 'cancelled' : 'uploaded');
     let statusLabel = 'In Review';
     if (isCancelled) statusLabel = 'Cancelled';
-    else if (isPaid) statusLabel = 'Approved & Paid';
+    else if (isPaid) statusLabel = 'Paid';
+    else if (isApproved) statusLabel = 'Approved';
     else if (isRejected) statusLabel = 'Rejected';
     else if (isProcessing) statusLabel = 'Processing';
 
@@ -132,26 +135,84 @@ export function DashboardView() {
     const duration = `${Math.floor(durationSeconds / 60).toString().padStart(2, '0')}:${Math.floor(durationSeconds % 60).toString().padStart(2, '0')}`;
     const uploadedAt = formattedDate;
 
-    const rewardAmount = (video.status === 'paid' || video.status === 'approved' || video.status === 'PAID' || video.status === 'SELECTED')
-      ? `$${(video.earning || 50).toFixed(2)}`
-      : `$${(video.expectedEarning || 0).toFixed(2)}`;
+    const rewardAmount = isPaid
+      ? `$${((video.earning || 5000) / 100).toFixed(2)}`
+      : isApproved
+        ? `$${((video.expectedEarning || 5000) / 100).toFixed(2)}`
+        : `$${((video.expectedEarning || 0) / 100).toFixed(2)}`;
     const thumbnailBg = 'from-amber-600/30 to-zinc-900';
     const videoUrl = video.video?.previewUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
 
     type VideoProgressStep = { title: string; description: string; state: 'completed' | 'current' | 'pending' | 'rejected'; timestamp?: string };
 
-    let steps: VideoProgressStep[] = video.timeline && video.timeline.length > 0
-      ? video.timeline.map((step) => ({
-        title: step.key === 'video_uploaded' ? 'Video Uploaded' : step.key === 'under_review' ? 'Quality & Guideline Review' : 'Payout Approval',
-        description: step.message || 'Timeline step status updated',
-        state: isCancelled ? 'rejected' : (step.status as VideoProgressStep['state']),
-        timestamp: step.completedAt ? new Date(step.completedAt).toLocaleString() : undefined,
-      }))
-      : [
-        { title: 'Video Uploaded', description: isCancelled ? 'Upload stage cancelled' : 'S3 chunk upload verified', state: isCancelled ? 'rejected' : 'completed', timestamp: new Date(video.createdAt).toLocaleString() },
-        { title: 'Quality & Guideline Review', description: isCancelled ? 'Upload stage cancelled' : 'Checking content against guidelines', state: isCancelled ? 'rejected' : isInReview ? 'current' : isRejected ? 'rejected' : 'completed' },
-        { title: 'Payout Approval', description: isCancelled ? 'Upload stage cancelled' : 'Reward disbursement to wallet', state: isCancelled ? 'rejected' : isPaid ? 'completed' : 'pending' },
+    let steps: VideoProgressStep[];
+    if (video.timeline && video.timeline.length > 0) {
+      steps = video.timeline.map((step) => {
+        let stepState: VideoProgressStep['state'] = isCancelled ? 'rejected' : (step.status as VideoProgressStep['state']);
+        let description = step.message || 'Timeline step status updated';
+
+        if (!isCancelled) {
+          if (step.key === 'payout_approval' || step.key === 'payout') {
+            if (isPaid) {
+              stepState = 'completed';
+              description = 'Paid - Reward transferred to creator wallet';
+            } else if (isApproved) {
+              stepState = 'current';
+              description = 'Approved - Awaiting payout release by admin';
+            } else if (isRejected) {
+              stepState = 'rejected';
+            } else {
+              stepState = 'pending';
+            }
+          } else if (step.key === 'under_review') {
+            if (isApproved || isPaid) {
+              stepState = 'completed';
+              description = 'Passed quality and platform guidelines';
+            }
+          }
+        }
+
+        return {
+          title: step.key === 'video_uploaded' ? 'Video Uploaded' : step.key === 'under_review' ? 'Quality & Guideline Review' : 'Payout Approval',
+          description,
+          state: stepState,
+          timestamp: step.completedAt ? new Date(step.completedAt).toLocaleString() : undefined,
+        };
+      });
+    } else {
+      steps = [
+        {
+          title: 'Video Uploaded',
+          description: isCancelled ? 'Upload stage cancelled' : 'S3 chunk upload verified',
+          state: isCancelled ? 'rejected' : 'completed',
+          timestamp: new Date(video.createdAt).toLocaleString(),
+        },
+        {
+          title: 'Quality & Guideline Review',
+          description: isCancelled
+            ? 'Upload stage cancelled'
+            : (isApproved || isPaid)
+              ? 'Passed quality and platform guidelines'
+              : isRejected
+                ? 'Failed quality checks'
+                : 'Checking content against guidelines',
+          state: isCancelled ? 'rejected' : (isApproved || isPaid) ? 'completed' : isRejected ? 'rejected' : 'current',
+        },
+        {
+          title: 'Payout Approval',
+          description: isCancelled
+            ? 'Upload stage cancelled'
+            : isPaid
+              ? 'Paid - Reward transferred to creator wallet'
+              : isApproved
+                ? 'Approved - Awaiting payout release by admin'
+                : isRejected
+                  ? 'Submission rejected'
+                  : 'Reward disbursement to wallet',
+          state: isCancelled ? 'rejected' : isPaid ? 'completed' : isApproved ? 'current' : isRejected ? 'rejected' : 'pending',
+        },
       ];
+    }
 
     if (isCancelled) {
       steps = steps.map((step) => ({
@@ -161,7 +222,7 @@ export function DashboardView() {
       }));
     }
 
-    return { isCancelled, isRejected, isInReview, isProcessing, isPaid, statusLabel, videoStatus, title, fileName, fileSize, duration, uploadedAt, rewardAmount, thumbnailBg, videoUrl, steps, rejectionReason: undefined };
+    return { isCancelled, isRejected, isInReview, isProcessing, isApproved, isPaid, statusLabel, videoStatus, title, fileName, fileSize, duration, uploadedAt, rewardAmount, thumbnailBg, videoUrl, steps, rejectionReason: undefined };
   };
 
   const selectedDerivedVideo = selectedVideo ? { ...selectedVideo, ...getDerivedVideoData(selectedVideo) } : null;
@@ -345,6 +406,17 @@ export function DashboardView() {
                     </button>
                     <button
                       type="button"
+                      onClick={() => setSelectedFilter('APPROVED')}
+                      className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'APPROVED'
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
+                        }`}
+                      id="filter-tab-approved"
+                    >
+                      Approved
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => setSelectedFilter('PAID')}
                       className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedFilter === 'PAID'
                         ? 'bg-emerald-600 text-white shadow-sm'
@@ -406,7 +478,7 @@ export function DashboardView() {
                 {filteredVideos.map((rawVideo) => {
                   const derived = getDerivedVideoData(rawVideo);
                   const video = { ...rawVideo, ...derived };
-                  const { isRejected, isInReview, isProcessing, isPaid } = derived;
+                  const { isRejected, isInReview, isProcessing, isApproved, isPaid } = derived;
 
                   return (
                     <div
@@ -441,16 +513,19 @@ export function DashboardView() {
                                   ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 line-through'
                                   : isPaid
                                     ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
-                                    : isInReview
-                                      ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
-                                      : isProcessing
-                                        ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
-                                        : 'bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
+                                    : isApproved
+                                      ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
+                                      : isInReview
+                                        ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
+                                        : isProcessing
+                                          ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
+                                          : 'bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
                                   }`}
                               >
                                 {derived.isCancelled && <XCircle className="h-3 w-3" />}
                                 {isProcessing && <RefreshCw className="h-3 w-3 animate-spin" />}
                                 {isInReview && <Clock className="h-3 w-3" />}
+                                {isApproved && <CheckCircle2 className="h-3 w-3" />}
                                 {isPaid && <CheckCircle2 className="h-3 w-3" />}
                                 {isRejected && <AlertCircle className="h-3 w-3" />}
                                 <span>{video.statusLabel}</span>
