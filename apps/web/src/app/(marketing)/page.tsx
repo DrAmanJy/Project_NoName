@@ -3,6 +3,7 @@ import { Navbar } from '@/components/layout/navbar';
 import { HeroSection } from '@/components/marketing/hero-section';
 import { AboutSection } from '@/components/marketing/about-section';
 import { HowItWorksSection } from '@/components/marketing/how-it-works-section';
+import { VideoCategoriesSection } from '@/components/marketing/video-categories-section';
 import { VideoUploadSection } from '@/components/marketing/video-upload-section';
 import { TestimonialsSection } from '@/components/marketing/testimonials-section';
 import { FAQSection } from '@/components/marketing/faq-section';
@@ -102,14 +103,15 @@ export default function MarketingPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-white dark:bg-black text-zinc-900 dark:text-zinc-50 selection:bg-zinc-900 selection:text-white dark:selection:bg-white dark:selection:text-zinc-900 transition-colors duration-300">
+    <div className="flex min-h-screen flex-col bg-white text-zinc-900 transition-colors duration-300 selection:bg-zinc-900 selection:text-white dark:bg-black dark:text-zinc-50 dark:selection:bg-white dark:selection:text-zinc-900">
       <JsonLd data={softwareAppSchema} />
       <JsonLd data={faqSchema} />
       <Navbar />
       <main className="flex-1">
         <HeroSection />
-        <AboutSection />
         <HowItWorksSection />
+        <AboutSection />
+        <VideoCategoriesSection />
         <VideoUploadSection />
         <TestimonialsSection />
         <FAQSection />

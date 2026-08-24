@@ -20,7 +20,6 @@ export function Navbar() {
     }
   };
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
@@ -43,30 +42,9 @@ export function Navbar() {
   }, []);
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const shouldBeDark = savedTheme === 'dark' || (!savedTheme && systemPrefersDark);
-
-    setIsDarkMode(shouldBeDark);
-    if (shouldBeDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    document.documentElement.classList.remove('dark');
+    localStorage.setItem('theme', 'light');
   }, []);
-
-  const toggleDarkMode = () => {
-    const nextDarkState = !isDarkMode;
-    setIsDarkMode(nextDarkState);
-
-    if (nextDarkState) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  };
 
   const navLinks = [
     { name: 'About', href: '#about' },
@@ -74,7 +52,6 @@ export function Navbar() {
     { name: 'Submit Video', href: '#upload' },
     { name: 'Testimonials', href: '#testimonials' },
     { name: 'FAQ', href: '#faq' },
-    { name: 'Download App', href: '#download' },
   ];
 
   return (
@@ -96,9 +73,10 @@ export function Navbar() {
                 <a
                   key={link.name}
                   href={link.href}
-                  className="text-sm font-medium text-zinc-600 dark:text-zinc-400 transition-colors hover:text-zinc-900 dark:hover:text-white"
+                  className="relative text-sm font-medium text-zinc-600 dark:text-zinc-400 transition-colors hover:text-zinc-900 dark:hover:text-white group py-1"
                 >
                   {link.name}
+                  <span className="absolute inset-x-0 bottom-0 h-[2px] bg-zinc-900 dark:bg-white scale-x-0 transition-transform origin-left group-hover:scale-x-100 ease-out duration-300" />
                 </a>
               ))}
             </nav>
@@ -106,17 +84,6 @@ export function Navbar() {
 
           {/* Actions */}
           <div className="hidden items-center gap-3 md:flex">
-            {/* Dark Mode Toggle Button */}
-            <button
-              type="button"
-              onClick={toggleDarkMode}
-              className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
-              aria-label="Toggle Theme"
-              id="theme-toggle-btn"
-            >
-              {isDarkMode ? <Sun className="h-5 w-5 text-amber-400" /> : <Moon className="h-5 w-5 text-zinc-900" />}
-            </button>
-
             {isAuthenticated && user ? (
               <div className="relative" ref={profileMenuRef}>
                 <button
@@ -201,17 +168,7 @@ export function Navbar() {
             )}
           </div>
 
-          {/* Mobile menu trigger & Theme toggle */}
           <div className="flex items-center gap-2 md:hidden">
-            <button
-              type="button"
-              onClick={toggleDarkMode}
-              className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900"
-              aria-label="Toggle Theme Mobile"
-              id="theme-toggle-mobile-btn"
-            >
-              {isDarkMode ? <Sun className="h-5 w-5 text-amber-400" /> : <Moon className="h-5 w-5 text-zinc-900" />}
-            </button>
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}

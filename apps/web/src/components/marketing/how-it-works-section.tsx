@@ -67,39 +67,43 @@ export function HowItWorksSection() {
               tl.to(
                 panel,
                 { filter: 'blur(8px)', scale: 0.94, opacity: 0, duration: 1, ease: 'power2.in' },
-                '+=0.5'
+                '+=0.5',
               );
             }
           } else if (i === panels.length - 1) {
             if (reducedMotion) {
               tl.fromTo(panel, { opacity: 0 }, { opacity: 1, duration: 1 }, '-=0.15').to(
                 {},
-                { duration: 1 }
+                { duration: 1 },
               );
             } else {
               tl.fromTo(
                 panel,
                 { filter: 'blur(8px)', scale: 1.04, opacity: 0 },
                 { filter: 'blur(0px)', scale: 1, opacity: 1, duration: 1, ease: 'power2.out' },
-                '-=0.15'
+                '-=0.15',
               ).to({}, { duration: 1 });
             }
           } else {
             if (reducedMotion) {
-              tl.fromTo(panel, { opacity: 0 }, { opacity: 1, duration: 1 }, '-=0.15').to(panel, {
-                opacity: 0,
-                duration: 1,
-              }, '+=0.5');
+              tl.fromTo(panel, { opacity: 0 }, { opacity: 1, duration: 1 }, '-=0.15').to(
+                panel,
+                {
+                  opacity: 0,
+                  duration: 1,
+                },
+                '+=0.5',
+              );
             } else {
               tl.fromTo(
                 panel,
                 { filter: 'blur(8px)', scale: 1.04, opacity: 0 },
                 { filter: 'blur(0px)', scale: 1, opacity: 1, duration: 1, ease: 'power2.out' },
-                '-=0.15'
+                '-=0.15',
               ).to(
                 panel,
                 { filter: 'blur(8px)', scale: 0.94, opacity: 0, duration: 1, ease: 'power2.in' },
-                '+=0.5'
+                '+=0.5',
               );
             }
           }
@@ -132,7 +136,7 @@ export function HowItWorksSection() {
           {
             root: scrollTrack,
             threshold: 0.5,
-          }
+          },
         );
 
         panels.forEach((p) => observer.observe(p));
@@ -145,38 +149,38 @@ export function HowItWorksSection() {
 
       return () => mm.revert();
     },
-    { scope: container }
+    { scope: container },
   );
 
   return (
     <section
       id="how-it-works"
       ref={container}
-      className="bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 relative border-t border-zinc-200 dark:border-zinc-900 transition-colors duration-300"
+      className="relative border-t border-zinc-200 bg-zinc-50 text-zinc-900 transition-colors duration-300 dark:border-zinc-900 dark:bg-zinc-950 dark:text-zinc-50"
     >
       {/* Desktop Version */}
       <div
         ref={wrapper}
-        className="hidden md:flex w-full h-[100svh] flex-col items-center justify-center relative"
+        className="relative hidden h-[100svh] w-full flex-col items-center justify-center md:flex"
       >
-        <div className="w-full text-center z-10 px-4 absolute top-16 md:top-20">
-          <h2 className="text-3xl md:text-5xl font-bold tracking-tight">How It Works</h2>
+        <div className="absolute top-16 z-10 w-full px-4 text-center md:top-20">
+          <h2 className="text-3xl font-bold tracking-tight md:text-5xl">How It Works</h2>
         </div>
 
-        <div className="relative w-full max-w-3xl px-4 flex-1 flex items-center justify-center mt-12 md:mt-0">
-          <div className="block w-full h-[400px] md:h-[300px] relative">
+        <div className="relative mt-12 flex w-full max-w-3xl flex-1 items-center justify-center px-4 md:mt-0">
+          <div className="relative block h-[400px] w-full md:h-[300px]">
             {steps.map((step, i) => (
               <div
                 key={i}
-                className={`step-panel flex flex-col items-center text-center absolute inset-0 justify-center ${
+                className={`step-panel absolute inset-0 flex flex-col items-center justify-center text-center ${
                   i === 0 ? 'opacity-100' : 'opacity-0'
                 }`}
               >
-                <div className="w-20 h-20 md:w-24 md:h-24 bg-white dark:bg-zinc-900 rounded-full flex items-center justify-center mb-6 md:mb-8 border border-zinc-200 dark:border-zinc-800 shadow-sm dark:shadow-none">
-                  <step.icon className="w-10 h-10 md:w-12 md:h-12 text-zinc-900 dark:text-white" />
+                <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-zinc-200 bg-white shadow-sm md:mb-8 md:h-24 md:w-24 dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-none">
+                  <step.icon className="h-10 w-10 text-zinc-900 md:h-12 md:w-12 dark:text-white" />
                 </div>
-                <h3 className="text-2xl md:text-4xl font-bold mb-3 md:mb-4">{step.title}</h3>
-                <p className="text-lg md:text-xl text-zinc-600 dark:text-zinc-400 max-w-lg mx-auto">
+                <h3 className="mb-3 text-2xl font-bold md:mb-4 md:text-4xl">{step.title}</h3>
+                <p className="mx-auto max-w-lg text-lg text-zinc-600 md:text-xl dark:text-zinc-400">
                   {step.desc}
                 </p>
               </div>
@@ -185,55 +189,55 @@ export function HowItWorksSection() {
         </div>
 
         {/* Progress Dots */}
-        <div className="flex absolute bottom-12 left-1/2 -translate-x-1/2 gap-4 z-20">
+        <div className="absolute bottom-12 left-1/2 z-20 flex -translate-x-1/2 gap-4">
           {steps.map((_, i) => (
             <div
               key={i}
-              className="step-dot w-2 h-2 rounded-full bg-zinc-300 dark:bg-zinc-600 transition-all duration-300"
+              className="step-dot h-2 w-2 rounded-full bg-zinc-300 transition-all duration-300 dark:bg-zinc-600"
             />
           ))}
         </div>
       </div>
 
       {/* Mobile Version (Native Horizontal Scroll) */}
-      <div className="md:hidden w-full flex flex-col py-20 overflow-hidden">
-        <div className="w-full text-center mb-10 px-4">
+      <div className="flex w-full flex-col overflow-hidden py-20 md:hidden">
+        <div className="mb-10 w-full px-4 text-center">
           <h2 className="text-3xl font-bold tracking-tight">How It Works</h2>
-          <p className="text-zinc-500 mt-4 text-sm font-medium">Swipe to explore &rarr;</p>
+          <p className="mt-4 text-sm font-medium text-zinc-500">Swipe to explore &rarr;</p>
         </div>
 
-        <div className="how-it-works-track flex w-full overflow-x-auto snap-x snap-mandatory hide-scrollbar">
+        <div className="how-it-works-track hide-scrollbar flex w-full snap-x snap-mandatory overflow-x-auto">
           {steps.map((step, i) => (
             <div
               key={i}
-              className={`step-panel-mobile flex-none w-[85vw] snap-center flex flex-col items-center text-center ${
+              className={`step-panel-mobile flex w-[85vw] flex-none snap-center flex-col items-center text-center ${
                 i === 0 ? 'ml-[7.5vw]' : ''
               } ${i === steps.length - 1 ? 'mr-[7.5vw]' : ''}`}
             >
-              <div className="w-20 h-20 bg-white dark:bg-zinc-900 rounded-full flex items-center justify-center mb-6 border border-zinc-200 dark:border-zinc-800 shadow-sm dark:shadow-none">
-                <step.icon className="w-10 h-10 text-zinc-900 dark:text-white" />
+              <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-none">
+                <step.icon className="h-10 w-10 text-zinc-900 dark:text-white" />
               </div>
-              <h3 className="text-2xl font-bold mb-3">{step.title}</h3>
-              <p className="text-lg text-zinc-600 dark:text-zinc-400 px-4">{step.desc}</p>
+              <h3 className="mb-3 text-2xl font-bold">{step.title}</h3>
+              <p className="px-4 text-lg text-zinc-600 dark:text-zinc-400">{step.desc}</p>
             </div>
           ))}
         </div>
 
         {/* Mobile Progress Dots */}
-        <div className="flex justify-center gap-3 mt-10">
+        <div className="mt-10 flex justify-center gap-3">
           {steps.map((_, i) => (
             <div
               key={i}
-              className="step-dot-mobile w-2 h-2 rounded-full bg-zinc-300 dark:bg-zinc-600 transition-all duration-300"
+              className="step-dot-mobile h-2 w-2 rounded-full bg-zinc-300 transition-all duration-300 dark:bg-zinc-600"
             />
           ))}
         </div>
       </div>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      `}</style>
+      `}} />
     </section>
   );
 }
