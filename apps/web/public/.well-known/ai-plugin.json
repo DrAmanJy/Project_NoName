@@ -9,9 +9,9 @@
   },
   "api": {
     "type": "openapi",
-    "url": "https://synex.app/ai.json"
+    "url": "https://lifestudiocanada.com/ai.json"
   },
-  "logo_url": "https://synex.app/synex_logo.png",
-  "contact_email": "support@synex.app",
-  "legal_info_url": "https://synex.app"
+  "logo_url": "https://lifestudiocanada.com/logo.png",
+  "contact_email": "support@lifestudiocanada.com",
+  "legal_info_url": "https://lifestudiocanada.com"
 }

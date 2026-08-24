@@ -11,9 +11,9 @@ export function Footer() {
           {/* Brand Info */}
           <div className="md:max-w-md">
             <Link href="/" className="flex items-center gap-3 group">
-              <img src="/synex_logo.png" alt="Synex Logo" className="h-12 w-auto object-contain transition-transform group-hover:scale-105 duration-300" />
+              <img src="/logo.png" alt="LifestudioCanada Logo" className="h-12 w-auto object-contain transition-transform group-hover:scale-105 duration-300" />
               <span className="text-2xl font-black tracking-tighter text-zinc-900 dark:text-white">
-                Synex<span className="text-zinc-400">.</span>
+                LifestudioCanada<span className="text-zinc-400">.</span>
               </span>
             </Link>
             <p className="mt-6 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
@@ -29,7 +29,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="mt-16 pt-8 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-zinc-200 dark:border-zinc-800/80">
           <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
-            © {new Date().getFullYear()} Synex Platform. All rights reserved.
+            © {new Date().getFullYear()} LifestudioCanada Platform. All rights reserved.
           </p>
         </div>
       </div>

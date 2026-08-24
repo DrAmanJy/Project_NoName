@@ -1,9 +1,9 @@
-# Synex Creator Video Platform
+# LifestudioCanada Creator Video Platform
 
-> Synex connects video creators with monetization opportunities by streamlining video uploads, automated verification, and fast creator reward payouts.
+> LifestudioCanada connects video creators with monetization opportunities by streamlining video uploads, automated verification, and fast creator reward payouts.
 
 ## Overview
-- Website: https://synex.app
+- Website: https://lifestudiocanada.com
 - Description: Upload video content, pass automated quality verification, and earn up to $100 per approved video submission.
 
 ## Platform Capabilities
@@ -18,8 +18,8 @@
 - Moderation Statuses: Draft, In Review, Approved, Paid, Rejected
 
 ## System Resources & Links
-- [Platform Home](https://synex.app): Landing page and creator overview
-- [Sign In](https://synex.app/login): Creator authentication portal
-- [Submissions Dashboard](https://synex.app/submission): Track submission timelines and earnings
-- [AI Plugin Spec](https://synex.app/.well-known/ai-plugin.json): Machine-readable plugin manifest
-- [AI Site Manifest](https://synex.app/ai.json): AI agent metadata file
+- [Platform Home](https://lifestudiocanada.com): Landing page and creator overview
+- [Sign In](https://lifestudiocanada.com/login): Creator authentication portal
+- [Submissions Dashboard](https://lifestudiocanada.com/submission): Track submission timelines and earnings
+- [AI Plugin Spec](https://lifestudiocanada.com/.well-known/ai-plugin.json): Machine-readable plugin manifest
+- [AI Site Manifest](https://lifestudiocanada.com/ai.json): AI agent metadata file

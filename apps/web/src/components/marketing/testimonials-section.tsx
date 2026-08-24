@@ -4,7 +4,7 @@ export function TestimonialsSection() {
   const testimonials = [
     {
       quote:
-        "As a beauty UGC creator, I used to wait weeks to get paid by traditional agencies. On Synex, I uploaded a 30-second unboxing video directly from my phone. Within 8 hours, it went from 'UNDER_REVIEW' to 'PAID' directly into my account. The sheer speed is unbelievable.",
+        "As a beauty UGC creator, I used to wait weeks to get paid by traditional agencies. On LifestudioCanada, I uploaded a 30-second unboxing video directly from my phone. Within 8 hours, it went from 'UNDER_REVIEW' to 'PAID' directly into my account. The sheer speed is unbelievable.",
       name: 'Sophia Al-Mansoor',
       role: 'UGC Beauty Creator',
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250&h=250',
@@ -28,7 +28,7 @@ export function TestimonialsSection() {
     },
     {
       quote:
-        "Synex completely changed how I monetize my B-roll footage. I uploaded raw clips from my weekend hike in Oregon, and earned $150 before Monday morning. It’s the simplest way for videographers to get paid for authentic raw content.",
+        "LifestudioCanada completely changed how I monetize my B-roll footage. I uploaded raw clips from my weekend hike in Oregon, and earned $150 before Monday morning. It’s the simplest way for videographers to get paid for authentic raw content.",
       name: "Liam O'Connor",
       role: 'Outdoor Filmmaker',
       avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=250&h=250',
@@ -36,7 +36,7 @@ export function TestimonialsSection() {
     },
     {
       quote:
-        "What sets Synex apart is total transparency. You see your upload progress, review stage, and instant payout status right on your dashboard. I’ve already recommended Synex to all my fellow food content creators.",
+        "What sets LifestudioCanada apart is total transparency. You see your upload progress, review stage, and instant payout status right on your dashboard. I’ve already recommended LifestudioCanada to all my fellow food content creators.",
       name: 'Amina Diallo',
       role: 'Culinary Content Creator',
       avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=250&h=250',

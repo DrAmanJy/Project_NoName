@@ -18,8 +18,8 @@ const baseUrl = process.env['NEXT_PUBLIC_SITE_URL'] ?? 'http://localhost:3000';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Synex - Turn Your Video Submissions Into Cash',
-    template: '%s | Synex',
+    default: 'LifestudioCanada - Turn Your Video Submissions Into Cash',
+    template: '%s | LifestudioCanada',
   },
   description:
     'Upload video content, pass automated quality verification, and earn direct payouts. Connect your creative work with monetized video opportunities.',
@@ -31,40 +31,48 @@ export const metadata: Metadata = {
     'content creator platform',
     'video rewards',
   ],
-  authors: [{ name: 'Synex Team' }],
-  creator: 'Synex',
-  publisher: 'Synex',
+  authors: [{ name: 'LifestudioCanada Team' }],
+  creator: 'LifestudioCanada',
+  publisher: 'LifestudioCanada',
   metadataBase: new URL(baseUrl),
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'Synex - Turn Your Video Submissions Into Cash',
+    title: 'LifestudioCanada - Turn Your Video Submissions Into Cash',
     description:
       'Upload video content, pass automated quality verification, and earn direct payouts.',
     url: baseUrl,
-    siteName: 'Synex',
+    siteName: 'LifestudioCanada',
     locale: 'en_US',
     type: 'website',
     images: [
       {
-        url: '/synex_logo.png',
+        url: '/logo.png',
         width: 800,
         height: 800,
-        alt: 'Synex Creator Platform',
+        alt: 'LifestudioCanada Creator Platform',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Synex - Turn Your Video Submissions Into Cash',
+    title: 'LifestudioCanada - Turn Your Video Submissions Into Cash',
     description:
       'Upload video content, pass automated quality verification, and earn direct payouts.',
-    images: ['/synex_logo.png'],
+    images: ['/logo.png'],
   },
+  manifest: '/site.webmanifest',
   icons: {
-    icon: '/icon.png',
-    apple: '/icon.png',
+    icon: [
+      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
+  appleWebApp: {
+    title: 'LifestudioCanada',
   },
   robots: {
     index: true,
@@ -83,9 +91,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'Synex',
+    name: 'LifestudioCanada',
     url: baseUrl,
-    logo: `${baseUrl}/synex_logo.png`,
+    logo: `${baseUrl}/logo.png`,
     description:
       'Creator platform enabling users to upload video content, pass quality verification, and earn rewards.',
     sameAs: [],
@@ -94,9 +102,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const websiteSchema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'Synex',
+    name: 'LifestudioCanada',
     url: baseUrl,
-    description: 'Turn your video submissions into earnings with Synex.',
+    description: 'Turn your video submissions into earnings with LifestudioCanada.',
     potentialAction: {
       '@type': 'SearchAction',
       target: `${baseUrl}/?q={search_term_string}`,

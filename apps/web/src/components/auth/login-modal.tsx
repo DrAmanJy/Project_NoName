@@ -263,7 +263,8 @@ export function LoginModal({ isOpen = true, onClose }: LoginModalProps) {
             <span>Continue with Google</span>
           </button>
 
-          {/* Facebook Button */}
+          {/* Facebook Button - Temporarily Disabled */}
+          {/*
           <button
             type="button"
             onClick={() => handleSocialLogin('facebook')}
@@ -280,8 +281,10 @@ export function LoginModal({ isOpen = true, onClose }: LoginModalProps) {
             )}
             <span>Continue with Facebook</span>
           </button>
+          */}
 
-          {/* Apple Button */}
+          {/* Apple Button - Temporarily Disabled */}
+          {/*
           <button
             type="button"
             onClick={() => handleSocialLogin('apple')}
@@ -298,6 +301,7 @@ export function LoginModal({ isOpen = true, onClose }: LoginModalProps) {
             )}
             <span>Continue with Apple</span>
           </button>
+          */}
         </div>
 
         {/* Footer Terms & Security Note */}

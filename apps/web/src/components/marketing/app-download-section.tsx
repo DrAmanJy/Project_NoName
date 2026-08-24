@@ -23,7 +23,7 @@ export function AppDownloadSection() {
             <div className="max-w-3xl flex flex-col items-center">
 
               <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white sm:text-5xl leading-tight">
-                Create & earn on the go with the Synex app
+                Create & earn on the go with the LifestudioCanada app
               </h2>
 
               <p className="mt-4 text-base text-zinc-600 dark:text-zinc-300 sm:text-lg leading-relaxed max-w-xl mx-auto">

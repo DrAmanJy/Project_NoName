@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "name": "Synex AI Metadata",
+  "name": "LifestudioCanada AI Metadata",
   "version": "1.0.0",
-  "description": "AI Bot and Agent discovery manifest for Synex creator platform",
+  "description": "AI Bot and Agent discovery manifest for LifestudioCanada creator platform",
   "provider": {
-    "name": "Synex",
-    "url": "https://synex.app",
-    "logo": "https://synex.app/synex_logo.png"
+    "name": "LifestudioCanada",
+    "url": "https://lifestudiocanada.com",
+    "logo": "https://lifestudiocanada.com/logo.png"
   },
   "capabilities": {
     "video_submission": true,
@@ -16,12 +16,12 @@
   "content_policy": {
     "indexing_allowed": true,
     "ai_training_allowed": true,
-    "llms_txt_url": "https://synex.app/llms.txt",
-    "llms_full_url": "https://synex.app/llms-full.txt"
+    "llms_txt_url": "https://lifestudiocanada.com/llms.txt",
+    "llms_full_url": "https://lifestudiocanada.com/llms-full.txt"
   },
   "endpoints": {
-    "sitemap": "https://synex.app/sitemap.xml",
-    "robots": "https://synex.app/robots.txt",
-    "plugin": "https://synex.app/.well-known/ai-plugin.json"
+    "sitemap": "https://lifestudiocanada.com/sitemap.xml",
+    "robots": "https://lifestudiocanada.com/robots.txt",
+    "plugin": "https://lifestudiocanada.com/.well-known/ai-plugin.json"
   }
 }

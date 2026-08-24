@@ -11,7 +11,7 @@ import { AppDownloadSection } from '@/components/marketing/app-download-section'
 import { JsonLd } from '@/components/seo/json-ld';
 
 export const metadata: Metadata = {
-  title: 'Synex - Turn Your Video Submissions Into Cash',
+  title: 'LifestudioCanada - Turn Your Video Submissions Into Cash',
   description:
     'Upload video content, pass automated quality verification, and earn up to $100 per approved submission. Join thousands of creators getting paid.',
   keywords: [
@@ -25,27 +25,27 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: 'Synex - Turn Your Video Submissions Into Cash',
+    title: 'LifestudioCanada - Turn Your Video Submissions Into Cash',
     description:
       'Upload video content, pass automated quality verification, and earn up to $100 per approved submission.',
     url: '/',
-    siteName: 'Synex',
+    siteName: 'LifestudioCanada',
     type: 'website',
     images: [
       {
-        url: '/synex_logo.png',
+        url: '/logo.png',
         width: 800,
         height: 800,
-        alt: 'Synex Landing Page',
+        alt: 'LifestudioCanada Landing Page',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Synex - Turn Your Video Submissions Into Cash',
+    title: 'LifestudioCanada - Turn Your Video Submissions Into Cash',
     description:
       'Upload video content, pass automated quality verification, and earn up to $100 per approved submission.',
-    images: ['/synex_logo.png'],
+    images: ['/logo.png'],
   },
 };
 
@@ -53,7 +53,7 @@ export default function MarketingPage() {
   const softwareAppSchema = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: 'Synex',
+    name: 'LifestudioCanada',
     operatingSystem: 'Web, iOS, Android',
     applicationCategory: 'MultimediaApplication',
     offers: {
@@ -76,7 +76,7 @@ export default function MarketingPage() {
     mainEntity: [
       {
         '@type': 'Question',
-        name: 'How do I earn money submitting videos on Synex?',
+        name: 'How do I earn money submitting videos on LifestudioCanada?',
         acceptedAnswer: {
           '@type': 'Answer',
           text: 'Upload your video through our web or mobile application. Once it passes automated verification and quality review, your reward balance is updated and funds can be cashed out directly.',
