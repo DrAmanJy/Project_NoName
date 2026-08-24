@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { Upload, Film, CheckCircle2, AlertCircle, Sparkles, Lock, LogIn } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { useGSAP } from '@gsap/react';
+import { gsap, isReducedMotion } from '@/lib/gsap';
+import { Upload, Film, CheckCircle2, AlertCircle, Lock, LogIn, Check } from 'lucide-react';
 import { VideoUploadManager } from '@repo/api-client';
 import { AllowedVideoContentTypeSchema } from '@repo/contracts';
 import { WebUploadSource } from '@/features/video/web-upload-source';
@@ -18,6 +20,8 @@ export function VideoUploadSection() {
   const [progress, setProgress] = useState(0);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024;
   
@@ -126,174 +130,237 @@ export function VideoUploadSection() {
     }
   };
 
+  useGSAP(() => {
+    if (isReducedMotion()) return;
+
+    gsap.fromTo(".upload-content", 
+      { opacity: 0, x: -30 },
+      {
+        opacity: 1, 
+        x: 0,
+        duration: 0.8,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: "top 75%",
+        }
+      }
+    );
+
+    gsap.fromTo(".upload-card", 
+      { opacity: 0, x: 30 },
+      {
+        opacity: 1, 
+        x: 0,
+        duration: 0.8,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: "top 75%",
+        }
+      }
+    );
+  }, { scope: containerRef });
+
   if (isAuthenticated) {
     return null;
   }
 
   return (
     <section
+      ref={containerRef}
       id="upload"
-      className="border-t border-zinc-200 bg-zinc-50 py-20 text-zinc-900 transition-colors duration-300 md:py-28 dark:border-zinc-900 dark:bg-black dark:text-zinc-50"
+      className="relative py-28 bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-900 overflow-hidden transition-colors duration-300"
     >
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-zinc-200 px-4 py-1.5 text-xs font-semibold text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">
-            <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-            <span>Instant Monetization</span>
+      {/* Decorative Radial Background Lights */}
+      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-96 h-96 bg-zinc-100/50 dark:bg-zinc-900/20 rounded-full blur-3xl -z-10" />
+      <div className="absolute top-1/2 right-0 -translate-y-1/2 w-96 h-96 bg-zinc-100/50 dark:bg-zinc-900/20 rounded-full blur-3xl -z-10" />
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+          
+          {/* Left Column: Heading and Details */}
+          <div className="upload-content lg:col-span-6 space-y-6">
+           
+            
+            <h2 className="text-4xl md:text-6xl font-extrabold tracking-tight text-zinc-900 dark:text-white leading-none">
+              Upload Your Video
+            </h2>
+            
+            <p className="text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              Share your authentic everyday moments with us. Upload your raw footage directly for review and earn high-tier payouts. No professional editing or follower count required.
+            </p>
+
+            <ul className="space-y-4 pt-4 border-t border-zinc-200 dark:border-zinc-800/80">
+              {[
+                "Secure, direct Cloudflare R2 video uploads",
+                "Automated quality and aspect ratio checks",
+                "Payouts sent to your balance within 24-48 hours",
+                "Keep content ownership until explicitly purchased"
+              ].map((item, idx) => (
+                <li key={idx} className="flex items-start gap-3">
+                  <div className="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center">
+                    <Check className="h-3.5 w-3.5 text-zinc-900 dark:text-zinc-100" />
+                  </div>
+                  <span className="text-zinc-700 dark:text-zinc-300 font-medium">{item}</span>
+                </li>
+              ))}
+            </ul>
           </div>
-          <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900 sm:text-5xl dark:text-white">
-            Upload Your Video
-          </h2>
-          <p className="mx-auto mt-3 max-w-xl text-base text-zinc-600 sm:text-lg dark:text-zinc-400">
-            Share your authentic moments with us. Upload your raw footage directly for review and
-            earn rewards.
-          </p>
-        </div>
 
-        {/* Upload Form Card */}
-        <div className="mt-12 rounded-3xl border border-zinc-200 bg-white p-6 shadow-lg sm:p-10 dark:border-zinc-800 dark:bg-zinc-950">
-          {!isAuthLoading && !isAuthenticated ? (
-            <div className="py-12 text-center">
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-amber-500/20 bg-amber-500/10 text-amber-500 shadow-sm">
-                <Lock className="h-8 w-8" />
-              </div>
-              <h3 className="text-2xl font-extrabold text-zinc-900 dark:text-white">
-                Sign In Required to Upload
-              </h3>
-              <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
-                You must be logged in to upload video content, submit raw footage for review, and
-                receive creator rewards.
-              </p>
-              <div className="mt-8 flex justify-center">
-                <button
-                  type="button"
-                  onClick={() => setIsLoginModalOpen(true)}
-                  className="inline-flex items-center gap-2 rounded-full bg-zinc-900 px-8 py-3.5 text-sm font-bold text-white shadow-md transition-all duration-300 hover:scale-105 hover:bg-zinc-800 hover:shadow-xl dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
-                  id="upload-section-login-btn"
-                >
-                  <LogIn className="h-4 w-4" />
-                  <span>Log In / Sign Up to Upload</span>
-                </button>
-              </div>
-            </div>
-          ) : uploadSuccess ? (
-            <div className="py-12 text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
-                <CheckCircle2 className="h-8 w-8" />
-              </div>
-              <h3 className="mt-6 text-2xl font-bold text-zinc-900 dark:text-white">
-                Video Uploaded Successfully!
-              </h3>
-              <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
-                Your video is now under review. You can track its status and expected payout on your
-                creator dashboard.
-              </p>
-              <button
-                type="button"
-                onClick={() => setUploadSuccess(false)}
-                className="mt-8 rounded-full bg-zinc-900 px-8 py-3 text-sm font-semibold text-white shadow-md transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
-              >
-                Upload Another Video
-              </button>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Drag and Drop Zone */}
-              <div
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={handleDrop}
-                className="group relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-300 bg-zinc-50 p-8 text-center transition-all hover:border-zinc-900 dark:border-zinc-800 dark:bg-zinc-900/50 dark:hover:border-zinc-400"
-              >
-                <input
-                  type="file"
-                  accept="video/*"
-                  onChange={handleFileChange}
-                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                  id="video-file-input"
-                />
-                <div className="flex h-14 w-14 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-900 shadow-sm transition-transform group-hover:scale-110 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white">
-                  {file ? <Film className="h-7 w-7" /> : <Upload className="h-7 w-7" />}
+          {/* Right Column: Interaction Card */}
+          <div className="upload-card lg:col-span-6">
+            <div className="rounded-3xl border border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/30 backdrop-blur-sm p-8 sm:p-10 shadow-xl dark:shadow-none relative overflow-hidden">
+              
+              {!isAuthLoading && !isAuthenticated ? (
+                <div className="text-center py-6">
+                  <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-sm">
+                    <Lock className="h-7 w-7" />
+                  </div>
+                  
+                  <h3 className="text-2xl font-bold text-zinc-900 dark:text-white">
+                    Sign In to Upload
+                  </h3>
+                  
+                  <p className="mt-3 text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed max-w-sm mx-auto">
+                    You must be signed in to your creator account to upload videos, submit files for moderation, and receive payouts.
+                  </p>
+                  
+                  <div className="mt-8">
+                    <button
+                      type="button"
+                      onClick={() => setIsLoginModalOpen(true)}
+                      className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 px-8 py-4 text-sm font-bold shadow-md transition-all hover:bg-zinc-800 dark:hover:bg-zinc-100 hover:scale-[1.02] active:scale-[0.98]"
+                      id="upload-section-login-btn"
+                    >
+                      <LogIn className="h-4 w-4" />
+                      <span>Log In / Sign Up to Upload</span>
+                    </button>
+                  </div>
                 </div>
-
-                {file ? (
-                  <div className="mt-4">
-                    <p className="text-sm font-bold text-zinc-900 dark:text-white">{file.name}</p>
-                    <p className="mt-1 text-xs text-zinc-500">
-                      {(file.size / (1024 * 1024)).toFixed(2)} MB
-                    </p>
+              ) : uploadSuccess ? (
+                <div className="py-6 text-center">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-md">
+                    <CheckCircle2 className="h-7 w-7" />
                   </div>
-                ) : (
-                  <div className="mt-4">
-                    <p className="text-sm font-semibold text-zinc-900 dark:text-white">
-                      Click to upload or drag and drop
-                    </p>
-                    <p className="mt-1 text-xs text-zinc-500">MP4, MOV, or WEBM (Max 100MB)</p>
-                  </div>
-                )}
-              </div>
+                  
+                  <h3 className="mt-6 text-2xl font-bold text-zinc-900 dark:text-white">
+                    Upload Complete!
+                  </h3>
+                  
+                  <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-sm mx-auto">
+                    Your video is now in the review queue. You can track progress and view payout details directly on your dashboard.
+                  </p>
+                  
+                  <button
+                    type="button"
+                    onClick={() => setUploadSuccess(false)}
+                    className="mt-8 rounded-full bg-zinc-900 px-8 py-3 text-sm font-semibold text-white shadow-md transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
+                  >
+                    Upload Another Video
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Drag and Drop Zone */}
+                  <div
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={handleDrop}
+                    className="group relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-200 hover:border-zinc-900 dark:border-zinc-800 dark:hover:border-zinc-400 bg-white dark:bg-zinc-900/50 p-8 text-center transition-all duration-300"
+                  >
+                    <input
+                      type="file"
+                      accept="video/*"
+                      onChange={handleFileChange}
+                      className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                      id="video-file-input"
+                    />
+                    
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-sm transition-transform duration-300 group-hover:scale-110">
+                      {file ? <Film className="h-6 w-6" /> : <Upload className="h-6 w-6" />}
+                    </div>
 
-              {/* Input Fields */}
-              <div>
-                <label
-                  htmlFor="video-country"
-                  className="block text-xs font-bold tracking-wider text-zinc-900 uppercase dark:text-zinc-200"
-                >
-                  Country
-                </label>
-                <input
-                  type="text"
-                  id="video-country"
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  placeholder="e.g. United States"
-                  className="mt-2 w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900 transition-colors outline-none placeholder:text-zinc-400 focus:border-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:focus:border-white"
-                />
-              </div>
-
-              {/* Progress Bar when uploading */}
-              {isUploading && (
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs font-semibold text-zinc-600 dark:text-zinc-400">
-                    <span>Uploading video to S3 storage...</span>
-                    <span>{progress}%</span>
+                    {file ? (
+                      <div className="mt-4">
+                        <p className="text-sm font-bold text-zinc-900 dark:text-white">{file.name}</p>
+                        <p className="mt-1 text-xs text-zinc-500">
+                          {(file.size / (1024 * 1024)).toFixed(2)} MB
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="mt-4">
+                        <p className="text-sm font-semibold text-zinc-900 dark:text-white">
+                          Click to upload or drag and drop
+                        </p>
+                        <p className="mt-1 text-xs text-zinc-500">MP4, MOV, or WEBM (Max 100MB)</p>
+                      </div>
+                    )}
                   </div>
-                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-                    <div
-                      className="h-2.5 rounded-full bg-amber-500 transition-all duration-300"
-                      style={{ width: `${progress}%` }}
+
+                  {/* Input Fields */}
+                  <div>
+                    <label
+                      htmlFor="video-country"
+                      className="block text-xs font-bold tracking-wider text-zinc-900 uppercase dark:text-zinc-200"
+                    >
+                      Country
+                    </label>
+                    <input
+                      type="text"
+                      id="video-country"
+                      value={country}
+                      onChange={(e) => setCountry(e.target.value)}
+                      placeholder="e.g. United States"
+                      className="mt-2 w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-white transition-colors outline-none placeholder:text-zinc-400 focus:border-zinc-900 dark:focus:border-white"
                     />
                   </div>
-                </div>
-              )}
 
-              {/* Error Alert */}
-              {errorMessage && (
-                <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-xs font-semibold text-red-600 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-400">
-                  <AlertCircle className="h-4 w-4 shrink-0" />
-                  <span>{errorMessage}</span>
-                </div>
-              )}
+                  {/* Progress Bar */}
+                  {isUploading && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                        <span>Uploading video to S3 storage...</span>
+                        <span>{progress}%</span>
+                      </div>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                        <div
+                          className="h-2 rounded-full bg-zinc-950 dark:bg-white transition-all duration-300"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
 
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={isUploading || !file}
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-zinc-900 py-4 text-sm font-semibold text-white shadow-md transition-all hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
-                id="submit-video-btn"
-              >
-                {isUploading ? (
-                  <span>Uploading Video ({progress}%)...</span>
-                ) : (
-                  <span>Submit Video for Review</span>
-                )}
-              </button>
-            </form>
-          )}
+                  {/* Error Alert */}
+                  {errorMessage && (
+                    <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-xs font-semibold text-red-600 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-400">
+                      <AlertCircle className="h-4 w-4 shrink-0" />
+                      <span>{errorMessage}</span>
+                    </div>
+                  )}
+
+                  {/* Submit Button */}
+                  <button
+                    type="submit"
+                    disabled={isUploading || !file}
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 py-4 text-sm font-semibold shadow-md transition-all hover:bg-zinc-850 dark:hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60"
+                    id="submit-video-btn"
+                  >
+                    {isUploading ? (
+                      <span>Uploading Video ({progress}%)...</span>
+                    ) : (
+                      <span>Submit Video for Review</span>
+                    )}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+
         </div>
       </div>
 
-      {/* Login Modal for unauthenticated users */}
+      {/* Login Modal */}
       <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
     </section>
   );

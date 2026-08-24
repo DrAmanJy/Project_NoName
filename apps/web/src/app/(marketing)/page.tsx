@@ -5,10 +5,10 @@ import { AboutSection } from '@/components/marketing/about-section';
 import { HowItWorksSection } from '@/components/marketing/how-it-works-section';
 import { VideoCategoriesSection } from '@/components/marketing/video-categories-section';
 import { VideoUploadSection } from '@/components/marketing/video-upload-section';
+import { EarningsSection } from '@/components/marketing/earnings-section';
 import { TestimonialsSection } from '@/components/marketing/testimonials-section';
 import { FAQSection } from '@/components/marketing/faq-section';
 import { Footer } from '@/components/layout/footer';
-import { AppDownloadSection } from '@/components/marketing/app-download-section';
 import { JsonLd } from '@/components/seo/json-ld';
 
 export const metadata: Metadata = {
@@ -113,6 +113,7 @@ export default function MarketingPage() {
         <AboutSection />
         <VideoCategoriesSection />
         <VideoUploadSection />
+        <EarningsSection />
         <TestimonialsSection />
         <FAQSection />
         {/* <AppDownloadSection /> */}

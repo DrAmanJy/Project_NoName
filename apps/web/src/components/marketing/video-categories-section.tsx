@@ -68,7 +68,7 @@ export function VideoCategoriesSection() {
         const sections = gsap.utils.toArray('.category-card') as HTMLElement[];
         const dots = gsap.utils.toArray('.cat-dot') as HTMLElement[];
 
-        const horizontalTween = gsap.to(sections, {
+        gsap.to(sections, {
           xPercent: -100 * (sections.length - 1),
           ease: 'none',
           scrollTrigger: {
@@ -92,7 +92,7 @@ export function VideoCategoriesSection() {
               });
 
               if (!reducedMotion) {
-                sections.forEach((section: any, i: number) => {
+                sections.forEach((section: HTMLElement, i: number) => {
                   const distance = Math.abs(floatIndex - i);
                   let activeProgress = 1 - distance;
                   activeProgress = Math.max(0, Math.min(1, activeProgress));
@@ -114,7 +114,7 @@ export function VideoCategoriesSection() {
         });
 
         if (reducedMotion) {
-          sections.forEach((s: any) => {
+          sections.forEach((s: HTMLElement) => {
             gsap.set(s.querySelector('.inner-img'), { scale: 1, filter: 'none' });
           });
         }
@@ -151,7 +151,7 @@ export function VideoCategoriesSection() {
         const sections = gsap.utils.toArray('.category-card') as HTMLElement[];
 
         if (!reducedMotion) {
-          sections.forEach((s: any) => {
+          sections.forEach((s: HTMLElement) => {
             gsap.set(s.querySelector('.inner-img'), {
               scale: 0.94,
               filter: 'saturate(0.6) brightness(0.8)',
@@ -174,7 +174,7 @@ export function VideoCategoriesSection() {
                   }
                 });
 
-                sections.forEach((s: any, i: number) => {
+                sections.forEach((s: HTMLElement, i: number) => {
                   const video = s.querySelector('video');
                   if (video) {
                     if (i === idx) {
@@ -186,7 +186,7 @@ export function VideoCategoriesSection() {
                 });
 
                 if (!reducedMotion) {
-                  sections.forEach((s: any, i: number) => {
+                  sections.forEach((s: HTMLElement, i: number) => {
                     const img = s.querySelector('.inner-img');
                     if (img) {
                       if (i === idx) {
@@ -218,7 +218,7 @@ export function VideoCategoriesSection() {
           },
         );
 
-        sections.forEach((s: any) => {
+        sections.forEach((s: HTMLElement) => {
           const video = s.querySelector('video');
           if (video) video.pause(); // Ensure initially paused
           observer.observe(s);

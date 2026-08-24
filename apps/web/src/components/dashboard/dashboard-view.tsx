@@ -101,7 +101,7 @@ export function DashboardView() {
   const totalVideos = videos.length;
   const inReviewCount = videos.filter((v) => v.status === 'UNDER_REVIEW' || v.status === 'PROCESSING' || v.status === 'in_review').length;
   const approvedCount = videos.filter((v) => v.status === 'SELECTED' || v.status === 'approved').length;
-  const paidCount = videos.filter((v) => v.status === 'PAID' || v.status === 'paid').length;
+  const _paidCount = videos.filter((v) => v.status === 'PAID' || v.status === 'paid').length;
   const totalEarnedAmount = videos
     .filter((v) => v.status === 'PAID' || v.status === 'paid')
     .reduce((acc, v) => acc + ((Number(v.earning) / 100) || 50), 0);
