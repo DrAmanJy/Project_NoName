@@ -12,7 +12,7 @@ export function TestimonialsSection() {
     },
     {
       quote:
-        "The direct presigned R2 upload is super smooth even for heavy 4K 60fps clips. I love being able to track every step of my submission status in real-time on the creator dashboard. No middleman, just raw video assets for real reward payouts.",
+        "Uploading my heavy 4K 60fps clips directly through the website is incredibly fast. I love being able to track every step of my submission status in real-time on the creator dashboard. No middleman, just get paid for your raw videos.",
       name: 'Alexey Morozov',
       role: 'Tech & Gear Reviewer',
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=250&h=250',

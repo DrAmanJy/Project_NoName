@@ -13,8 +13,8 @@ const steps = [
   },
   {
     icon: UploadCloud,
-    title: '2. Send via WhatsApp',
-    desc: 'No apps to download. Just drop your raw video directly into our WhatsApp chat.',
+    title: '2. Upload Directly',
+    desc: 'No apps to download. Just upload your raw video directly through our website.',
   },
   {
     icon: IndianRupee,

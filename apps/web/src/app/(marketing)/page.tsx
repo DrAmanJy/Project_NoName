@@ -113,7 +113,7 @@ export default function MarketingPage() {
         <VideoUploadSection />
         <TestimonialsSection />
         <FAQSection />
-        <AppDownloadSection />
+        {/* <AppDownloadSection /> */}
       </main>
       <Footer />
     </div>
