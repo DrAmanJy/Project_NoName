@@ -14,7 +14,8 @@ const envSchema = z.object({
 
   EXPECTED_EARNING_AMOUNT: z.coerce.number().int().nonnegative(),
 
-  AUTH_COOKIE_NAME: z.string().default(process.env.NODE_ENV === 'production' ? '__Host-session' : 'session'),
+  AUTH_COOKIE_NAME: z.string().default(process.env.NODE_ENV === 'production' ? '__Secure-session' : 'session'),
+  AUTH_COOKIE_DOMAIN: z.string().optional(),
   AUTH_SESSION_TTL_DAYS: z.coerce.number().default(30),
   AUTH_ENCRYPTION_KEY: z.string().refine((val) => Buffer.byteLength(val, 'utf-8') === 32, { message: 'Must be exactly 32 UTF-8 bytes' }),
 

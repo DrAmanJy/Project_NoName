@@ -21,6 +21,7 @@ export class AuthController {
       secure: env.NODE_ENV === 'production',
       sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
       path: '/',
+      domain: env.AUTH_COOKIE_DOMAIN,
       maxAge: env.AUTH_SESSION_TTL_DAYS * 24 * 60 * 60 * 1000,
     });
   }
@@ -407,6 +408,7 @@ export class AuthController {
         secure: env.NODE_ENV === 'production',
         sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
         path: '/',
+        domain: env.AUTH_COOKIE_DOMAIN,
       });
       res.status(200).json({ success: true });
     } catch (error) {
@@ -424,6 +426,7 @@ export class AuthController {
         secure: env.NODE_ENV === 'production',
         sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
         path: '/',
+        domain: env.AUTH_COOKIE_DOMAIN,
       });
       res.status(200).json({ success: true });
     } catch (error) {
