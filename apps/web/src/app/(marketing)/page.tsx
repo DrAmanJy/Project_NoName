@@ -109,9 +109,9 @@ export default function MarketingPage() {
       <Navbar />
       <main className="flex-1">
         <HeroSection />
+        <VideoCategoriesSection />
         <HowItWorksSection />
         <AboutSection />
-        <VideoCategoriesSection />
         <VideoUploadSection />
         <EarningsSection />
         <TestimonialsSection />

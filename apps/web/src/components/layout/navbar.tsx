@@ -47,11 +47,11 @@ export function Navbar() {
   }, []);
 
   const navLinks = [
-    { name: 'About', href: '#about' },
-    { name: 'How It Works', href: '#how-it-works' },
-    { name: 'Submit Video', href: '#upload' },
-    { name: 'Testimonials', href: '#testimonials' },
-    { name: 'FAQ', href: '#faq' },
+    { name: 'About', href: '/#about' },
+    { name: 'How It Works', href: '/#how-it-works' },
+    { name: 'Submit Video', href: '/#upload' },
+    { name: 'Testimonials', href: '/#testimonials' },
+    { name: 'FAQ', href: '/#faq' },
   ];
 
   return (
@@ -70,14 +70,14 @@ export function Navbar() {
           {!isAuthenticated && (
             <nav className="hidden items-center gap-8 md:flex">
               {navLinks.map((link) => (
-                <a
+                <Link
                   key={link.name}
                   href={link.href}
                   className="relative text-sm font-medium text-zinc-600 dark:text-zinc-400 transition-colors hover:text-zinc-900 dark:hover:text-white group py-1"
                 >
                   {link.name}
                   <span className="absolute inset-x-0 bottom-0 h-[2px] bg-zinc-900 dark:bg-white scale-x-0 transition-transform origin-left group-hover:scale-x-100 ease-out duration-300" />
-                </a>
+                </Link>
               ))}
             </nav>
           )}
@@ -187,14 +187,14 @@ export function Navbar() {
             <div className="flex flex-col gap-4">
               {!isAuthenticated &&
                 navLinks.map((link) => (
-                  <a
+                  <Link
                     key={link.name}
                     href={link.href}
                     onClick={() => setMobileMenuOpen(false)}
                     className="py-1.5 text-base font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white"
                   >
                     {link.name}
-                  </a>
+                  </Link>
                 ))}
               <div className="mt-4 flex flex-col gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-900">
                 {isAuthenticated && user ? (

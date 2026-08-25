@@ -241,7 +241,7 @@ export function VideoCategoriesSection() {
       className="relative flex flex-col justify-center bg-white py-20 text-zinc-900 transition-colors duration-300 md:h-screen md:overflow-hidden md:py-0 dark:bg-black dark:text-white"
     >
       <div className="pointer-events-none z-10 mb-10 flex w-full justify-center px-4 md:absolute md:top-16 md:left-0 md:mb-0 md:text-center">
-        <div className="inline-block rounded-3xl border border-white/60 bg-white/70 px-6 py-5 shadow-[0_8px_30px_rgb(0,0,0,0.12)] backdrop-blur-xl md:px-10 md:py-8">
+        <div className="inline-block rounded-3xl border border-white/60 bg-white/70 px-6 py-5 shadow-[0_8px_30px_rgb(0,0,0,0.12)] backdrop-blur-xl md:px-10 md:py-2">
           <h2 className="text-3xl leading-tight font-bold tracking-tight text-zinc-900 md:text-5xl">
             What We're Looking For
           </h2>

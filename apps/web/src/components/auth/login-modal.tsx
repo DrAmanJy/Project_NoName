@@ -308,11 +308,11 @@ export function LoginModal({ isOpen = true, onClose }: LoginModalProps) {
         <div ref={footerRef} className="mt-8 text-center border-t border-zinc-200 dark:border-zinc-900 pt-4 opacity-0">
           <p className="text-[11px] leading-relaxed text-zinc-500">
             By signing in, you agree to our{' '}
-            <Link href="#" className="underline hover:text-zinc-900 dark:hover:text-white">
+            <Link href="/terms" className="underline hover:text-zinc-900 dark:hover:text-white">
               Terms of Service
             </Link>{' '}
             and{' '}
-            <Link href="#" className="underline hover:text-zinc-900 dark:hover:text-white">
+            <Link href="/privacy-policy" className="underline hover:text-zinc-900 dark:hover:text-white">
               Privacy Policy
             </Link>
             .<br />

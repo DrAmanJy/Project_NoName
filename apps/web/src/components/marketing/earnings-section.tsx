@@ -114,7 +114,7 @@ export function EarningsSection() {
               <Video className="w-8 h-8" />
             </div>
             <h3 className="font-bold text-xl mb-2 text-zinc-900 dark:text-zinc-50">Upload Video</h3>
-            <p className="text-zinc-600 dark:text-zinc-400 max-w-[200px]">Send your clip via our secure WhatsApp chat.</p>
+            <p className="text-zinc-600 dark:text-zinc-400 max-w-[200px]">Send your clip via our website.</p>
           </div>
 
           <div className="earn-step flex flex-col items-center bg-zinc-50 dark:bg-zinc-950 px-4 transition-colors duration-300">
