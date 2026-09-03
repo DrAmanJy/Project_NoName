@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { Menu, X, ArrowRight, Sun, Moon, ChevronDown, LogOut } from 'lucide-react';
+import { Menu, X, ArrowRight, ChevronDown, LogOut } from 'lucide-react';
 import { LoginModal } from '@/components/auth/login-modal';
+import { FillToGetPaidModal } from '@/components/layout/fill-to-get-paid-modal';
 import { useAuth } from '@/hooks/use-auth';
 
 export function Navbar() {
@@ -21,6 +22,7 @@ export function Navbar() {
   };
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isGetPaidModalOpen, setIsGetPaidModalOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
@@ -84,6 +86,16 @@ export function Navbar() {
 
           {/* Actions */}
           <div className="hidden items-center gap-3 md:flex">
+            {!isAuthenticated && (
+              <button
+                type="button"
+                onClick={() => setIsGetPaidModalOpen(true)}
+                className="rounded-full bg-[#DD413A] px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-[#c5322b] hover:shadow-lg active:scale-[0.98]"
+                id="navbar-get-paid-btn"
+              >
+                Fill to Get Paid
+              </button>
+            )}
             {isAuthenticated && user ? (
               <div className="relative" ref={profileMenuRef}>
                 <button
@@ -264,17 +276,30 @@ export function Navbar() {
                     </button>
                   </div>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      setIsLoginModalOpen(true);
-                    }}
-                    className="w-full text-center rounded-full bg-zinc-900 dark:bg-white py-2.5 text-sm font-semibold text-white dark:text-zinc-900 shadow-md transition-all hover:bg-zinc-800 dark:hover:bg-zinc-100 hover:shadow-lg"
-                    id="mobile-login-modal-btn"
-                  >
-                    Login
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setIsGetPaidModalOpen(true);
+                      }}
+                      className="w-full text-center rounded-full bg-[#DD413A] py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-[#c5322b] hover:shadow-lg"
+                      id="mobile-get-paid-btn"
+                    >
+                      Fill to Get Paid
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setIsLoginModalOpen(true);
+                      }}
+                      className="w-full text-center rounded-full bg-zinc-900 dark:bg-white py-2.5 text-sm font-semibold text-white dark:text-zinc-900 shadow-md transition-all hover:bg-zinc-800 dark:hover:bg-zinc-100 hover:shadow-lg"
+                      id="mobile-login-modal-btn"
+                    >
+                      Login
+                    </button>
+                  </>
                 )}
 
               </div>
@@ -285,6 +310,9 @@ export function Navbar() {
 
       {/* Login Popup Component */}
       <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
+
+      {/* Get Paid Modal Component */}
+      <FillToGetPaidModal isOpen={isGetPaidModalOpen} onClose={() => setIsGetPaidModalOpen(false)} />
     </>
   );
 }
