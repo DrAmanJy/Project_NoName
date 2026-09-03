@@ -30,7 +30,7 @@ export class SubmissionsController {
         return;
       }
 
-      const { fileName, contentType, fileSize, totalParts, durationSeconds, width, height } = parsed.data;
+      const { fileName, contentType, fileSize, totalParts, durationSeconds, width, height, country } = parsed.data;
 
       if (fileSize > env.VIDEO_MAX_SIZE_BYTES) {
         res.status(400).json({ error: 'UPLOAD_TOO_LARGE' });
@@ -38,6 +38,13 @@ export class SubmissionsController {
       }
 
       const userId = new Types.ObjectId(auth.userId);
+
+      // Enforce 1 submission per user limit
+      const anyExistingSubmission = await Submission.findOne({ userId });
+      if (anyExistingSubmission && anyExistingSubmission.idempotencyKey !== idempotencyKey) {
+        res.status(403).json({ error: 'LIMIT_EXCEEDED', message: 'Only one submission allowed per user.' });
+        return;
+      }
 
       // Idempotency check: see if submission already exists
       const existingSubmission = await Submission.findOne({ userId, idempotencyKey });
@@ -66,6 +73,7 @@ export class SubmissionsController {
           expectedEarning: env.EXPECTED_EARNING_AMOUNT,
           earning: 0,
           idempotencyKey,
+          country,
           timeline: [{ status: 'draft', timestamp: new Date(), userId }],
         });
 

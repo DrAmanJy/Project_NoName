@@ -123,11 +123,20 @@ const VideoUploadSchema = new Schema<IVideoUpload>(
 
 // Index for time-based cleanup queries
 VideoUploadSchema.index({ createdAt: 1 });
-// TTL index: auto-delete cancelled upload documents after VIDEO_RETENTION_DAYS days.
+// TTL index: auto-delete cancelled upload documents after 1 hour (3600 seconds).
 // This only removes the DB record; the aborted S3 multipart is already cleaned up at cancel time.
 VideoUploadSchema.index(
   { cancelledAt: 1 },
-  { expireAfterSeconds: 30 * 24 * 60 * 60, partialFilterExpression: { status: 'cancelled' } },
+  { expireAfterSeconds: 3600, partialFilterExpression: { status: 'cancelled' } },
+);
+// TTL index: auto-delete stuck (created or uploading) uploads after 1 hour
+VideoUploadSchema.index(
+  { updatedAt: 1 },
+  { expireAfterSeconds: 3600, partialFilterExpression: { status: 'created' } },
+);
+VideoUploadSchema.index(
+  { updatedAt: 1 },
+  { expireAfterSeconds: 3600, partialFilterExpression: { status: 'uploading' } },
 );
 
 export const VideoUpload = mongoose.model<IVideoUpload>('VideoUpload', VideoUploadSchema);
