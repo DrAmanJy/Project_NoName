@@ -7,6 +7,8 @@ import { VideoCategoriesSection } from '@/components/marketing/video-categories-
 import { VideoUploadSection } from '@/components/marketing/video-upload-section';
 import { EarningsSection } from '@/components/marketing/earnings-section';
 import { TestimonialsSection } from '@/components/marketing/testimonials-section';
+import { TrustedBySection } from '@/components/marketing/trusted-by-section';
+import { StatsSection } from '@/components/marketing/stats-section';
 import { FAQSection } from '@/components/marketing/faq-section';
 import { Footer } from '@/components/layout/footer';
 import { JsonLd } from '@/components/seo/json-ld';
@@ -109,9 +111,11 @@ export default function MarketingPage() {
       <Navbar />
       <main className="flex-1">
         <HeroSection />
+        <TrustedBySection />
         <VideoCategoriesSection />
         <HowItWorksSection />
         <AboutSection />
+        <StatsSection />
         <VideoUploadSection />
         <EarningsSection />
         <TestimonialsSection />
